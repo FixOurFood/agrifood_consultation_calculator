@@ -114,3 +114,25 @@ def help_str(help, sidebar_key, row_index, heading_key=None):
         help_string = f"[{help_string}]({doc_str}{heading_key})"
 
     return help_string
+
+@st.dialog("Agrifood Calculator", width="large")
+def first_run_dialog():
+
+    st.write("""The Agrifood Calculator provides a model of the UK agrifood
+            system that allows you to explore pathways for how we might reduce
+            the UK’s greenhouse gas emissions to net zero by 2050 through
+            agriculture and food.""")
+    
+    st.write("""Choose your interventions for reducing emissions or increasing
+            sequestration, set the level for where you want the intervention
+            to be, and the calculator shows how your choices affect UK emissions,
+            land use and UK self-sufficiency.""")
+    st.write("""Its purpose is to help everyone engage in the debate and explore how
+            different plans support the path to net zero.""")
+             
+    st.write("""The Agrifood Calculator was developed with funding from [FixOurFood](https://fixourfood.org/).
+            It was conceived as a tool to support evidence based policy making
+            and to engage food system stakeholders in a conversation about
+            pathways to net zero.""")
+    
+    st.write("""We would be grateful for your feedback - Fill in our [Feedback Form](https://docs.google.com/forms/d/e/1FAIpQLSdnBp2Rmr-1fFYRQvEVcLLKchdlXZG4GakTBK5yy6jozUt8NQ/viewform?usp=sf_link)""")

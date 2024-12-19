@@ -27,6 +27,9 @@ if "cereal_scaling" not in st.session_state:
 if "cereals" not in st.session_state:
     st.session_state["cereals"] = 0
 
+if "first_run" not in st.session_state:
+    st.session_state["first_run"] = True
+
 # ------------------------
 # Help and tooltip strings
 # ------------------------
@@ -40,6 +43,10 @@ st.set_page_config(layout='wide',
 
 with open('utils/style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+if st.session_state.first_run:
+    st.session_state.first_run = False
+    first_run_dialog()
 
 with st.sidebar:
 
