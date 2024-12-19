@@ -50,7 +50,7 @@ def plots(datablock):
 
             with st.container(height=750, border=True):
                 
-                st.markdown('''**UK Emissions and removals balance**''')
+                st.markdown('''**UK Emissions balance**''')
                 if st.session_state.emission_factors == "NDC 2020":
                     
                     seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
@@ -108,13 +108,16 @@ def plots(datablock):
         with col_comp_2:
             with st.container(height=750, border=True):
 
-                st.markdown('''**Self-sufficiency ratio.**''')
+                st.markdown('''**Self-sufficiency**''')
 
                 ssr_metric = st.selectbox("Select metric", ["g/cap/day",
                                                            "g_prot/cap/day",
                                                            "g_fat/cap/day",
                                                            "g_co2e/cap/day",
                                                            "kCal/cap/day",], key="SSR_metric")
+                
+                st.caption("""‘SSR can be calculated by weight (tonnes produced /
+                         tonnes used) or other metrics e.g. kcal produced / kcal used.’""")
 
                 gcapday = datablock["food"][ssr_metric].sel(Year=metric_yr).fillna(0)
                 gcapday = gcapday.fbs.group_sum(coordinate="Item_origin", new_name="Item")
@@ -136,6 +139,7 @@ def plots(datablock):
 
                 production_bar = plot_single_bar_altair(gcapday["production"],
                                                         show="Item",
+                                                        legend=True,
                                                         vertical=False,
                                                         ax_ticks=True,
                                                         bar_width=100,
@@ -147,6 +151,7 @@ def plots(datablock):
 
                 imports_bar = plot_single_bar_altair(domestic_use,
                                                      show="Item",
+                                                     legend=True,
                                                      vertical=False,
                                                      ax_ticks=True,
                                                      bar_width=100,
@@ -215,7 +220,7 @@ def plots(datablock):
         with col_comp_3:
             with st.container(height=750, border=True):
 
-                st.markdown('''**Land use distribution**''')
+                st.markdown('''**Land use**''')
 
 
                 f, plot1 = plt.subplots(1, figsize=(6, 6))
@@ -260,24 +265,6 @@ def plots(datablock):
                 </div>''', unsafe_allow_html=True)
 
         with st.container():
-            st.markdown("## AgriFood Calculator")
-            st.caption(f'''<div style="text-align: justify;">
-                        Move the ambition level sliders to explore the outcomes of
-                        different interventions on key metrics of the food system,
-                        including GHG emissions, sequestration and land use.                    
-                        Alternatively, select an scenario from the dropdown menu
-                        on the top of the side bar to automatically position
-                        sliders to their pre-set values.                    
-                        Detailed charts describing the effects of interventions
-                        on different aspects of the food system can be found in
-                        the dropdown menu at the top of the page.
-                        Once you have selected the ambition levels for the
-                        different interventions, enter your unique ID on the
-                        field below and click the "Submit pathway" button. You
-                        can change your responses as many times as you want
-                        before the Stage I deadline on {stage_I_deadline}.
-                        </div>''', unsafe_allow_html=True)
-
             user_id = st.text_input("Enter your unique ID", "AFP")
             submit_state = st.button("Submit pathway")
 
