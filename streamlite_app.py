@@ -103,24 +103,28 @@ with st.sidebar:
 
     with st.expander("**:earth_africa: Land use change**"):
 
-        land_slider_keys = ["foresting_pasture", "land_beccs"]
+        land_slider_keys = ["foresting_pasture", "land_beccs", "peatland", "soil_carbon", "mixed_farming"]
 
         foresting_pasture = st.slider('Forested pasture land fraction',
                         min_value=0, max_value=100, step=1,
                         key="foresting_pasture", help=help["sidebar_land"][0])        
 
-        # arable_sparing = st.slider('Spared arable land fraction',
-        #                 min_value=0, max_value=100, step=1,
-        #                 key="arable_sparing", help=help["sidebar_land"][1])
-
         land_BECCS = st.slider('Percentage of farmland used for BECCS crops',
                         min_value=0, max_value=20, step=1,
-                        key="land_beccs", help=help["sidebar_innovation"][2])
+                        key="land_beccs", help=help["sidebar_innovation"][1])
 
-        # foresting_spared = st.slider('Forested spared land fraction',
-        #                 min_value=0, max_value=100, step=1,
-        #                 key="foresting_spared", help=help["sidebar_land"][2])
+        peatland = st.slider('Percentage of peatland restored',
+                             min_value=0, max_value=100, step=1,
+                             key="peatland", help=help["sidebar_land"][2])
+
+        soil_carbon = st.slider('Percentage of managed land for soil carbon management',
+                                 min_value=0, max_value=100, step=1,
+                                 key="soil_carbon", help=help["sidebar_land"][3])
         
+        mixed_farming = st.slider('Percentage of agricultural land converted to mixed farming',
+                                  min_value=0, max_value=100, step=1,
+                                  key="mixed_farming", help=help["sidebar_land"][4])
+
         st.button("Reset", on_click=reset_sliders, key='reset_land',
                   kwargs={"keys":[land_slider_keys, "land_bar"]})
         
@@ -458,17 +462,23 @@ food_system.add_step(spare_alc_model,
                         "land_type":["Improved grassland", "Semi-natural grassland"],
                         "items":"Animal Products"})
 
-# food_system.add_step(spare_alc_model,
-#                         {"spare_fraction":arable_sparing/100,
-#                         "land_type":["Arable"],
-#                         "items":"Vegetal Products"})
-
 food_system.add_step(foresting_spared_model,
                         {"forest_fraction":1,
                         "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100})
 
 food_system.add_step(BECCS_farm_land,
                         {"farm_percentage":land_BECCS/100})
+
+food_system.add_step(peatland_restoration,
+                     {"fraction":peatland/100})
+
+food_system.add_step(soil_carbon_sequestration,
+                     {"fraction":soil_carbon/100})
+
+food_system.add_step(mixed_farming_model,
+                     {"fraction":mixed_farming/100})
+
+
 
 # Livestock farming practices        
 food_system.add_step(agroecology_model,

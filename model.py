@@ -1043,3 +1043,12 @@ def production_land_scale(land, obs, ref, bdleaf_conif_ratio):
         land.loc[{"aggregate_class":"Broadleaf woodland"}] = delta
     
     return land
+
+def peatland_restoration(datablock, fraction):
+    return datablock
+
+def soil_carbon_sequestration(datablock, fraction):
+    return datablock
+
+def mixed_farming_model(datablock, fraction):
+    return datablock

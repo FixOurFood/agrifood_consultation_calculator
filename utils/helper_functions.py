@@ -32,6 +32,9 @@ default_widget_values = {
     "land_bar": 0,
     "foresting_pasture": 0,
     "land_beccs": 0,
+    "peatland": 0,
+    "soil_carbon": 0,
+    "mixed_farming": 0,
 
     # Technology and innovation sliders and widgets
     "innovation_bar": 0,
