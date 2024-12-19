@@ -138,8 +138,8 @@ def plots(datablock):
                     delta="{:.2f} %".format(100*(SSR_metric_yr-SSR_ref)))
                 
                 origin_color={"Animal Products": "red",
-                              "Vegetal Products": "green",
-                              "Cultured Product": "blue"}
+                              "Plant Products": "green",
+                              "Alternative Products": "blue"}
                 
                 domestic_use = gcapday["imports"]+gcapday["production"]-gcapday["exports"]
                 domestic_use.name="domestic"

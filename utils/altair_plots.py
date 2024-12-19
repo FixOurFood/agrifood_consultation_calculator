@@ -74,6 +74,10 @@ def plot_bars_altair(food, show="Item", x_axis_title='', xlimit=None):
     df["value_start"] = 0.
     df["value_end"] = 0.
 
+    df["Item"] = df["Item"].replace("Vegetal Products", "Plant Products")
+    df["Item"] = df["Item"].replace("Cukltured Product", "Alternative Products")
+    
+
     for i in range(2*n_origins,10*n_origins):
         if i % n_origins==0:
             temp = df.iloc[i].copy()
@@ -105,7 +109,7 @@ def plot_bars_altair(food, show="Item", x_axis_title='', xlimit=None):
         # x = alt.X('value_end:Q', axis=alt.Axis(title=x_axis_title)),
         # x = alt.X('value_end:Q'),
         # color=alt.Color('Item'),
-        color=alt.Color('Item', scale=alt.Scale(domain=["Animal Products", "Cultured Product", "Vegetal Products"], range=["red", "blue", "green"])),
+        color=alt.Color('Item', scale=alt.Scale(domain=["Animal Products", "Alternative Products", "Plant Products"], range=["red", "blue", "green"])),
         opacity=alt.condition(selection, alt.value(0.9), alt.value(0.5)),
         tooltip=['Item:N', 'value:Q'],
         ).add_params(selection).properties(height=500)
@@ -142,6 +146,10 @@ def plot_single_bar_altair(da, show="Item", axis_title=None,
     df_pos['order'] = np.arange(len(da[show].values))
     df_neg['value_with_unit'] = df_neg['value'].apply(lambda x: f"{x:.2f} {unit}")
     df_neg['order'] = np.arange(len(da[show].values))
+
+    for df in [df_pos, df_neg]:
+        df[show] = df[show].replace("Vegetal Products", "Plant Products")
+        df[show] = df[show].replace("Cukltured Product", "Alternative Products")
 
     # Set yaxis limits
     if ax_max is None:
