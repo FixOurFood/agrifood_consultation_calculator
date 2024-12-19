@@ -204,6 +204,21 @@ def plot_single_bar_altair(da, show="Item", axis_title=None,
                  alt.Tooltip('value_with_unit:N', title='Total')],
         order=alt.Order(f'order:N', sort='ascending')
     )
+
+    # Add a line for arbitrary reference
+    zero_line_params = {"y": "value"} if vertical else {"x": "value"}
+    if reference is not None:
+        c += alt.Chart(pd.DataFrame({
+            'value': reference,
+            'color': ['black']
+            })).mark_rule(
+                color="black",
+                thickness=1,
+            ).encode(
+                **zero_line_params,
+                tooltip=[alt.Tooltip('value:Q', title='Reference')]
+        )
+
     # Add a marker for the total
     if mark_total == True:
 
@@ -231,29 +246,28 @@ def plot_single_bar_altair(da, show="Item", axis_title=None,
     
     # Add a line for zero
     if show_zero == True:
-        zero_line_params = {"y": "value"} if vertical else {"x": "value"}
-        c += alt.Chart(pd.DataFrame({
-            'value': 0.,
-            'color': ['black']
-            })).mark_rule(
-                color="black",
-                thickness=2,
-            ).encode(
-                **zero_line_params
+        img_path = "images/small_marker.png"
+        pil_image = Image.open(img_path)
+        output = BytesIO()
+        pil_image.save(output, format='PNG')
+        base64_img = "data:image/png;base64," + base64.b64encode(output.getvalue()).decode()
+
+        total = 0
+        source = pd.DataFrame.from_records([
+            {"variable": da.name, "total": total, "total_with_unit": f"{total:.2f} {unit}",
+            "img": base64_img},
+        ])
+
+        c += alt.Chart(source).mark_image(
+            width=25,
+            height=25
+        ).encode(
+            **icon_params,
+            url='img',
+            tooltip=[alt.Tooltip('total_with_unit:N', title='Total')]
         )
 
-    # Add a line for arbitrary reference
-    if reference is not None:
-        c += alt.Chart(pd.DataFrame({
-            'value': reference,
-            'color': ['black']
-            })).mark_rule(
-                color="red",
-                thickness=1,
-            ).encode(
-                **zero_line_params,
-                tooltip=[alt.Tooltip('value:Q', title='Reference')]
-        )
+
 
     # Set bar width
     if vertical:
