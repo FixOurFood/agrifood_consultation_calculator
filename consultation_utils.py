@@ -115,12 +115,14 @@ def get_pathway_data(pathway_name):
     
     return pathway_values
 
-def call_scenarios():
+def call_scenarios(scenario=None):
     """Call the scenarios from the Google Sheet"""
     # reset all states
     # reset_sliders()
     # get scenario state
-    scenario = st.session_state["scenario"]
+
+    if scenario is None:
+        scenario = st.session_state["scenario"]
     pathway_data = get_pathway_data(scenario)
 
     keys=[

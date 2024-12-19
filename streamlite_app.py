@@ -54,7 +54,13 @@ with st.sidebar:
 #        Sidebar
 # ------------------------
 
+
     col1, col2 = st.columns([7.5,2.5])
+
+    if "scenario" in st.query_params:
+        scenario = st.query_params["scenario"]
+        call_scenarios(scenario)
+    
     st.selectbox("Scenario", get_pathways(),
                     help=help_str(help, "sidebar_consumer", 8),
                     on_change=call_scenarios, key="scenario")
