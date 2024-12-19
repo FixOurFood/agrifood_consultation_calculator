@@ -1045,9 +1045,37 @@ def production_land_scale(land, obs, ref, bdleaf_conif_ratio):
     return land
 
 def peatland_restoration(datablock, fraction):
+    """Converts specific land pixels to peatland, according to a peatland mask and
+    fraction of total area"""
     return datablock
 
 def soil_carbon_sequestration(datablock, fraction):
+    """Replaces a fraction of "arable" and "pasture" land types with "managed
+    arable" and "managed pasture" respectively.
+    """
+
+    # Load land use data from datablock
+    pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
+
+    # Create new category for "managed arable" land
+    for new_class_name in ["Managed arable", "Managed pasture"]:
+        if new_class_name not in pctg.aggregate_class.values:
+            _new_class = xr.zeros_like(pctg.isel(aggregate_class=0)).where(np.isfinite(pctg.isel(aggregate_class=0)))
+            _new_class["aggregate_class"] = new_class_name
+            pctg = xr.concat([pctg, _new_class], dim="aggregate_class")
+
+    # Compute arable fraction to be managed and remove from the arable
+    delta_arable = pctg.loc[{"aggregate_class":"Arable"}] * fraction
+    pctg.loc[{"aggregate_class":"Arable"}] -= delta_arable
+    pctg.loc[{"aggregate_class":"Managed arable"}] += delta_arable
+
+    # Compute psature fraction to be managed and remove from the pasture classes
+    delta_arable = pctg.loc[{"aggregate_class":["Improved grassland", "Semi-natural grassland"]}] * fraction
+    pctg.loc[{"aggregate_class":["Improved grassland", "Semi-natural grassland"]}] -= delta_arable
+    pctg.loc[{"aggregate_class":"Managed pasture"}] += delta_arable.sum(dim="aggregate_class")
+
+    # Rewrite land use data to datablock
+    datablock["land"]["percentage_land_use"] = pctg
     return datablock
 
 def mixed_farming_model(datablock, fraction):
