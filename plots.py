@@ -17,6 +17,16 @@ def plots(datablock):
     #                  Plots
     # ----------------------------------------
 
+    st.markdown("# Agrifood Calculator")
+    st.write("""Click on an aspect of the food system you would like to change - on
+             the left side of the page. Move the sliders to explore how different
+             interventions in the food system impact the UK emissions balance,
+             self-sufficiency, and land use. Alternatively, select a scenario
+             from the dropdown menu on the top of the sidebar to automatically
+             position sliders to pre-set values. Detailed charts describing the
+             effects of interventions on different aspects of the food system
+             can be found in the dropdown menu at the bottom of the page.""")
+
     col_multiselect, col_but_metric_yr = st.columns([11.5,1.5])
 
     with col_multiselect:
