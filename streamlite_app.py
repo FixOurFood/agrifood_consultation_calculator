@@ -61,12 +61,16 @@ with st.sidebar:
         scenario = st.query_params["scenario"]
         call_scenarios(scenario)
     
-    st.selectbox("Scenario", get_pathways(),
-                    help=help_str(help, "sidebar_consumer", 8),
-                    on_change=call_scenarios, key="scenario")
+        st.selectbox("Scenario", get_pathways(), index=None, placeholder=scenario,
+                        help=help_str(help, "sidebar_consumer", 8),
+                        on_change=call_scenarios, key="scenario")
     
+    else:
+        st.selectbox("Scenario", get_pathways(), index=None, placeholder="Select a scenario",
+                        help=help_str(help, "sidebar_consumer", 8),
+                        on_change=call_scenarios, key="scenario")
+        
     st.query_params.clear()
-
 
     # Consumer demand interventions
 
