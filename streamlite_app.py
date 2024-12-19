@@ -55,13 +55,10 @@ with st.sidebar:
 # ------------------------
 
     col1, col2 = st.columns([7.5,2.5])
-    with col1:
-        st.selectbox("Scenario", get_pathways(),
-                     help=help_str(help, "sidebar_consumer", 8),
-                     on_change=call_scenarios, key="scenario")
+    st.selectbox("Scenario", get_pathways(),
+                    help=help_str(help, "sidebar_consumer", 8),
+                    on_change=call_scenarios, key="scenario")
 
-    with col2:
-        st.button("Reset \n sliders", on_click=reset_sliders, key='reset_all')
 
     # Consumer demand interventions
 
@@ -321,6 +318,8 @@ with st.sidebar:
             
             scaling_nutrient = 'kCal/cap/day'              
 
+    st.button("Reset all sliders", on_click=reset_sliders, key='reset_all')
+    
     st.caption('''--- Developed with funding from [FixOurFood](https://fixourfood.org/).''')
     
     st.caption('''--- We would be grateful for your feedback, via

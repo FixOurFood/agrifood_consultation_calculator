@@ -26,6 +26,10 @@ def plots(datablock):
              position sliders to pre-set values. Detailed charts describing the
              effects of interventions on different aspects of the food system
              can be found in the dropdown menu at the bottom of the page.""")
+    st.write("""Challenge: can you move the sliders to get the UK to net zero
+             (diamond is at zero)? Are you happy with this solution? If so, submit
+             your proposed solution at the bottom of this page!
+             """)
 
     col_multiselect, col_but_metric_yr = st.columns([11.5,1.5])
 
@@ -67,7 +71,9 @@ def plots(datablock):
                     emissions_balance.loc[{"Sector": "Land use sinks"}] = -total_seq
                     emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
 
-                    show_sectors = st.checkbox("Show agriculture and land use only", value=False)
+                    if "show_sectors" not in st.session_state:
+                        st.session_state.show_sectors = False
+                    show_sectors = st.session_state.show_sectors
 
                     reference = 92.39
                     if show_sectors:
@@ -78,6 +84,7 @@ def plots(datablock):
                         axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,
                         mark_total=True, show_zero=True, ax_ticks=True, legend=True,
                         ax_min=-90, ax_max=120, reference=reference)
+                    
                     
                 elif st.session_state.emission_factors == "PN18":
 
@@ -94,6 +101,7 @@ def plots(datablock):
                     
                 c = c.properties(height=500)
                 st.altair_chart(c, use_container_width=True)
+                st.session_state.show_sectors = st.checkbox("Show agriculture and land use only", value=False)
 
                 st.caption('''<div style="text-align: justify;">
                            Above is the comparison between the total emissions from
@@ -109,15 +117,10 @@ def plots(datablock):
             with st.container(height=750, border=True):
 
                 st.markdown('''**Self-sufficiency**''')
+                if "ssr_metric" not in st.session_state:
+                    st.session_state.ssr_metric = "g/cap/day"
 
-                ssr_metric = st.selectbox("Select metric", ["g/cap/day",
-                                                           "g_prot/cap/day",
-                                                           "g_fat/cap/day",
-                                                           "g_co2e/cap/day",
-                                                           "kCal/cap/day",], key="SSR_metric")
-                
-                st.caption("""‘SSR can be calculated by weight (tonnes produced /
-                         tonnes used) or other metrics e.g. kcal produced / kcal used.’""")
+                ssr_metric = st.session_state.ssr_metric
 
                 gcapday = datablock["food"][ssr_metric].sel(Year=metric_yr).fillna(0)
                 gcapday = gcapday.fbs.group_sum(coordinate="Item_origin", new_name="Item")
@@ -164,6 +167,18 @@ def plots(datablock):
 
                 st.altair_chart(production_bar, use_container_width=True)
                 st.altair_chart(imports_bar, use_container_width=True)
+
+                
+                new_ssr_metric = st.selectbox("Select metric", ["g/cap/day",
+                                                           "g_prot/cap/day",
+                                                           "g_fat/cap/day",
+                                                           "g_co2e/cap/day",
+                                                           "kCal/cap/day",], key="SSR_metric",)
+                
+                st.session_state.ssr_metric = new_ssr_metric
+
+                st.caption("""‘SSR can be calculated by weight (tonnes produced /
+                         tonnes used) or other metrics e.g. kcal produced / kcal used.’""")
                 
                 if SSR_metric_yr < SSR_ref:
                     st.markdown(f'''
