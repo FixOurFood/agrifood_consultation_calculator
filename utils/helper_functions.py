@@ -127,6 +127,11 @@ def first_run_dialog():
             sequestration, set the level for where you want the intervention
             to be, and the calculator shows how your choices affect UK emissions,
             land use and UK self-sufficiency.""")
+    
+    _, col2, _ = st.columns([0.5, 1, 0.5])
+    with col2:
+        st.image("images/slider_gif_intro.gif")
+    
     st.write("""Its purpose is to help everyone engage in the debate and explore how
             different plans support the path to net zero.""")
              
@@ -139,3 +144,12 @@ def first_run_dialog():
 
     if st.button("Get Started"):
         st.rerun()
+
+def change_to_afolu_only():
+    st.session_state.show_afolu_only = st.session_state.show_afolu_only_checkbox
+
+def update_SSR_metric():
+    st.session_state.ssr_metric = st.session_state.update_ssr_metric
+
+def update_plot_key():
+    st.session_state.plot_key = st.session_state.update_plot_key

@@ -30,6 +30,16 @@ if "cereals" not in st.session_state:
 if "first_run" not in st.session_state:
     st.session_state["first_run"] = True
 
+if "show_afolu_only" not in st.session_state:
+    st.session_state["show_afolu_only"] = False
+
+if "ssr_metric" not in st.session_state:
+    st.session_state["ssr_metric"] = "g/cap/day"
+
+if "plot_key" not in st.session_state:
+    st.session_state["plot_key"] = "Summary"
+
+
 # ------------------------
 # Help and tooltip strings
 # ------------------------
@@ -53,7 +63,6 @@ with st.sidebar:
 # ------------------------
 #        Sidebar
 # ------------------------
-
 
     col1, col2 = st.columns([7.5,2.5])
 
@@ -334,8 +343,8 @@ with st.sidebar:
     
     st.caption('''--- Developed with funding from [FixOurFood](https://fixourfood.org/).''')
     
-    st.caption('''--- We would be grateful for your feedback, via
-                [this form](https://docs.google.com/forms/d/e/1FAIpQLSdnBp2Rmr-1fFYRQvEVcLLKchdlXZG4GakTBK5yy6jozUt8NQ/viewform?usp=sf_link).''')
+    st.caption('''--- We would be grateful for your feedback - 
+               [Fill in our Feedback Form](https://docs.google.com/forms/d/e/1FAIpQLSdnBp2Rmr-1fFYRQvEVcLLKchdlXZG4GakTBK5yy6jozUt8NQ/viewform?usp=sf_link).''')
     
     st.caption('''--- For a list of references to the datasets used, please
                 visit our [reference document](https://docs.google.com/spreadsheets/d/1XkOELCFKHTAywUGoJU6Mb0TjXESOv5BbR67j9UCMEgw/edit?usp=sharing).''')

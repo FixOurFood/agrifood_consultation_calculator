@@ -11,42 +11,34 @@ from glossary import *
 from utils.helper_functions import *
 from consultation_utils import submit_scenario, get_user_list, stage_I_deadline
 
+
 def plots(datablock):
 
     # ----------------------------------------    
     #                  Plots
     # ----------------------------------------
 
-    st.markdown("# Agrifood Calculator")
-    st.write("""Click on an aspect of the food system you would like to change - on
-             the left side of the page. Move the sliders to explore how different
-             interventions in the food system impact the UK emissions balance,
-             self-sufficiency, and land use. Alternatively, select a scenario
-             from the dropdown menu on the top of the sidebar to automatically
-             position sliders to pre-set values. Detailed charts describing the
-             effects of interventions on different aspects of the food system
-             can be found in the dropdown menu at the bottom of the page.""")
-    st.write("""Challenge: can you move the sliders to get the UK to net zero
-             (diamond is at zero)? Are you happy with this solution? If so, submit
-             your proposed solution at the bottom of this page!
-             """)
-
-    col_multiselect, col_but_metric_yr = st.columns([11.5,1.5])
-
-    with col_multiselect:
-        plot_key = st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list)
-
-    #Toggle to switch year horizon between 2050 and 2100
-    with col_but_metric_yr:
-        st.write("")
-        st.write("")
-        metric_year_toggle = st.toggle("Switch to 2100 mode")
-        metric_yr = np.where(metric_year_toggle, 2100, 2050)
-
     # Summary
     # -------
+    metric_yr = 2050
+    plot_key = st.session_state["plot_key"]
+
     if plot_key == "Summary":
 
+        st.markdown("# Agrifood Calculator")
+        st.write("""Click on an aspect of the food system you would like to change - on
+                the left side of the page. Move the sliders to explore how different
+                interventions in the food system impact the UK emissions balance,
+                self-sufficiency, and land use. Alternatively, select a scenario
+                from the dropdown menu on the top of the sidebar to automatically
+                position sliders to pre-set values. Detailed charts describing the
+                effects of interventions on different aspects of the food system
+                can be found in the dropdown menu at the bottom of the page.""")
+        st.write("""Challenge: can you move the sliders to get the UK to net zero
+                (diamond is at zero)? Are you happy with this solution? If so, submit
+                your proposed solution at the bottom of this page!
+                """)
+                
         col_comp_1, col_comp_2, col_comp_3 = st.columns([1,1,1])
 
         # Emissions and removals balance
@@ -71,10 +63,9 @@ def plots(datablock):
                     emissions_balance.loc[{"Sector": "Land use sinks"}] = -total_seq
                     emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
 
-                    show_sectors = st.checkbox("Show agriculture and land use only", value=False)
-
                     reference = 92.39
-                    if show_sectors:
+
+                    if st.session_state["show_afolu_only"]:
                         reference = 31.61
                         emissions_balance = emissions_balance.sel(Sector=["Agriculture", "Land use sinks", "Removals"])
 
@@ -82,7 +73,6 @@ def plots(datablock):
                         axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,
                         mark_total=True, show_zero=True, ax_ticks=True, legend=True,
                         ax_min=-90, ax_max=120, reference=reference)
-                    
                     
                 elif st.session_state.emission_factors == "PN18":
 
@@ -99,6 +89,7 @@ def plots(datablock):
                     
                 c = c.properties(height=500)
                 st.altair_chart(c, use_container_width=True)
+                st.checkbox("Show agriculture and land use only", value=False, on_change=change_to_afolu_only, key="show_afolu_only_checkbox")
 
                 st.caption('''<div style="text-align: justify;">
                            The diagram above visualises the balance between total
@@ -120,11 +111,7 @@ def plots(datablock):
 
                 st.markdown('''**Self-sufficiency**''')
 
-                ssr_metric = st.selectbox("Select metric", ["g/cap/day",
-                                                           "g_prot/cap/day",
-                                                           "g_fat/cap/day",
-                                                           "g_co2e/cap/day",
-                                                           "kCal/cap/day",], key="SSR_metric",)
+                ssr_metric = st.session_state["ssr_metric"]
 
                 gcapday = datablock["food"][ssr_metric].sel(Year=metric_yr).fillna(0)
                 gcapday = gcapday.fbs.group_sum(coordinate="Item_origin", new_name="Item")
@@ -171,6 +158,14 @@ def plots(datablock):
 
                 st.altair_chart(production_bar, use_container_width=True)
                 st.altair_chart(imports_bar, use_container_width=True)
+
+                st.selectbox("Select metric", ["g/cap/day",
+                                               "g_prot/cap/day",
+                                               "g_fat/cap/day",
+                                               "g_co2e/cap/day",
+                                               "kCal/cap/day",],
+                                               key="update_ssr_metric",
+                                               on_change=update_SSR_metric)
 
                 if SSR_metric_yr < SSR_ref:
                     st.markdown(f'''
@@ -254,20 +249,6 @@ def plots(datablock):
                 such as silvoarable (trees mixed with crops) and silvopasture
                 (animals mixed with crops).
                 </div>''', unsafe_allow_html=True)
-
-        with st.container():
-            st.markdown("""<div style="text-align: justify;">
-            Once you have used the sliders to select your preferred levels of
-            intervention, enter your email address in the field below and click
-            the "Submit pathway" button. You can change your responses as many
-            times as you want before the expert submission deadline on 26th
-            March 2025.</div>""", unsafe_allow_html=True)
-            user_id = st.text_input("Enter your email", placeholder="Enter your email", label_visibility="hidden")
-            submit_state = st.button("Submit pathway")
-
-            # submit scenario
-            if submit_state:
-                submit_scenario(user_id, SSR_metric_yr, emissions_balance.sum(), ambition_levels=True, check_users=st.session_state.check_ID)
 
     # Emissions per food group or origin
     # ----------------------------------
@@ -414,6 +395,22 @@ def plots(datablock):
             pie = pie_chart_altair(land_pctg, show="aggregate_class", unit="ha")
             st.altair_chart(pie)
     
+    st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list, on_change=update_plot_key, key="update_plot_key")
+
+    with st.container():
+        st.markdown("""<div style="text-align: justify;">
+        Once you have used the sliders to select your preferred levels of
+        intervention, enter your email address in the field below and click
+        the "Submit pathway" button. You can change your responses as many
+        times as you want before the expert submission deadline on 26th
+        March 2025.</div>""", unsafe_allow_html=True)
+        user_id = st.text_input("Enter your email", placeholder="Enter your email", label_visibility="hidden")
+        submit_state = st.button("Submit pathway")
+
+        # submit scenario
+        if submit_state:
+            submit_scenario(user_id, SSR_metric_yr, emissions_balance.sum(), ambition_levels=True, check_users=st.session_state.check_ID)
+
     if plot_key != "Summary":
         with bottom():
             from bottom import bottom_panel
