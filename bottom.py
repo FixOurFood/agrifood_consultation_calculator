@@ -79,7 +79,7 @@ def bottom_panel(datablock, metric_yr):
         if st.session_state.emission_factors == "NDC 2020":
 
             total_emissions = emissions.sum(dim="Item").values/1e6
-            total_seq = seq_da.sel(Item=["Broadleaved woodland", "Coniferous woodland"]).sum(dim="Item").values/1e6
+            total_seq = seq_da.sel(Item=["Broadleaf woodland", "Coniferous woodland"]).sum(dim="Item").values/1e6
             total_removals = seq_da.sel(Item=["BECCS from waste", "BECCS from overseas biomass", "BECCS from land", "DACCS"]).sum(dim="Item").values/1e6
 
             emissions_balance = xr.DataArray(data = list(sector_emissions_dict.values()),

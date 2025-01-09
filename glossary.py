@@ -111,6 +111,7 @@ land_color_dict = {
     'BECCS' : "red",
     'Silvopasture' : "lightgreen",
     'Agroforestry' : "lightblue",
+    'Peatland' : "darkred",
 }
 
 land_label_dict = {
@@ -131,6 +132,7 @@ land_label_dict = {
     'BECCS' : "BECCS",
     'Silvopasture' : "Silvopasture",
     'Agroforestry' : "Agroforestry",
+    'Peatland' : "Peatland",
 }
 
 sector_emissions_dict = {

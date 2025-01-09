@@ -87,6 +87,7 @@ def pipeline_setup(food_system):
                             {"spare_fraction":st.session_state.foresting_pasture/100,
                             "land_type":["Improved grassland", "Semi-natural grassland"],
                             "items":"Animal Products"})
+    
 
     food_system.add_step(foresting_spared_model,
                             {"forest_fraction":1,
@@ -96,7 +97,10 @@ def pipeline_setup(food_system):
                             {"farm_percentage":st.session_state.land_BECCS/100})
 
     food_system.add_step(peatland_restoration,
-                        {"fraction":st.session_state.peatland/100})
+                        {"restore_fraction":st.session_state.peatland/100,
+                         "land_type":["Improved grassland", "Semi-natural grassland"],
+                         "items":"Animal Products",
+                         "mask":5})
 
     food_system.add_step(soil_carbon_sequestration,
                         {"fraction":st.session_state.soil_carbon/100})
@@ -167,8 +171,10 @@ def pipeline_setup(food_system):
 
     # Compute emissions and sequestration
     food_system.add_step(forest_sequestration_model,
-                            {"seq_broadleaf_ha_yr":st.session_state.bdleaf_seq_ha_yr,
-                            "seq_coniferous_ha_yr":st.session_state.conif_seq_ha_yr})
+                            {"land_type":["Broadleaf woodland", "Coniferous woodland", "Peatland"],
+                            "seq":[st.session_state.bdleaf_seq_ha_yr,
+                                   st.session_state.conif_seq_ha_yr,
+                                   st.session_state.peatland_seq_ha_yr]})
 
     food_system.add_step(compute_emissions)
 

@@ -52,7 +52,7 @@ def plots(datablock):
                     seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
                     emissions = datablock["impact"]["g_co2e/year"]["production"].sel(Year=metric_yr)/1e6
                     total_emissions = emissions.sum(dim="Item").values/1e6
-                    total_seq = seq_da.sel(Item=["Broadleaved woodland", "Coniferous woodland"]).sum(dim="Item").values/1e6
+                    total_seq = seq_da.sel(Item=["Broadleaf woodland", "Coniferous woodland"]).sum(dim="Item").values/1e6
                     total_removals = seq_da.sel(Item=["BECCS from waste", "BECCS from overseas biomass", "BECCS from land", "DACCS"]).sum(dim="Item").values/1e6
 
                     emissions_balance = xr.DataArray(data = list(sector_emissions_dict.values()),

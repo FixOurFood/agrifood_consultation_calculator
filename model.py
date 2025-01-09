@@ -536,6 +536,67 @@ def spare_alc_model(datablock, spare_fraction, land_type, items, alc_grades=None
 
     return datablock
 
+def peatland_restoration(datablock, restore_fraction, land_type, items, mask=None):
+    """Replaces a specified land type fraction and sets it to a new type called
+    'peatland'. Scales food production and imports to reflect the change in land
+    use.
+    """
+        
+    timescale = datablock["global_parameters"]["timescale"]
+    alc = datablock["land"]["dominant_classification"]
+    pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
+    old_use = datablock["land"]["percentage_land_use"].sel({"aggregate_class":land_type}).sum()
+
+    # if no alc grade is provided, then use the whole map
+    if mask is not None:
+        alc_mask = np.isin(alc, mask)
+    else:
+        alc_mask = np.ones_like(pctg, dtype=bool)
+
+    to_spare = pctg.where(alc_mask, other=0).sel({"aggregate_class":land_type})
+
+    # Spare the specified land type
+    delta_spared =  to_spare * restore_fraction
+    pctg.loc[{"aggregate_class":land_type}] -= delta_spared
+
+    if "Peatland" not in pctg.aggregate_class.values:
+        spared_new_class = xr.zeros_like(pctg.isel(aggregate_class=0)).where(np.isfinite(pctg.isel(aggregate_class=0)))
+        spared_new_class["aggregate_class"] = "Peatland"
+        pctg = xr.concat([pctg, spared_new_class], dim="aggregate_class")
+
+    pctg.loc[{"aggregate_class":"Peatland"}] += delta_spared.sum(dim="aggregate_class")
+
+    # Add spared class to the land use map
+    datablock["land"]["percentage_land_use"] = pctg
+
+    # Scale food production and imports
+    new_use = pctg.sel({"aggregate_class":land_type}).sum()
+    scale_use = (new_use/old_use).to_numpy()
+
+    food_orig = datablock["food"]["g/cap/day"]
+    scale_spare = logistic_food_supply(food_orig, timescale, 1, scale_use)
+
+    scaled_items = food_orig.sel(Item=food_orig.Item_origin==items).Item.values
+
+    out = food_orig.fbs.scale_add(element_in="production",
+                                  element_out="imports",
+                                  scale=scale_spare,
+                                  items=scaled_items,
+                                  add=False)
+    
+    ratio = out / food_orig
+    ratio = ratio.where(~np.isnan(ratio), 1)
+
+    # Update per cap/day values and per year values using the same ratio, which
+    # is independent of population growth
+    qty_key = ["g/cap/day", "g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
+    for key in qty_key:
+        datablock["food"][key] *= ratio
+
+    # datablock["food"]["g/cap/day"] = out
+
+    return datablock
+
 def foresting_spared_model(datablock, forest_fraction, bdleaf_conif_ratio):
     """Replaces a the "spared" land type fraction and sets it to "forested".
     """
@@ -633,40 +694,42 @@ def ccs_model(datablock, waste_BECCS, overseas_BECCS, DACCS):
 
     return datablock    
 
-def forest_sequestration_model(datablock, seq_broadleaf_ha_yr, seq_coniferous_ha_yr):
+def forest_sequestration_model(datablock, land_type, seq):
     """Computes total annual sequestration from the different sources"""
     
+    if np.isscalar(land_type):
+        land_type = [land_type]
+    
+    if np.isscalar(seq):
+        seq = [seq]
+
     timescale = datablock["global_parameters"]["timescale"]
     food_orig = datablock["food"]["g/cap/day"]
 
     # Load the land use data from the datablock
     pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
-
-    # Compute forest area in ha, maximum anual sequestration, and growth curve
-    area_broadleaf = pctg.loc[{"aggregate_class":"Broadleaf woodland"}].sum().to_numpy()
-    area_coniferous = pctg.loc[{"aggregate_class":"Coniferous woodland"}].sum().to_numpy()
-
-    max_seq_broadleaf = area_broadleaf * seq_broadleaf_ha_yr
-    max_seq_coniferous = area_coniferous * seq_coniferous_ha_yr
-
     logistic_0_val = logistic_food_supply(food_orig, timescale, 0, 1)
-    
-    broadleaf_seq = max_seq_broadleaf * logistic_0_val
-    coniferous_seq = max_seq_coniferous * logistic_0_val
 
-    # Create a dataset with the different sequestration sources
-    seq_ds = xr.Dataset({"Broadleaved woodland": broadleaf_seq,
-                              "Coniferous woodland": coniferous_seq})
+    for land_type_i, seq_i in zip(land_type, seq):
+
+        # Compute forest area in ha, maximum anual sequestration, and growth curve
+        area_land = pctg.loc[{"aggregate_class":land_type_i}].sum().to_numpy()
+        max_seq = area_land * seq_i
+
     
-    seq_da = seq_ds.to_array(dim="Item", name="sequestration")
+        land_type_seq = max_seq * logistic_0_val
+
+        # Create a dataset with the different sequestration sources
+        seq_ds = xr.Dataset({land_type_i: land_type_seq})
+        seq_da = seq_ds.to_array(dim="Item", name="sequestration")
     
-    if "co2e_sequestration" not in datablock["impact"]:
-        datablock["impact"]["co2e_sequestration"] = seq_da
-    else:
-        # append sequestration to existing sequestration da
-        seq_da_in = datablock["impact"]["co2e_sequestration"]
-        seq_da = xr.concat([seq_da_in, seq_da], dim="Item")
-        datablock["impact"]["co2e_sequestration"] = seq_da
+        if "co2e_sequestration" not in datablock["impact"]:
+            datablock["impact"]["co2e_sequestration"] = seq_da
+        else:
+            # append sequestration to existing sequestration da
+            seq_da_in = datablock["impact"]["co2e_sequestration"]
+            seq_da = xr.concat([seq_da_in, seq_da], dim="Item")
+            datablock["impact"]["co2e_sequestration"] = seq_da
 
     # Compute agroecology sequestration
 
@@ -1043,11 +1106,6 @@ def production_land_scale(land, obs, ref, bdleaf_conif_ratio):
         land.loc[{"aggregate_class":"Broadleaf woodland"}] = delta
     
     return land
-
-def peatland_restoration(datablock, fraction):
-    """Converts specific land pixels to peatland, according to a peatland mask and
-    fraction of total area"""
-    return datablock
 
 def soil_carbon_sequestration(datablock, fraction):
     """Replaces a fraction of "arable" and "pasture" land types with "managed
