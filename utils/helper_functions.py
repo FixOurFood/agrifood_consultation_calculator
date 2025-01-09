@@ -128,13 +128,17 @@ def first_run_dialog():
             to be, and the calculator shows how your choices affect UK emissions,
             land use and UK self-sufficiency.""")
     
+    st.write("""Once you have used the sliders to select your preferred levels
+             of intervention, enter your email address in the field below and
+             click the "Submit pathway" button. You can change your responses as
+             many times as you want before the expert submission deadline on
+             26th March 2025.
+             """)
+    
     _, col2, _ = st.columns([0.5, 1, 0.5])
     with col2:
         st.image("images/slider_gif_intro.gif")
-    
-    st.write("""Its purpose is to help everyone engage in the debate and explore how
-            different plans support the path to net zero.""")
-             
+                 
     st.write("""The Agrifood Calculator was developed with funding from [FixOurFood](https://fixourfood.org/).
             It was conceived as a tool to support evidence based policy making
             and to engage food system stakeholders in a conversation about
