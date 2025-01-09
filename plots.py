@@ -404,7 +404,19 @@ def plots(datablock):
         the "Submit pathway" button. You can change your responses as many
         times as you want before the expert submission deadline on 26th
         March 2025.</div>""", unsafe_allow_html=True)
-        user_id = st.text_input("Enter your email", placeholder="Enter your email", label_visibility="hidden")
+
+        col1_submit, col2_submit, col3_submit = st.columns(3)
+
+
+            
+        with col1_submit:
+            submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden")
+        with col2_submit:
+            user_id = st.text_input("Enter your email", placeholder="Enter your email", label_visibility="hidden")
+        with col3_submit:
+            st.file_uploader("Optionally, add a narrative (PDF format) to go with your submission", accept_multiple_files=False)
+
+        allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
         submit_state = st.button("Submit pathway")
 
         # submit scenario
