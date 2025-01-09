@@ -140,6 +140,8 @@ def first_run_dialog():
             and to engage food system stakeholders in a conversation about
             pathways to net zero.""")
     
+    st.video("https://youtu.be/kx8j151hfLE")
+
     st.write("""We would be grateful for your feedback - Fill in our [Feedback Form](https://docs.google.com/forms/d/e/1FAIpQLSdnBp2Rmr-1fFYRQvEVcLLKchdlXZG4GakTBK5yy6jozUt8NQ/viewform?usp=sf_link)""")
 
     if st.button("Get Started"):
