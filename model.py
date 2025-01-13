@@ -536,24 +536,25 @@ def spare_alc_model(datablock, spare_fraction, land_type, items, alc_grades=None
 
     return datablock
 
-def peatland_restoration(datablock, restore_fraction, land_type, items, mask=None):
+def peatland_restoration(datablock, restore_fraction, land_type, items,
+                         peat_map_key=None, mask_val=None):
     """Replaces a specified land type fraction and sets it to a new type called
     'peatland'. Scales food production and imports to reflect the change in land
     use.
     """
         
     timescale = datablock["global_parameters"]["timescale"]
-    alc = datablock["land"]["dominant_classification"]
+    peat_map_da = datablock["land"][peat_map_key]
     pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
     old_use = datablock["land"]["percentage_land_use"].sel({"aggregate_class":land_type}).sum()
 
     # if no alc grade is provided, then use the whole map
-    if mask is not None:
-        alc_mask = np.isin(alc, mask)
+    if mask_val is not None:
+        peat_mask = np.isin(peat_map_da, mask_val)
     else:
-        alc_mask = np.ones_like(pctg, dtype=bool)
+        peat_mask = np.ones_like(pctg, dtype=bool)
 
-    to_spare = pctg.where(alc_mask, other=0).sel({"aggregate_class":land_type})
+    to_spare = pctg.where(peat_mask, other=0).sel({"aggregate_class":land_type})
 
     # Spare the specified land type
     delta_spared =  to_spare * restore_fraction
@@ -1134,6 +1135,54 @@ def soil_carbon_sequestration(datablock, fraction):
 
     # Rewrite land use data to datablock
     datablock["land"]["percentage_land_use"] = pctg
+    return datablock
+
+def zero_land_farming_model(datablock, fraction, items, land_type="Arable",
+                            bdleaf_conif_ratio=0.5):
+    """Reduces arable land proportional to the fraction of produced food
+    assumed to be farmed in vertical / urban farms. Production remains constant.
+    This ignores any item passed which is not a Vegetal Product.
+    """
+
+    food_orig = datablock["food"]["g/cap/day"].copy(deep=True)
+    
+    if isinstance(items, tuple):
+        items = food_orig.sel(Item=np.isin(food_orig[items[0]], items[1])).Item.values
+    else:
+        items = [items]
+
+    timescale = datablock["global_parameters"]["timescale"]
+
+    # Load land use data from datablock
+    pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
+
+    # Load production data from datablock
+    plant_items = food_orig.sel(Item=food_orig.Item_origin=="Vegetal Products").Item.values
+
+    # Filter items to only include plant items
+    items = [item for item in items if item in plant_items]
+
+    # Create scaling array
+    scale = logistic_food_supply(food_orig, timescale, 1, fraction)
+
+    # Compute ratio of plant products now being produced in urban/vertical farms
+    food_to_shift = food_orig["production"].sel(Item=items).sum(dim="Item") * scale
+
+    shift_ratio_da =  food_to_shift / food_orig["production"].sel(Item=plant_items).sum(dim="Item")
+    shift_ratio = shift_ratio_da.isel(Year=-1).values
+
+    # Compute delta land use
+    delta_arable = pctg.loc[{"aggregate_class":land_type}] * shift_ratio
+    pctg.loc[{"aggregate_class":land_type}] -= delta_arable
+    # Rewrite land use data to datablock
+
+    # Add forested percentage to the land use map
+    pctg.loc[{"aggregate_class":"Broadleaf woodland"}] += delta_arable * bdleaf_conif_ratio
+    pctg.loc[{"aggregate_class":"Coniferous woodland"}] += delta_arable * (1-bdleaf_conif_ratio)
+
+    datablock["land"]["percentage_land_use"] = pctg
+
+
     return datablock
 
 def mixed_farming_model(datablock, fraction):

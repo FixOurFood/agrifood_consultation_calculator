@@ -201,6 +201,10 @@ LC = UKCEH_LC_1000["percentage_aggregate"]
 
 ALC, LC = xr.align(ALC, LC, join="outer")
 
+peatland = xr.open_dataarray("images/peatland_binary_mask.nc")
+
 # datablock["land"]["percentage_land_use"] = LC.where(np.isfinite(ALC.grade))
 datablock["land"]["percentage_land_use"] = LC
 datablock["land"]["dominant_classification"] = ALC.grade
+datablock["land"]["peatland"] = peatland
+

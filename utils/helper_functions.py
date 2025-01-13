@@ -24,14 +24,14 @@ default_widget_values = {
     "pig_poultry_eggs": 0,
     "fruit_veg": 0,
     "cereals": 0,
-    "labmeat": 0,
-    "dairy_alt":0,
+    "meat_alternatives": 0,
+    "dairy_alternatives":0,
     "waste": 0,
 
     # Land use sliders and widgets
     "land_bar": 0,
     "foresting_pasture": 0,
-    "land_beccs": 0,
+    "land_BECCS": 0,
     "peatland": 0,
     "soil_carbon": 0,
     "mixed_farming": 0,
@@ -54,6 +54,7 @@ default_widget_values = {
     "arable_bar": 0,
     "agroforestry": 0,
     "fossil_arable": 0,
+    "vertical_farming": 0,
 
     # Advanced settings sliders and widgets
     "labmeat_slider": 25,

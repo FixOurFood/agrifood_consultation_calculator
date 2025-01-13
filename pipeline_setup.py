@@ -98,9 +98,10 @@ def pipeline_setup(food_system):
 
     food_system.add_step(peatland_restoration,
                         {"restore_fraction":st.session_state.peatland/100,
-                         "land_type":["Improved grassland", "Semi-natural grassland"],
+                         "land_type":["Improved grassland", "Semi-natural grassland", "Arable"],
                          "items":"Animal Products",
-                         "mask":5})
+                         "peat_map_key":"peatland",
+                         "mask_val":1})
 
     food_system.add_step(soil_carbon_sequestration,
                         {"fraction":st.session_state.soil_carbon/100})
@@ -153,6 +154,11 @@ def pipeline_setup(food_system):
                             "replaced_items":2511,
                             "new_items":2617,
                             "item_yield":1e2})
+    
+    food_system.add_step(zero_land_farming_model,
+                         {"fraction":st.session_state.vertical_farming/100,
+                          "items":("Item_group", ["Vegetables", "Fruits - Excluding Wine"]),
+                          "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100})
 
     food_system.add_step(scale_impact,
                             {"item_origin":"Vegetal Products",

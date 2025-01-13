@@ -6,17 +6,51 @@ import subprocess
 
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 SERVICE_ACCOUNT_FILE = dict(st.secrets["gspread"]["gs_api_key"])
+APP_BASE_URL = "https://sarahjp-hack.streamlit.app/"
 
 credentials = service_account.Credentials.from_service_account_info(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
+SUBMISSION_WORKSHEET = "Stakeholder submissions - roadmap workshop Jan 23"
+# SUBMISSION_WORKSHEET = "Stage I submissions"
+
 gc = gspread.authorize(credentials)
 sh = gc.open_by_key("1ZEb7PzEi6aKv303t7ypFriIt89FPzXTySGt_vmY60_Y")
-stage_I_worksheet = sh.worksheet("Stage I submissions")
+stage_I_worksheet = sh.worksheet(SUBMISSION_WORKSHEET)
 pathways_worksheet = sh.worksheet("AFN Scenarios pass 1")
 enrolments_worksheet = sh.worksheet("Form responses 2")
 
 stage_I_deadline = 'December 31, 2024'
+
+keys=[
+    "ruminant",
+    "dairy",
+    "pig_poultry_eggs",
+    "fruit_veg",
+    "cereals",
+    "meat_alternatives",
+    "dairy_alternatives",
+    "waste",
+
+    "foresting_pasture",
+    "land_BECCS",
+    "peatland",
+    "soil_carbon",
+    
+    "silvopasture",
+    "methane_inhibitor",
+    "manure_management",
+    "animal_breeding",
+    "fossil_livestock",
+    
+    "agroforestry",
+    "fossil_arable",
+    "vertical_farming",
+    
+    "waste_BECCS",
+    "overseas_BECCS",
+    "DACCS",
+]
 
 def get_user_list():
     """Get the list of user IDs from the Google Sheet"""
@@ -26,7 +60,7 @@ def get_user_list():
     return user_list
 
 @st.dialog("Submit scenario")
-def submit_scenario(user_id, SSR, total_emissions, ambition_levels=False, check_users=True):
+def submit_scenario(user_id, SSR, total_emissions, ambition_levels=False, check_users=True, name=None):
     """Submit the pathway to the Google Sheet.
 
     Parameters:
@@ -55,19 +89,25 @@ def submit_scenario(user_id, SSR, total_emissions, ambition_levels=False, check_
         if user_id not in get_user_list():
             st.error(f'User ID {user_id} not found in database', icon="🚨")
     
+    if name is None:
+        name = " "
+    
     else:
         row = [user_id,
+               name,
             st.session_state["ruminant"],
             st.session_state["dairy"],
             st.session_state["pig_poultry_eggs"],
             st.session_state["fruit_veg"],
             st.session_state["cereals"],
-            st.session_state["labmeat"],
-            st.session_state["dairy_alt"],
+            st.session_state["meat_alternatives"],
+            st.session_state["dairy_alternatives"],
             st.session_state["waste"],
             
             st.session_state["foresting_pasture"],
-            st.session_state["land_beccs"],
+            st.session_state["land_BECCS"],
+            st.session_state["peatland"],
+            st.session_state["soil_carbon"],
 
             st.session_state["silvopasture"],
             st.session_state["methane_inhibitor"],
@@ -77,6 +117,7 @@ def submit_scenario(user_id, SSR, total_emissions, ambition_levels=False, check_
 
             st.session_state["agroforestry"],
             st.session_state["fossil_arable"],
+            st.session_state["vertical_farming"],
 
             st.session_state["waste_BECCS"],
             st.session_state["overseas_BECCS"],
@@ -123,34 +164,9 @@ def call_scenarios(scenario=None):
 
     if scenario is None:
         scenario = st.session_state["scenario"]
+        if scenario is None:
+            return
     pathway_data = get_pathway_data(scenario)
-
-    keys=[
-        "ruminant",
-        "dairy",
-        "pig_poultry_eggs",
-        "fruit_veg",
-        "cereals",
-        "labmeat",
-        "dairy_alt",
-        "waste",
-
-        "foresting_pasture",
-        "land_beccs",
-        
-        "silvopasture",
-        "methane_inhibitor",
-        "manure_management",
-        "animal_breeding",
-        "fossil_livestock",
-        
-        "agroforestry",
-        "fossil_arable",
-        
-        "waste_BECCS",
-        "overseas_BECCS",
-        "DACCS",
-    ]
 
     update_slider(keys, pathway_data)
 
@@ -169,3 +185,12 @@ if __name__ == "__main__":
     print(get_pathway_data(pathway_names[0]))
 
     print(get_user_list())
+
+def build_url():
+
+    url = APP_BASE_URL
+
+    for key in keys:
+        url += f"{key}={st.session_state[key]}&"
+
+    return url

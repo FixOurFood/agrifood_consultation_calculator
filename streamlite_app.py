@@ -65,18 +65,23 @@ with st.sidebar:
                         help=help_str(help, "sidebar_consumer", 8),
                         on_change=call_scenarios, key="scenario")
     
+        st.query_params.clear()
+        
     else:
+        if "ruminant" in st.query_params:
+            values = [int(x) for x in st.query_params.values()]
+            update_slider(list(st.query_params.keys()), values)
+            st.query_params.clear()
         st.selectbox("Scenario", get_pathways(), index=None, placeholder="Select a scenario",
                         help=help_str(help, "sidebar_consumer", 8),
                         on_change=call_scenarios, key="scenario")
         
-    st.query_params.clear()
 
     # Consumer demand interventions
 
     with st.expander("**:spaghetti: Consumer demand**", expanded=False):
 
-        consumer_slider_keys = ["ruminant", "dairy", "pig_poultry_eggs", "fruit_veg", "cereals", "waste", "labmeat", "dairy_alt"]
+        consumer_slider_keys = ["ruminant", "dairy", "pig_poultry_eggs", "fruit_veg", "cereals", "waste", "meat_alternatives", "dairy_alternatives"]
 
         ruminant = st.slider('Reduce ruminant meat consumption',
                         min_value=-100, max_value=100, step=1, value=0,
@@ -119,7 +124,7 @@ with st.sidebar:
 
     with st.expander("**:earth_africa: Land use change**"):
 
-        land_slider_keys = ["foresting_pasture", "land_beccs", "peatland", "soil_carbon", "mixed_farming"]
+        land_slider_keys = ["foresting_pasture", "land_BECCS", "peatland", "soil_carbon", "mixed_farming"]
 
         foresting_pasture = st.slider('Forested pasture land fraction',
                         min_value=0, max_value=100, step=1,
@@ -182,7 +187,7 @@ with st.sidebar:
 
     with st.expander("**:ear_of_rice: Arable farming practices**"):
 
-        arable_slider_keys = ["agroforestry", "fossil_arable"]
+        arable_slider_keys = ["agroforestry", "fossil_arable", "vertical_farming"]
         
         agroforestry = st.slider('Arable land % converted to agroforestry',
                         min_value=0, max_value=100, step=1,
@@ -191,6 +196,10 @@ with st.sidebar:
         fossil_arable = st.slider('Fossil fuel use for machinery',
                         min_value=0, max_value=100, step=1,
                         key='fossil_arable', help=help["sidebar_arable"][1])
+        
+        vertical_farming = st.slider('Vertical and urban farming',
+                        min_value=0, max_value=100, step=1,
+                        key='vertical_farming', help=help["sidebar_arable"][2])
                         
         st.button("Reset", on_click=reset_sliders, key='reset_arable',
             kwargs={"keys": [arable_slider_keys, "arable_bar"]})        
