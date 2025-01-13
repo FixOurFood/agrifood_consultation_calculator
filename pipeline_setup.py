@@ -144,6 +144,14 @@ def pipeline_setup(food_system):
     food_system.add_step(scale_production,
                             {"scale_factor":1-st.session_state.breeding_prod_factor*st.session_state.animal_breeding/100,
                             "items":[2731, 2732]})
+    
+    food_system.add_step(scale_impact,
+                            {"items":[2731, 2732],
+                            "scale_factor":1 - st.session_state.fossil_livestock_ghg_factor*st.session_state.fossil_livestock/100})
+
+    food_system.add_step(scale_production,
+                            {"scale_factor":1 - st.session_state.fossil_livestock_prod_factor*st.session_state.fossil_livestock/100,
+                            "items":[2731, 2732]})
 
     # Arable farming practices
     food_system.add_step(agroecology_model,
