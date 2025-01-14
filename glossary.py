@@ -97,6 +97,9 @@ land_color_dict = {
     'Broadleaf woodland' : "green",
     'Coniferous woodland' : "green",
     'Arable' : "yellow",
+    'Managed arable' : "lightyellow",
+    'Managed pasture' : "gold",
+    'Mixed farming' : "thistle",
     'Improved grassland' : "orange",
     'Semi-natural grassland' : "orange",
     'Mountain, heath and bog' : "gray",
@@ -108,12 +111,16 @@ land_color_dict = {
     'BECCS' : "red",
     'Silvopasture' : "lightgreen",
     'Agroforestry' : "lightblue",
+    'Peatland' : "darkred",
 }
 
 land_label_dict = {
     'Broadleaf woodland' : "Forest",
     'Coniferous woodland' : "Forest",
     'Arable' : "Arable",
+    'Managed arable' : "Managed arable",
+    'Managed pasture' : "Managed pasture",
+    'Mixed farming' : "Mixed farming",
     'Improved grassland' : "Pasture",
     'Semi-natural grassland' : "Pasture",
     'Mountain, heath and bog' : "Mountain",
@@ -125,6 +132,7 @@ land_label_dict = {
     'BECCS' : "BECCS",
     'Silvopasture' : "Silvopasture",
     'Agroforestry' : "Agroforestry",
+    'Peatland' : "Peatland",
 }
 
 sector_emissions_dict = {

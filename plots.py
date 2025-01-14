@@ -11,42 +11,48 @@ from glossary import *
 from utils.helper_functions import *
 from consultation_utils import submit_scenario, get_user_list, stage_I_deadline
 
+
 def plots(datablock):
 
     # ----------------------------------------    
     #                  Plots
     # ----------------------------------------
 
-    col_multiselect, col_but_metric_yr = st.columns([11.5,1.5])
-
-    with col_multiselect:
-        plot_key = st.selectbox("Figure to display", option_list)
-
-    #Toggle to switch year horizon between 2050 and 2100
-    with col_but_metric_yr:
-        st.write("")
-        st.write("")
-        metric_year_toggle = st.toggle("Switch to 2100 mode")
-        metric_yr = np.where(metric_year_toggle, 2100, 2050)
-
     # Summary
     # -------
+    metric_yr = 2050
+    plot_key = st.session_state["plot_key"]
+
     if plot_key == "Summary":
 
+        st.markdown("# Agrifood Calculator")
+        st.write("""Click on an aspect of the food system you would like to change - on
+                the left side of the page. Move the sliders to explore how different
+                interventions in the food system impact the UK emissions balance,
+                self-sufficiency, and land use. Alternatively, select a scenario
+                from the dropdown menu on the top of the sidebar to automatically
+                position sliders to pre-set values. Detailed charts describing the
+                effects of interventions on different aspects of the food system
+                can be found in the dropdown menu at the bottom of the page.""")
+        st.write("""Challenge: can you move the sliders to get the UK to net zero
+                (diamond is at zero)? Are you happy with this solution? If so, submit
+                your proposed solution at the bottom of this page!
+                """)
+                
         col_comp_1, col_comp_2, col_comp_3 = st.columns([1,1,1])
 
         # Emissions and removals balance
         with col_comp_1:
 
-            with st.container(height=750, border=True):
+            with st.container(height=800, border=True):
                 
-                st.markdown('''**UK Emissions and removals balance**''')
+                st.markdown('''**UK Emissions balance**''')
                 if st.session_state.emission_factors == "NDC 2020":
                     
                     seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
                     emissions = datablock["impact"]["g_co2e/year"]["production"].sel(Year=metric_yr)/1e6
                     total_emissions = emissions.sum(dim="Item").values/1e6
-                    total_seq = seq_da.sel(Item=["Broadleaved woodland", "Coniferous woodland"]).sum(dim="Item").values/1e6
+                    total_seq = seq_da.sel(Item=["Broadleaf woodland", "Coniferous woodland", "Peatland"]).sum(dim="Item").values/1e6
                     total_removals = seq_da.sel(Item=["BECCS from waste", "BECCS from overseas biomass", "BECCS from land", "DACCS"]).sum(dim="Item").values/1e6
 
                     emissions_balance = xr.DataArray(data = list(sector_emissions_dict.values()),
@@ -57,10 +63,9 @@ def plots(datablock):
                     emissions_balance.loc[{"Sector": "Land use sinks"}] = -total_seq
                     emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
 
-                    show_sectors = st.checkbox("Show agriculture and land use only", value=False)
-
                     reference = 92.39
-                    if show_sectors:
+
+                    if st.session_state["show_afolu_only"]:
                         reference = 31.61
                         emissions_balance = emissions_balance.sel(Sector=["Agriculture", "Land use sinks", "Removals"])
 
@@ -84,27 +89,29 @@ def plots(datablock):
                     
                 c = c.properties(height=500)
                 st.altair_chart(c, use_container_width=True)
+                st.checkbox("Show agriculture and land use only", value=False, on_change=change_to_afolu_only, key="show_afolu_only_checkbox")
 
                 st.caption('''<div style="text-align: justify;">
-                           Above is the comparison between the total emissions from
-                           food produced in the UK and the sequestration from different land uses
-                           Emissions include all stages of production up to retail, including
-                           processing and transportation, and are dissagregated into food product,
-                           origin. The yellow diamond shows the net balance between emissions and
-                           sequestration from agriculture and land use combined
+                           The diagram above visualises the balance between total
+                           emissions produced in the UK, and carbon storage.
+                           The red diamond shows the net balance, the red dot is
+                           at zero and your goal is to move the sliders to get
+                           them to line up.</div>''', unsafe_allow_html=True)
+                st.write("\n")
+                st.caption('''<div style="text-align: justify;">
+                           It assumes other (non agrifood) sectors reduce their
+                           emissions according to the CCC balanced pathway.
+                           The black line shows the situation in 2050 if the
+                           agrifood system stays the same as it is today. 
                            </div>''', unsafe_allow_html=True)
 
         # Self-sufficiency ratio
         with col_comp_2:
-            with st.container(height=750, border=True):
+            with st.container(height=800, border=True):
 
-                st.markdown('''**Self-sufficiency ratio.**''')
+                st.markdown('''**Self-sufficiency**''')
 
-                ssr_metric = st.selectbox("Select metric", ["g/cap/day",
-                                                           "g_prot/cap/day",
-                                                           "g_fat/cap/day",
-                                                           "g_co2e/cap/day",
-                                                           "kCal/cap/day",], key="SSR_metric")
+                ssr_metric = st.session_state["ssr_metric"]
 
                 gcapday = datablock["food"][ssr_metric].sel(Year=metric_yr).fillna(0)
                 gcapday = gcapday.fbs.group_sum(coordinate="Item_origin", new_name="Item")
@@ -118,14 +125,15 @@ def plots(datablock):
                     delta="{:.2f} %".format(100*(SSR_metric_yr-SSR_ref)))
                 
                 origin_color={"Animal Products": "red",
-                              "Vegetal Products": "green",
-                              "Cultured Product": "blue"}
+                              "Plant Products": "green",
+                              "Alternative Products": "blue"}
                 
                 domestic_use = gcapday["imports"]+gcapday["production"]-gcapday["exports"]
                 domestic_use.name="domestic"
 
                 production_bar = plot_single_bar_altair(gcapday["production"],
                                                         show="Item",
+                                                        legend=True,
                                                         vertical=False,
                                                         ax_ticks=True,
                                                         bar_width=100,
@@ -137,6 +145,7 @@ def plots(datablock):
 
                 imports_bar = plot_single_bar_altair(domestic_use,
                                                      show="Item",
+                                                     legend=True,
                                                      vertical=False,
                                                      ax_ticks=True,
                                                      bar_width=100,
@@ -149,7 +158,15 @@ def plots(datablock):
 
                 st.altair_chart(production_bar, use_container_width=True)
                 st.altair_chart(imports_bar, use_container_width=True)
-                
+
+                st.selectbox("Select metric", ["g/cap/day",
+                                               "g_prot/cap/day",
+                                               "g_fat/cap/day",
+                                               "g_co2e/cap/day",
+                                               "kCal/cap/day",],
+                                               key="update_ssr_metric",
+                                               on_change=update_SSR_metric)
+
                 if SSR_metric_yr < SSR_ref:
                     st.markdown(f'''
                     <span style="color:red">
@@ -157,13 +174,6 @@ def plots(datablock):
                     </span>
                     ''', unsafe_allow_html=True)
 
-                    st.caption('''<div style="text-align: justify;">
-                               The selected pathway results in a future where
-                               the UK is highly dependent on imports. Imports are
-                               more influenced by external events such as conflicts,
-                               climatic catastrophes, and trade disruptions.
-                               </div>''', unsafe_allow_html=True)
-                    
                 elif SSR_metric_yr > SSR_ref and SSR_metric_yr < 1:
                     st.markdown(f'''
                     <span style="color:orange">
@@ -171,14 +181,6 @@ def plots(datablock):
                     </span>
                     ''', unsafe_allow_html=True)
 
-                    st.caption('''<div style="text-align: justify;">
-                               The selected pathway results in a future where
-                               the UK is more self-sufficient than today depending less
-                               on imports to meet its food needs. This can result in
-                               a more resilient food system, able to provide food security
-                               in the face of external shocks.
-                               </div>''', unsafe_allow_html=True)
-                    
                 elif SSR_metric_yr > 1:
                     st.markdown(f'''
                     <span style="color:green">
@@ -186,26 +188,24 @@ def plots(datablock):
                     </span>
                     ''', unsafe_allow_html=True)
 
-                    st.caption('''<div style="text-align: justify;">
-                               The selected pathway results in a future where
-                               the UK is completely self-sufficient and does not depend
-                               on imports to meet its food needs.
-                               </div>''', unsafe_allow_html=True)
                 st.write("")
                 st.caption('''<div style="text-align: justify;">
-                The self-sufficiency ratio (SSR) is the ratio of the
-                amount of food produced by a country to the amount of
-                food it would need to meet its own food needs.
-                A low value indicates that a country is highly dependent
-                on imports while a value higher than 100% means a country
-                produces more food than it needs
+                This panel calculates how much the UK relies on food imports, by
+                comparing the amount we produce in the UK to the amount we use.
+                The UK currently produces 73% of what it uses, and a lower value
+                would mean we depend more on imports.</div>''', unsafe_allow_html=True)
+                st.write("\n")
+                st.caption('''<div style="text-align: justify;">
+                This percentage can be calculated by weight (tonnes produced /
+                tonnes used) or other metrics e.g. kcal produced / kcal used or
+                nutrients such as protein.
                 </div>''', unsafe_allow_html=True)
                
         # Land use
         with col_comp_3:
-            with st.container(height=750, border=True):
+            with st.container(height=800, border=True):
 
-                st.markdown('''**Land use distribution**''')
+                st.markdown('''**Land use**''')
 
 
                 f, plot1 = plt.subplots(1, figsize=(6, 6))
@@ -243,37 +243,12 @@ def plots(datablock):
                 st.altair_chart(bar_land_use, use_container_width=True)
 
                 st.caption('''<div style="text-align: justify;">
-                The map above shows the distribution of land use types in the
-                UK. Land use types are associated with different processes,
-                including food production, carbon sequestration and hybrid
-                productive systems such as agroforestry and silvopasture.
+                The map above shows the distribution of land use types in the UK.
+                Land use types are associated with different processes,
+                including food production, forests and hybrid productive systems
+                such as silvoarable (trees mixed with crops) and silvopasture
+                (animals mixed with crops).
                 </div>''', unsafe_allow_html=True)
-
-        with st.container():
-            st.markdown("## AgriFood Calculator")
-            st.caption(f'''<div style="text-align: justify;">
-                        Move the ambition level sliders to explore the outcomes of
-                        different interventions on key metrics of the food system,
-                        including GHG emissions, sequestration and land use.                    
-                        Alternatively, select an scenario from the dropdown menu
-                        on the top of the side bar to automatically position
-                        sliders to their pre-set values.                    
-                        Detailed charts describing the effects of interventions
-                        on different aspects of the food system can be found in
-                        the dropdown menu at the top of the page.
-                        Once you have selected the ambition levels for the
-                        different interventions, enter your unique ID on the
-                        field below and click the "Submit pathway" button. You
-                        can change your responses as many times as you want
-                        before the Stage I deadline on {stage_I_deadline}.
-                        </div>''', unsafe_allow_html=True)
-
-            user_id = st.text_input("Enter your unique ID", "AFP")
-            submit_state = st.button("Submit pathway")
-
-            # submit scenario
-            if submit_state:
-                submit_scenario(user_id, SSR_metric_yr, emissions_balance.sum(), ambition_levels=True, check_users=st.session_state.check_ID)
 
     # Emissions per food group or origin
     # ----------------------------------
@@ -420,6 +395,34 @@ def plots(datablock):
             pie = pie_chart_altair(land_pctg, show="aggregate_class", unit="ha")
             st.altair_chart(pie)
     
+    st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list, on_change=update_plot_key, key="update_plot_key")
+
+    with st.container():
+        st.markdown("""<div style="text-align: justify;">
+        Once you have used the sliders to select your preferred levels of
+        intervention, enter your email address in the field below and click
+        the "Submit pathway" button. You can change your responses as many
+        times as you want before the expert submission deadline on 26th
+        March 2025.</div>""", unsafe_allow_html=True)
+
+        col1_submit, col2_submit, col3_submit = st.columns(3)
+
+
+            
+        with col1_submit:
+            submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden")
+        with col2_submit:
+            user_id = st.text_input("Enter your email", placeholder="Enter your email", label_visibility="hidden")
+        with col3_submit:
+            st.file_uploader("Optionally, add a narrative (PDF format) to go with your submission", accept_multiple_files=False)
+
+        allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
+        submit_state = st.button("Submit pathway")
+
+        # submit scenario
+        if submit_state:
+            submit_scenario(user_id, SSR_metric_yr, emissions_balance.sum(), ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name)
+
     if plot_key != "Summary":
         with bottom():
             from bottom import bottom_panel
