@@ -298,7 +298,6 @@ def plots(datablock):
     # ---------------------------------------
     elif plot_key == "CO2e emission per food item":
         emissions = datablock["impact"]["g_co2e/year"].sel(Year=slice(None, metric_yr))
-        emissions_baseline = st.session_state["datablock_baseline"]["impact"]["g_co2e/year"]
         col_opt, col_element = st.columns([1,1])
         with col_opt:
             option_key = st.selectbox("Plot options", np.unique(emissions.Item_group.values))
