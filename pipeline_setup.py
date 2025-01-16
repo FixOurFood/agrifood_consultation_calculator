@@ -107,9 +107,11 @@ def pipeline_setup(food_system):
                         {"fraction":st.session_state.soil_carbon/100})
 
     food_system.add_step(mixed_farming_model,
-                        {"fraction":st.session_state.mixed_farming/100})
-
-
+                        {"fraction":st.session_state.mixed_farming/100,
+                         "prod_scale_factor":st.session_state.mixed_farming_production_scale,
+                         "items":("Item_origin","Vegetal Products"),
+                         "secondary_prod_scale_factor":st.session_state.mixed_farming_secondary_production_scale,
+                         "secondary_items":("Item_origin","Animal Products")})
 
     # Livestock farming practices        
     food_system.add_step(agroecology_model,
@@ -190,12 +192,14 @@ def pipeline_setup(food_system):
                                           "Peatland",
                                           "Managed arable",
                                           "Managed pasture",
+                                          "Mixed farming",
                                           ],
                             "seq":[st.session_state.bdleaf_seq_ha_yr,
                                    st.session_state.conif_seq_ha_yr,
                                    st.session_state.peatland_seq_ha_yr,
                                    st.session_state.managed_arable_seq_ha_yr,
-                                   st.session_state.managed_pasture_seq_ha_yr]})
+                                   st.session_state.managed_pasture_seq_ha_yr,
+                                   st.session_state.mixed_farming_seq_ha_yr]})
 
     food_system.add_step(compute_emissions)
 

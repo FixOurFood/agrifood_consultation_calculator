@@ -1182,8 +1182,86 @@ def zero_land_farming_model(datablock, fraction, items, land_type="Arable",
 
     datablock["land"]["percentage_land_use"] = pctg
 
-
     return datablock
 
-def mixed_farming_model(datablock, fraction):
+def mixed_farming_model(datablock, fraction, prod_scale_factor, items,
+                        secondary_items, secondary_prod_scale_factor,
+                        land_type="Arable", secondary_land_type=["Improved grassland",
+                                                                 "Semi-natural grassland"],
+                        new_land_type="Mixed farming"):
+    
+    """Converts arable land to mixed farming.
+
+    In mix farms, primary crops have a small decrease in production of specified
+    items, set by primary_items and primary_production_scale.
+    Secondary items are increased by a specified amount, set by secondary_items,
+    secondary_production_scale and the current land used primarily for the secondary
+    items.
+    """
+
+    # Load land use data from datablock
+    old_land = datablock["land"]["percentage_land_use"]
+    pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
+    food_orig = datablock["food"]["g/cap/day"].copy(deep=True)
+    timescale = datablock["global_parameters"]["timescale"]
+
+    # Create new category for "mixed farming" land
+    if new_land_type not in pctg.aggregate_class.values:
+        _new_class = xr.zeros_like(pctg.isel(aggregate_class=0)).where(np.isfinite(pctg.isel(aggregate_class=0)))
+        _new_class["aggregate_class"] = new_land_type
+        pctg = xr.concat([pctg, _new_class], dim="aggregate_class")
+
+    # Compute arable fraction to be converted to mixed farming
+    delta_arable = pctg.loc[{"aggregate_class":land_type}] * fraction
+    pctg.loc[{"aggregate_class":land_type}] -= delta_arable
+    pctg.loc[{"aggregate_class":new_land_type}] += delta_arable
+
+    # Compute relative change in arable land
+    mixed_farm_frac = delta_arable.sum() / old_land.loc[{"aggregate_class":land_type}].sum()
+    arable_scale = 1 - mixed_farm_frac + mixed_farm_frac * prod_scale_factor
+    arable_scale = arable_scale.values
+
+    # Get items
+    if isinstance(items, tuple):
+        items = food_orig.sel(Item=np.isin(food_orig[items[0]], items[1])).Item.values
+    else:
+        items = [items]
+
+    if isinstance(secondary_items, tuple):
+        secondary_items = food_orig.sel(Item=np.isin(food_orig[secondary_items[0]], secondary_items[1])).Item.values
+    else:
+        secondary_items = [secondary_items]
+
+    scale = logistic_food_supply(food_orig, timescale, 1, arable_scale)
+
+    out = food_orig.fbs.scale_add(element_in="production",
+                                  element_out="imports",
+                                  scale=scale,
+                                  items=items,
+                                  add=False)
+
+    # Compute relative change in secondary items
+    # Get relative new area of mixed farming to secondary producing area
+    total_area_secondary = pctg.loc[{"aggregate_class":secondary_land_type}].sum()
+    mixed_farm_to_secondary_ratio = delta_arable.sum() / total_area_secondary
+    secondary_ratio = 1 + mixed_farm_to_secondary_ratio * secondary_prod_scale_factor
+    secondary_ratio = secondary_ratio.values
+
+    secondary_scale = logistic_food_supply(food_orig, timescale, 1, secondary_ratio)
+    print(secondary_scale)
+
+    out = out.fbs.scale_add(element_in="production",
+                                  element_out="imports",
+                                  scale=secondary_scale,
+                                  items=secondary_items,
+                                  add=False)
+
+    # Update land use data to datablock
+    datablock["land"]["percentage_land_use"] = pctg
+
+    # Rewrite food data datablock
+    datablock["food"]["g/cap/day"] = out
+
+    # TO-DO: update the rest of the nutrient data
+
     return datablock

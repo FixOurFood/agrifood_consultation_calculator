@@ -142,7 +142,7 @@ with st.sidebar:
                                  min_value=0, max_value=100, step=1,
                                  key="soil_carbon", help=help_str(help, "sidebar_land", 3, "3a92auci0xj5"))
         
-        mixed_farming = st.slider('Percentage of agricultural land converted to mixed farming',
+        mixed_farming = st.slider('Percentage of arable land converted to mixed farming',
                                   min_value=0, max_value=100, step=1,
                                   key="mixed_farming", help=help_str(help, "sidebar_land", 4, "7su0nj7wz5ct"))
 
@@ -250,7 +250,11 @@ with st.sidebar:
             peatland_seq_ha_yr = st.slider('Peatland CO2 sequestration [t CO2 / ha / year]', min_value=1., max_value=15., value=5., step=0.5, key = "peatland_seq_ha_yr", help = help["advanced_options"][7])
             managed_arable_seq_ha_yr = st.slider('Managed arable land CO2 sequestration [t CO2 / ha / year]', min_value=0., max_value=5., value=1., step=0.1, key = "managed_arable_seq_ha_yr", help = help["advanced_options"][8])
             managed_pasture_seq_ha_yr = st.slider('Managed pasture land CO2 sequestration [t CO2 / ha / year]', min_value=0., max_value=5., value=1., step=0.1, key = "managed_pasture_seq_ha_yr", help = help["advanced_options"][8])
-            
+            mixed_farming_seq_ha_yr = st.slider('Mixed farming CO2 sequestration [t CO2 / ha / year]', min_value=0., max_value=5., value=1., step=0.1, key = "mixed_farming_seq_ha_yr", help = help["advanced_options"][8])
+
+            mixed_farming_production_scale = st.slider('Relative production of primary products in mixed farming', min_value=0., max_value=1., value=0.9, step=0.1, key = "mixed_farming_production_scale", help = help["advanced_options"][8])
+            mixed_farming_secondary_production_scale = st.slider('Relative production of secondary products in mixed farming', min_value=0., max_value=1., value=0.9, step=0.1, key = "mixed_farming_secondary_production_scale", help = help["advanced_options"][8])
+
             conif_seq_ha_yr = st.slider('Coniferous forest CO2 sequestration [t CO2 / ha / year]', min_value=1., max_value=30., value=6.5, step=0.5, key = "conif_seq_ha_yr", help = help["advanced_options"][7])
             elasticity = st.slider("Production / Imports elasticity ratio", min_value=0., max_value=1., value=0.5, step=0.1, key="elasticity", help = help["advanced_options"][9])
             agroecology_tree_coverage = st.slider("Tree coverage in agroecology", min_value=0., max_value=1., value=0.1, step=0.1, key="tree_coverage")
@@ -322,6 +326,10 @@ with st.sidebar:
 
             st.session_state.managed_arable_seq_ha_yr = 1.0
             st.session_state.managed_pasture_seq_ha_yr = 1.0
+            st.session_state.mixed_farming_seq_ha_yr = 1.0
+
+            st.session_state.mixed_farming_production_scale = 0.9
+            st.session_state.mixed_farming_secondary_production_scale = 0.9
 
             st.session_state.elasticity = 0.5
             st.session_state.agroecology_tree_coverage = 0.1
