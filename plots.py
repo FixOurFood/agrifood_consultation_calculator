@@ -119,7 +119,6 @@ def plots(datablock):
                 st.markdown('''**Self-sufficiency**''')
 
                 ssr_metric = st.session_state["ssr_metric"]
-
                 gcapday = datablock["food"][ssr_metric].sel(Year=metric_yr).fillna(0)
                 gcapday = gcapday.fbs.group_sum(coordinate="Item_origin", new_name="Item")
                 gcapday_ref = datablock["food"][ssr_metric].sel(Year=2020).fillna(0)
@@ -133,7 +132,7 @@ def plots(datablock):
                 
                 origin_color={"Animal Products": "red",
                               "Plant Products": "green",
-                              "Alternative Products": "blue"}
+                              "Alternative Food": "blue"}
                 
                 domestic_use = gcapday["imports"]+gcapday["production"]-gcapday["exports"]
                 domestic_use.name="domestic"

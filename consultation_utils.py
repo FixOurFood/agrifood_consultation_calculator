@@ -34,8 +34,10 @@ keys=[
 
     "foresting_pasture",
     "land_BECCS",
-    "peatland",
+    "upland_peatland",
+    "lowland_peatland",
     "soil_carbon",
+    "mixed_farming",
     
     "silvopasture",
     "methane_inhibitor",
@@ -106,8 +108,10 @@ def submit_scenario(user_id, SSR, total_emissions, ambition_levels=False, check_
             
             st.session_state["foresting_pasture"],
             st.session_state["land_BECCS"],
-            st.session_state["peatland"],
+            st.session_state["upland_peatland"],
+            st.session_state["lowland_peatland"],
             st.session_state["soil_carbon"],
+            st.session_state["mixed_farming"],
 
             st.session_state["silvopasture"],
             st.session_state["methane_inhibitor"],

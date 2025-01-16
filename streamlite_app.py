@@ -124,19 +124,23 @@ with st.sidebar:
 
     with st.expander("**:earth_africa: Land use change**"):
 
-        land_slider_keys = ["foresting_pasture", "land_BECCS", "peatland", "soil_carbon", "mixed_farming"]
+        land_slider_keys = ["foresting_pasture", "land_BECCS", "lowland_peatland", "upland_peatland", "soil_carbon", "mixed_farming"]
 
-        foresting_pasture = st.slider('Forested pasture land fraction',
-                        min_value=0, max_value=100, step=1,
+        foresting_pasture = st.slider('Forested UK land area percentage',
+                        min_value=0, max_value=30, step=1,
                         key="foresting_pasture", help=help_str(help, "sidebar_land", 0, "oqoktlcczgw8"))        
 
         land_BECCS = st.slider('Percentage of farmland used for BECCS crops',
                         min_value=0, max_value=20, step=1,
                         key="land_BECCS", help=help_str(help, "sidebar_land", 1, "hjx1wpsuoy8u"))
 
-        peatland = st.slider('Percentage of peatland restored',
+        lowland_peatland = st.slider('Percentage of lowland peatland restored',
                              min_value=0, max_value=100, step=1,
-                             key="peatland", help=help_str(help, "sidebar_land", 2, "eln33eildo1k"))
+                             key="lowland_peatland", help=help_str(help, "sidebar_land", 2, "eln33eildo1k"))
+        
+        upland_peatland = st.slider('Percentage of upland peatland restored',
+                             min_value=0, max_value=100, step=1,
+                             key="upland_peatland", help=help_str(help, "sidebar_land", 2, "rgtch9lm7i39"))
 
         soil_carbon = st.slider('Percentage of managed land for soil carbon management',
                                  min_value=0, max_value=100, step=1,

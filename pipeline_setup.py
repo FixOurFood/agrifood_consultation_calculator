@@ -86,8 +86,10 @@ def pipeline_setup(food_system):
     food_system.add_step(spare_alc_model,
                             {"spare_fraction":st.session_state.foresting_pasture/100,
                             "land_type":["Improved grassland", "Semi-natural grassland"],
-                            "items":"Animal Products"})
-    
+                            "items":"Animal Products",
+                            "map_mask":"peatland",
+                            "mask_vals":0,
+                            })
 
     food_system.add_step(foresting_spared_model,
                             {"forest_fraction":1,
@@ -97,8 +99,15 @@ def pipeline_setup(food_system):
                             {"farm_percentage":st.session_state.land_BECCS/100})
 
     food_system.add_step(peatland_restoration,
-                        {"restore_fraction":st.session_state.peatland/100,
-                         "land_type":["Improved grassland", "Semi-natural grassland", "Arable"],
+                        {"restore_fraction":st.session_state.lowland_peatland/100,
+                         "land_type":["Arable"],
+                         "items":"Vegetal Products",
+                         "peat_map_key":"peatland",
+                         "mask_val":1})
+    
+    food_system.add_step(peatland_restoration,
+                        {"restore_fraction":st.session_state.upland_peatland/100,
+                         "land_type":["Improved grassland", "Semi-natural grassland"],
                          "items":"Animal Products",
                          "peat_map_key":"peatland",
                          "mask_val":1})
@@ -117,7 +126,9 @@ def pipeline_setup(food_system):
     food_system.add_step(agroecology_model,
                             {"land_percentage":st.session_state.silvopasture/100.,
                             "agroecology_class":"Silvopasture",
-                            "land_type":["Improved grassland", "Semi-natural grassland"],
+                            "land_type":["Improved grassland",
+                                         "Semi-natural grassland",
+                                         "Managed pasture"],
                             "tree_coverage":st.session_state.agroecology_tree_coverage,
                             "replaced_items":[2731, 2732],
                             "new_items":2617,
@@ -159,7 +170,8 @@ def pipeline_setup(food_system):
     food_system.add_step(agroecology_model,
                             {"land_percentage":st.session_state.agroforestry/100.,
                             "agroecology_class":"Agroforestry",
-                            "land_type":["Arable"],
+                            "land_type":["Arable",
+                                         "Managed arable"],
                             "tree_coverage":st.session_state.agroecology_tree_coverage,
                             "replaced_items":2511,
                             "new_items":2617,
@@ -199,7 +211,8 @@ def pipeline_setup(food_system):
                                    st.session_state.peatland_seq_ha_yr,
                                    st.session_state.managed_arable_seq_ha_yr,
                                    st.session_state.managed_pasture_seq_ha_yr,
-                                   st.session_state.mixed_farming_seq_ha_yr]})
+                                   st.session_state.mixed_farming_seq_ha_yr,
+                                   ]})
 
     food_system.add_step(compute_emissions)
 

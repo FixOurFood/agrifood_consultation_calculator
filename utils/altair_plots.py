@@ -75,7 +75,7 @@ def plot_bars_altair(food, show="Item", x_axis_title='', xlimit=None):
     df["value_end"] = 0.
 
     df["Item"] = df["Item"].replace("Vegetal Products", "Plant Products")
-    df["Item"] = df["Item"].replace("Cukltured Product", "Alternative Products")
+    df["Item"] = df["Item"].replace("Alternative Food", "Alternative Products")
     
 
     for i in range(2*n_origins,10*n_origins):

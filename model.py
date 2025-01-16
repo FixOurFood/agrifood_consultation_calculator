@@ -370,8 +370,8 @@ def cultured_meat_model(datablock, cultured_scale, labmeat_co2e, items, copy_fro
     for key in qty_key:
         datablock["food"][key] = datablock["food"][key].fbs.add_items(new_items)
         datablock["food"][key]["Item_name"].loc[{"Item":new_items}] = new_item_name
-        datablock["food"][key]["Item_origin"].loc[{"Item":new_items}] = "Cultured Products"
-        datablock["food"][key]["Item_group"].loc[{"Item":new_items}] = "Cultured Products"
+        datablock["food"][key]["Item_origin"].loc[{"Item":new_items}] = "Alternative Food"
+        datablock["food"][key]["Item_group"].loc[{"Item":new_items}] = "Alternative Food"
         # Set values to zero to avoid issues
         datablock["food"][key].loc[{"Item":new_items}] = 0
 
@@ -406,8 +406,8 @@ def cultured_meat_model(datablock, cultured_scale, labmeat_co2e, items, copy_fro
     for key in nutrition_keys:
         datablock["food"][key] = datablock["food"][key].fbs.add_items(new_items, copy_from=[copy_from])
         datablock["food"][key]["Item_name"].loc[{"Item":new_items}] = new_item_name
-        datablock["food"][key]["Item_origin"].loc[{"Item":new_items}] = "Cultured Products"
-        datablock["food"][key]["Item_group"].loc[{"Item":new_items}] = "Cultured Products"
+        datablock["food"][key]["Item_origin"].loc[{"Item":new_items}] = "Alternative Food"
+        datablock["food"][key]["Item_group"].loc[{"Item":new_items}] = "Alternative Food"
 
     # Add emissions factor for cultured meat
     datablock["impact"]["gco2e/gfood"] = datablock["impact"]["gco2e/gfood"].fbs.add_items(new_items)
@@ -475,27 +475,32 @@ def compute_t_anomaly(datablock):
 
     return datablock
 
-def spare_alc_model(datablock, spare_fraction, land_type, items, alc_grades=None):
+def spare_alc_model(datablock, spare_fraction, land_type, items, map_mask=None, mask_vals=None):
     """Replaces a specified land type fraction and sets it to a new type called
     'spared'. Scales food production and imports to reflect the change in land
     use.
     """
     
     timescale = datablock["global_parameters"]["timescale"]
-    alc = datablock["land"]["dominant_classification"]
     pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
     old_use = datablock["land"]["percentage_land_use"].sel({"aggregate_class":land_type}).sum()
 
+    total_uk_land = pctg.sum()
+    total_sparable = pctg.sel({"aggregate_class":land_type}).sum()
+    sparable_ratio = total_sparable / total_uk_land
+
     # if no alc grade is provided, then use the whole map
-    if alc_grades is not None:
-        alc_mask = np.isin(alc, alc_grades)
+    if mask_vals is not None or map_mask is not None:
+        alc = datablock["land"][map_mask]
+        alc_mask = np.isin(alc, mask_vals)
     else:
         alc_mask = np.ones_like(pctg, dtype=bool)
 
     to_spare = pctg.where(alc_mask, other=0).sel({"aggregate_class":land_type})
 
     # Spare the specified land type
-    delta_spared =  to_spare * spare_fraction
+    delta_spared = to_spare * spare_fraction / sparable_ratio
+
     pctg.loc[{"aggregate_class":land_type}] -= delta_spared
 
     if "Spared" not in pctg.aggregate_class.values:
@@ -1186,8 +1191,11 @@ def zero_land_farming_model(datablock, fraction, items, land_type="Arable",
 
 def mixed_farming_model(datablock, fraction, prod_scale_factor, items,
                         secondary_items, secondary_prod_scale_factor,
-                        land_type="Arable", secondary_land_type=["Improved grassland",
-                                                                 "Semi-natural grassland"],
+                        land_type=["Arable",
+                                   "Managed arable"],
+                        secondary_land_type=["Improved grassland",
+                                             "Semi-natural grassland",
+                                             "Managed pasture"],
                         new_land_type="Mixed farming"):
     
     """Converts arable land to mixed farming.
@@ -1214,7 +1222,7 @@ def mixed_farming_model(datablock, fraction, prod_scale_factor, items,
     # Compute arable fraction to be converted to mixed farming
     delta_arable = pctg.loc[{"aggregate_class":land_type}] * fraction
     pctg.loc[{"aggregate_class":land_type}] -= delta_arable
-    pctg.loc[{"aggregate_class":new_land_type}] += delta_arable
+    pctg.loc[{"aggregate_class":new_land_type}] += delta_arable.sum(dim="aggregate_class")
 
     # Compute relative change in arable land
     mixed_farm_frac = delta_arable.sum() / old_land.loc[{"aggregate_class":land_type}].sum()

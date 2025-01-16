@@ -32,7 +32,8 @@ default_widget_values = {
     "land_bar": 0,
     "foresting_pasture": 0,
     "land_BECCS": 0,
-    "peatland": 0,
+    "lowland_peatland": 0,
+    "upland_peatland": 0,
     "soil_carbon": 0,
     "mixed_farming": 0,
 
