@@ -1248,7 +1248,6 @@ def mixed_farming_model(datablock, fraction, prod_scale_factor, items,
     secondary_ratio = secondary_ratio.values
 
     secondary_scale = logistic_food_supply(food_orig, timescale, 1, secondary_ratio)
-    print(secondary_scale)
 
     out = out.fbs.scale_add(element_in="production",
                                   element_out="imports",

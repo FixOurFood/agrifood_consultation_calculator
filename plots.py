@@ -57,7 +57,9 @@ def plots(datablock):
                                                  "Peatland",
                                                  "Managed pasture",
                                                  "Managed arable",
-                                                 "Mixed farming"]).sum(dim="Item").values/1e6
+                                                 "Mixed farming",
+                                                 "Silvopasture",
+                                                 "Agroforestry"]).sum(dim="Item").values/1e6
                     total_removals = seq_da.sel(Item=["BECCS from waste", "BECCS from overseas biomass", "BECCS from land", "DACCS"]).sum(dim="Item").values/1e6
 
                     emissions_balance = xr.DataArray(data = list(sector_emissions_dict.values()),
