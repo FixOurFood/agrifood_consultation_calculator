@@ -1108,7 +1108,7 @@ def production_land_scale(land, obs, ref, bdleaf_conif_ratio):
     
     return land
 
-def soil_carbon_sequestration(datablock, fraction):
+def managed_agricultural_land_carbon_model(datablock, fraction):
     """Replaces a fraction of "arable" and "pasture" land types with "managed
     arable" and "managed pasture" respectively.
     """

@@ -103,7 +103,7 @@ def pipeline_setup(food_system):
                          "peat_map_key":"peatland",
                          "mask_val":1})
 
-    food_system.add_step(soil_carbon_sequestration,
+    food_system.add_step(managed_agricultural_land_carbon_model,
                         {"fraction":st.session_state.soil_carbon/100})
 
     food_system.add_step(mixed_farming_model,
@@ -185,10 +185,17 @@ def pipeline_setup(food_system):
 
     # Compute emissions and sequestration
     food_system.add_step(forest_sequestration_model,
-                            {"land_type":["Broadleaf woodland", "Coniferous woodland", "Peatland"],
+                            {"land_type":["Broadleaf woodland",
+                                          "Coniferous woodland",
+                                          "Peatland",
+                                          "Managed arable",
+                                          "Managed pasture",
+                                          ],
                             "seq":[st.session_state.bdleaf_seq_ha_yr,
                                    st.session_state.conif_seq_ha_yr,
-                                   st.session_state.peatland_seq_ha_yr]})
+                                   st.session_state.peatland_seq_ha_yr,
+                                   st.session_state.managed_arable_seq_ha_yr,
+                                   st.session_state.managed_pasture_seq_ha_yr]})
 
     food_system.add_step(compute_emissions)
 
