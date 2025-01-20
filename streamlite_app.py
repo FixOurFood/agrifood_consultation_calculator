@@ -242,7 +242,7 @@ with st.sidebar:
 
             cc_production_decline = st.checkbox('Production decline caused by climate change', value=False, key='cc_production_decline')
 
-            labmeat_co2e = st.slider('Cultured meat GHG emissions [g CO2e / g]', min_value=1., max_value=120., value=6.5, key='labmeat_slider')
+            labmeat_co2e = st.slider('Cultured meat GHG emissions [g CO2e / g]', min_value=1., max_value=10., value=2., key='labmeat_slider')
             dairy_alternatives_co2e = st.slider('Dairy alternatives GHG emissions [g CO2e / g]', min_value=0.10, max_value=0.27, value=0.14, key='dairy_alternatives_slider')
             
             rda_kcal = st.slider('Recommended daily energy intake [kCal]', min_value=2000, max_value=2500, value=2250, key='rda_slider')
@@ -266,22 +266,22 @@ with st.sidebar:
             # tillage_prod_factor = st.slider("Soil tillage production reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="tillage_prod")
             # tillage_ghg_factor = st.slider("Soil tillage GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="tillage_ghg")
 
-            manure_prod_factor = st.slider("Manure production reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="manure_prod")
-            manure_ghg_factor = st.slider("Manure GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="manure_ghg")
+            manure_prod_factor = st.slider("Manure production reduction", min_value=0., max_value=1., value=0.0, step=0.1, key="manure_prod_factor")
+            manure_ghg_factor = st.slider("Manure GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="manure_ghg_factor")
 
-            breeding_prod_factor = st.slider("Breeding production reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="breeding_prod")
-            breeding_ghg_factor = st.slider("Breeding GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="breeding_ghg")
+            breeding_prod_factor = st.slider("Breeding production reduction", min_value=0., max_value=1., value=0.0, step=0.1, key="breeding_prod_factor")
+            breeding_ghg_factor = st.slider("Breeding GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="breeding_ghg_factor")
 
-            methane_prod_factor = st.slider("Methane inhibitors production reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="methane_prod")
-            methane_ghg_factor = st.slider("Methane inhibitors GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="methane_ghg")
+            methane_prod_factor = st.slider("Methane inhibitors production reduction", min_value=0., max_value=1., value=0.0, step=0.1, key="methane_prod_factor")
+            methane_ghg_factor = st.slider("Methane inhibitors GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="methane_ghg_factor")
 
             # soil_management_ghg_factor = st.slider("Soil and carbon management GHG reduction", min_value=0., max_value=.2, value=0.05, step=0.01, key="soil_management_ghg")
 
             fossil_livestock_ghg_factor = st.slider("Livestock fossil fuel GHG reduction", min_value=0., max_value=.2, value=0.05, step=0.01, key="fossil_livestock_ghg_factor")
             fossil_arable_ghg_factor = st.slider("Arable fossil fuel GHG reduction", min_value=0., max_value=.2, value=0.05, step=0.01, key="fossil_arable_ghg_factor")
 
-            fossil_livestock_prod_factor = st.slider("Livestock fossil fuel production reduction", min_value=0., max_value=1., value=0.05, step=0.01, key="fossil_livestock_prod_factor")
-            fossil_arable_prod_factor = st.slider("Arable fossil fuel production reduction", min_value=0., max_value=1., value=0.05, step=0.01, key="fossil_arable_prod_factor")
+            fossil_livestock_prod_factor = st.slider("Livestock fossil fuel production reduction", min_value=0., max_value=1., value=0.0, step=0.01, key="fossil_livestock_prod_factor")
+            fossil_arable_prod_factor = st.slider("Arable fossil fuel production reduction", min_value=0., max_value=1., value=0.0, step=0.01, key="fossil_arable_prod_factor")
             
             scaling_nutrient = st.radio("Which nutrient to keep constant when scaling food consumption",
                                         ('g/cap/day', 'g_prot/cap/day', 'g_fat/cap/day', 'kCal/cap/day'),
@@ -315,7 +315,7 @@ with st.sidebar:
 
             st.session_state.cc_production_decline = False
 
-            st.session_state.labmeat_co2e = 6.5
+            st.session_state.labmeat_co2e = 2.0
             st.session_state.dairy_alternatives_co2e = 0.14
             st.session_state.rda_kcal = 2250
 
@@ -341,22 +341,22 @@ with st.sidebar:
             # tillage_prod_factor = 0.3
             # tillage_ghg_factor = 0.3
 
-            st.session_state.manure_prod_factor = 0.3
+            st.session_state.manure_prod_factor = 0.0
             st.session_state.manure_ghg_factor = 0.3
 
-            st.session_state.breeding_prod_factor = 0.3
+            st.session_state.breeding_prod_factor = 0.0
             st.session_state.breeding_ghg_factor = 0.3
 
-            st.session_state.methane_prod_factor = 0.3
+            st.session_state.methane_prod_factor = 0.0
             st.session_state.methane_ghg_factor = 0.3
 
             # soil_management_ghg_factor = 0.05
 
             st.session_state.fossil_livestock_ghg_factor = 0.05
-            st.session_state.fossil_livestock_prod_factor = 0.05
+            st.session_state.fossil_livestock_prod_factor = 0.0
 
             st.session_state.fossil_arable_ghg_factor = 0.05
-            st.session_state.fossil_arable_prod_factor = 0.05
+            st.session_state.fossil_arable_prod_factor = 0.0
             
             st.session_state.scaling_nutrient = 'kCal/cap/day'              
 

@@ -13,6 +13,24 @@ def pipeline_setup(food_system):
                             {"scale":proj_pop,
                             "cc_decline":st.session_state.cc_production_decline})
 
+    food_system.add_step(cultured_meat_model,
+                            {"cultured_scale":st.session_state.meat_alternatives/100,
+                            "labmeat_co2e":st.session_state.labmeat_co2e,
+                            "items":[2731, 2732, 2733, 2734],
+                            "copy_from":2731,
+                            "new_items":5000,
+                            "new_item_name":"Alternative meat",
+                            "source":"production"})
+
+    food_system.add_step(cultured_meat_model,
+                            {"cultured_scale":st.session_state.dairy_alternatives/100,
+                            "labmeat_co2e":st.session_state.dairy_alternatives_co2e,
+                            "items":[2948, 2743, 2740],
+                            "copy_from":2948,
+                            "new_items":5001,
+                            "new_item_name":"Alternative dairy",
+                            "source":"production"})
+    
     food_system.add_step(item_scaling,
                             {"scale":1-st.session_state.ruminant/100,
                             "items":[2731, 2732],
@@ -57,23 +75,6 @@ def pipeline_setup(food_system):
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
                             "scaling_nutrient":st.session_state.scaling_nutrient})
 
-    food_system.add_step(cultured_meat_model,
-                            {"cultured_scale":st.session_state.meat_alternatives/100,
-                            "labmeat_co2e":st.session_state.labmeat_co2e,
-                            "items":[2731, 2732],
-                            "copy_from":2731,
-                            "new_items":5000,
-                            "new_item_name":"Alternative meat",
-                            "source":"production"})
-
-    food_system.add_step(cultured_meat_model,
-                            {"cultured_scale":st.session_state.dairy_alternatives/100,
-                            "labmeat_co2e":st.session_state.dairy_alternatives_co2e,
-                            "items":[2948],
-                            "copy_from":2948,
-                            "new_items":5001,
-                            "new_item_name":"Alternative dairy",
-                            "source":"production"})    
 
     food_system.add_step(food_waste_model,
                             {"waste_scale":st.session_state.waste,
@@ -83,20 +84,19 @@ def pipeline_setup(food_system):
 
 
     # Land management
-    food_system.add_step(spare_alc_model,
+    food_system.add_step(forest_pasture_model,
                             {"spare_fraction":st.session_state.foresting_pasture/100,
                             "land_type":["Improved grassland", "Semi-natural grassland"],
                             "items":"Animal Products",
                             "map_mask":"peatland",
                             "mask_vals":0,
+                            "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100,
                             })
 
-    food_system.add_step(foresting_spared_model,
-                            {"forest_fraction":1,
-                            "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100})
-
     food_system.add_step(BECCS_farm_land,
-                            {"farm_percentage":st.session_state.land_BECCS/100})
+                            {"farm_percentage":st.session_state.land_BECCS/100,
+                             "mask_map":"peatland",
+                             "mask_values":0})
 
     food_system.add_step(peatland_restoration,
                         {"restore_fraction":st.session_state.lowland_peatland/100,
@@ -131,8 +131,7 @@ def pipeline_setup(food_system):
                                          "Managed pasture"],
                             "tree_coverage":st.session_state.agroecology_tree_coverage,
                             "replaced_items":[2731, 2732],
-                            "new_items":2617,
-                            "item_yield":1e2})
+                            "seq_ha_yr":st.session_state.agroecology_tree_coverage*st.session_state.bdleaf_seq_ha_yr})
 
     food_system.add_step(scale_impact,
                             {"items":[2731, 2732],
@@ -174,8 +173,7 @@ def pipeline_setup(food_system):
                                          "Managed arable"],
                             "tree_coverage":st.session_state.agroecology_tree_coverage,
                             "replaced_items":2511,
-                            "new_items":2617,
-                            "item_yield":1e2})
+                            "seq_ha_yr":st.session_state.agroecology_tree_coverage*st.session_state.bdleaf_seq_ha_yr})
     
     food_system.add_step(zero_land_farming_model,
                          {"fraction":st.session_state.vertical_farming/100,

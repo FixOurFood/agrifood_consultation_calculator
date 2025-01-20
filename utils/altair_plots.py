@@ -50,17 +50,23 @@ def plot_years_altair(food, show="Item", ylabel=None, colors=None, ymin=None, ym
     
     return c
 
-def plot_years_total(food, ylabel=None, sumdim=None, color="red"):
+def plot_years_total(food, ylabel=None, sumdim=None, color="red", yrange=None):
     years = food.Year.values
     if sumdim is not None and sumdim in food.dims:
         total = food.sum(dim="Item")
     else:
         total = food
+    
+    if yrange is None:
+        yrange = [0, float(total.max().values)]
+
+    scale = alt.Scale(domain=[yrange[0], yrange[1]])
+    y_ax = alt.Y('sum(value):Q', axis=alt.Axis(format="~s", title=ylabel), scale=scale)
 
     df = pd.DataFrame(data={"Year":years, "value":total})
     c = alt.Chart(df).encode(
         alt.X('Year:O', axis=alt.Axis(values = np.linspace(1960, 2100, 8))),
-        alt.Y('sum(value):Q', axis=alt.Axis(format="~s", title=ylabel))
+        y_ax
     ).mark_line(color=color).properties(height=550)
 
     return c

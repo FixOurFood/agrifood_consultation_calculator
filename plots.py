@@ -265,7 +265,7 @@ def plots(datablock):
         with col_element:
             element_key = st.selectbox("Food Supply Element", ["production", "food", "imports", "exports", "feed"])
         with col_y:
-            y_key = st.selectbox("Food Supply Element", ["Emissions", "kCal/cap/day", "g/cap/day"])
+            y_key = st.selectbox("Quantity", ["Emissions", "kCal/cap/day", "g/cap/day"])
 
         if y_key == "Emissions":
             emissions = datablock["impact"]["g_co2e/year"].sel(Year=slice(None, metric_yr))
@@ -277,14 +277,15 @@ def plots(datablock):
             elif option_key == "Food group":
                 f = plot_years_altair(emissions[element_key]/1e6, show="Item_group", ylabel="t CO2e / Year")
 
-            # Plot sequestration
-            f += plot_years_altair(-seq_da, show="Item", ylabel="t CO2e / Year")
-            emissions_sum = emissions[element_key].sum(dim="Item")
-            seqestration_sum = seq_da.sum(dim="Item")
+            if element_key == "production":
+                # Plot sequestration
+                f += plot_years_altair(-seq_da, show="Item", ylabel="t CO2e / Year")
+                emissions_sum = emissions[element_key].sum(dim="Item")
+                seqestration_sum = seq_da.sum(dim="Item")
 
-            f += plot_years_total((emissions_sum/1e6 - seqestration_sum),
-                                ylabel="t CO2e / Year",
-                                color="black")
+                f += plot_years_total((emissions_sum/1e6 - seqestration_sum),
+                                    ylabel="t CO2e / Year",
+                                    color="black")
         else:
             emissions = datablock["food"][y_key].sel(Year=slice(None, metric_yr))
 
@@ -303,26 +304,29 @@ def plots(datablock):
     # Emissions per food item from each group
     # ---------------------------------------
     elif plot_key == "CO2e emission per food item":
-        emissions = datablock["impact"]["g_co2e/year"].sel(Year=slice(None, metric_yr))
-        col_opt, col_element = st.columns([1,1])
+        col_opt, col_element, col_y = st.columns(3)
         with col_opt:
-            option_key = st.selectbox("Plot options", np.unique(emissions.Item_group.values))
+            option_key = st.selectbox("Plot options", np.unique(datablock["impact"]["g_co2e/year"].Item_group.values))
         with col_element:
             element_key = st.selectbox("Food Supply Element", ["production", "food", "imports", "exports", "feed"])
+        with col_y:
+            y_key = st.selectbox("Quantity", ["Emissions", "kCal/cap/day", "g/cap/day"])
 
-        # plot1.plot(emissions_baseline.Year.values,
-        #            emissions_baseline["food"].sel(
-        #                Item=emissions_baseline["Item_group"] == option_key).sum(dim="Item"))
+        if y_key == "Emissions":
+            to_plot = datablock["impact"]["g_co2e/year"].sel(Year=slice(None, metric_yr))
+            to_plot = to_plot[element_key].sel(Item=to_plot["Item_group"] == option_key)/1e6
+
+        else:
+            to_plot = datablock["food"][y_key].sel(Year=slice(None, metric_yr))
+            to_plot = to_plot[element_key].sel(Item=to_plot["Item_group"] == option_key)
         
-        to_plot = emissions[element_key].sel(Item=emissions["Item_group"] == option_key)/1e6
-
-        f = plot_years_altair(to_plot, show="Item_name", ylabel="t CO2e / Year")
+        f = plot_years_altair(to_plot, show="Item", ylabel="t CO2e / Year")
         f = f.configure_axis(
                 labelFontSize=15,
                 titleFontSize=15)
-        
+            
         st.altair_chart(f, use_container_width=True)
-        
+
     # FAOSTAT bar plot with per-capita daily values
     # ---------------------------------------------
     elif plot_key == "Per capita daily values":
@@ -355,15 +359,72 @@ def plots(datablock):
     # --------------------------------------------
     elif plot_key == "Self-sufficiency ratio":
 
-        option_key = st.selectbox("Plot options", ["g/cap/day", "kCal/cap/day", "g_prot/cap/day", "g_fat/cap/day"])
+        col1_ssr, col2_ssr, col3_ssr = st.columns([1,2,1])
 
-        SSR = datablock["food"][option_key].fbs.SSR().sel(Year=slice(None, metric_yr)) * 100
+        with col3_ssr:
+            ssr_metric = st.selectbox("Metric", ["g/cap/day", "kCal/cap/day", "g_prot/cap/day", "g_fat/cap/day"])
+            dissagregation = st.selectbox("Disaggregation", ["Item_name", "Item_group", "Item_origin"])
+            item_selection = {}
+            item_list = st.multiselect("Food item", np.unique(datablock["food"][ssr_metric][dissagregation].values))
+            if len(item_list) > 0:
+                item_selection = {"Item":item_list}
 
-        f = plot_years_total(SSR, ylabel="Self-sufficiency ratio [%]").configure_axis(
-                labelFontSize=20,
-                titleFontSize=20)
+        with col1_ssr:
+            st.markdown("""# Self-sufficiency""")
+            st.markdown("""The self-sufficiency ratio (SSR) is a measure of the proportion of a
+                        country's food production that is consumed domestically. It is calculated
+                        as the ratio of domestic food production to domestic food consumption.
+                        A higher SSR indicates that a country is more self-sufficient in food
+                        production, while a lower SSR indicates that a country relies more on
+                        imports to meet its food needs.""")
+
+        SSR = datablock["food"][ssr_metric].fbs.SSR().sel(Year=slice(None, metric_yr)) * 100
+
+        f = plot_years_total(SSR, ylabel="Self-sufficiency ratio [%]", yrange=(40, 95)).configure_axis(
+                labelFontSize=10,
+                titleFontSize=15,
+                labelAngle=-45,
+                ).properties(height=300)
         
-        st.altair_chart(f, use_container_width=True)
+        gcapday = datablock["food"][ssr_metric].sel(Year=metric_yr).fillna(0)
+        gcapday = gcapday.fbs.group_sum(coordinate=dissagregation, new_name="Item")
+        gcapday = gcapday.sel(item_selection)
+        SSR_metric_yr = gcapday.fbs.SSR()
+
+        origin_color={"Animal Products": "red",
+                        "Plant Products": "green",
+                        "Alternative Food": "blue"}
+        
+        domestic_use = gcapday["imports"]+gcapday["production"]-gcapday["exports"]
+        domestic_use.name="domestic"
+        
+        production_bar = plot_single_bar_altair(gcapday["production"],
+                                                        show="Item",
+                                                        vertical=False,
+                                                        ax_ticks=True,
+                                                        bar_width=100,
+                                                        ax_min=0,
+                                                        ax_max=np.max([gcapday["production"].sum(), domestic_use.sum()]),
+                                                        axis_title="Food production per capita",
+                                                        unit=ssr_metric.replace("_"," "))
+
+        imports_bar = plot_single_bar_altair(domestic_use,
+                                                     show="Item",
+                                                     vertical=False,
+                                                     ax_ticks=True,
+                                                     bar_width=100,
+                                                     ax_min=0,
+                                                     ax_max=np.max([gcapday["production"].sum(), domestic_use.sum()]),
+                                                     axis_title="Domestic use per capita",
+                                                     unit=ssr_metric.replace("_"," "))
+        
+
+        with col2_ssr:
+            with st.container(border=True):
+                st.altair_chart(f, use_container_width=True)
+            with st.container(border=True):
+                st.altair_chart(production_bar, use_container_width=True)
+                st.altair_chart(imports_bar, use_container_width=True)
 
     # Various land plots, including Land use and ALC
     # ----------------------------------------------
@@ -389,44 +450,54 @@ def plots(datablock):
         # plot1.legend(handles=patches, loc="upper left")
 
         plot1.axis("off")
-        # plot1.set_xlim(left=-500)
+        plot1.set_xlim(left=-100)
+        plot1.set_ylim(top=980)
 
-        col2_1, col2_2, col2_3 = st.columns((2,1.3,2))
+        col2_1, col2_2, col2_3 = st.columns((1,1.4,1))
+        with col2_1:
+            st.markdown("""# Land use""")
+            st.markdown("""Land is fundamental for all human activities, including
+                        food production. But it also plays a crucial role in the
+                        dynamics of greenhouse gases in the atmosphere. Forests,
+                        peatland and even agricultural soils are capable of storing
+                        CO2, as long as we are able to find an adequate balance
+                        between all land uses, are we are careful when using the soil
+                        for food production.""")
         with col2_2:
-            st.pyplot(fig=f)
+            with st.container(border=True):
+                st.pyplot(fig=f)
         with col2_3:
-            add_vertical_space(8)
-            land_pctg = pctg.sum(dim=["x", "y"])
-            pie = pie_chart_altair(land_pctg, show="aggregate_class", unit="ha")
-            st.altair_chart(pie)
+            with st.container(border=True):
+                land_pctg = pctg.sum(dim=["x", "y"])
+                pie = pie_chart_altair(land_pctg, show="aggregate_class", unit="ha")
+                st.altair_chart(pie)
     
     st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list, on_change=update_plot_key, key="update_plot_key")
 
-    with st.container():
-        st.markdown("""<div style="text-align: justify;">
-        Once you have used the sliders to select your preferred levels of
-        intervention, enter your email address in the field below and click
-        the "Submit pathway" button. You can change your responses as many
-        times as you want before the expert submission deadline on 26th
-        March 2025.</div>""", unsafe_allow_html=True)
+    if plot_key == "Summary":
+        with st.container():
+            st.markdown("""<div style="text-align: justify;">
+            Once you have used the sliders to select your preferred levels of
+            intervention, enter your email address in the field below and click
+            the "Submit pathway" button. You can change your responses as many
+            times as you want before the expert submission deadline on 26th
+            March 2025.</div>""", unsafe_allow_html=True)
 
-        col1_submit, col2_submit, col3_submit = st.columns(3)
+            col1_submit, col2_submit, col3_submit = st.columns(3)
+                
+            with col1_submit:
+                submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden")
+            with col2_submit:
+                user_id = st.text_input("Enter your email", placeholder="Enter your email", label_visibility="hidden")
+            with col3_submit:
+                st.file_uploader("Optionally, add a narrative (PDF format) to go with your submission", accept_multiple_files=False)
 
+            allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
+            submit_state = st.button("Submit pathway")
 
-            
-        with col1_submit:
-            submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden")
-        with col2_submit:
-            user_id = st.text_input("Enter your email", placeholder="Enter your email", label_visibility="hidden")
-        with col3_submit:
-            st.file_uploader("Optionally, add a narrative (PDF format) to go with your submission", accept_multiple_files=False)
-
-        allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
-        submit_state = st.button("Submit pathway")
-
-        # submit scenario
-        if submit_state:
-            submit_scenario(user_id, SSR_metric_yr, emissions_balance.sum(), ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name)
+            # submit scenario
+            if submit_state:
+                submit_scenario(user_id, SSR_metric_yr, emissions_balance.sum(), ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name)
 
     if plot_key != "Summary":
         with bottom():

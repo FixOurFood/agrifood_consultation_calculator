@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
 import streamlit as st
+import copy
 
 from agrifoodpy_data.food import FAOSTAT, Nutrients_FAOSTAT
 from agrifoodpy_data.impact import PN18_FAOSTAT
@@ -51,7 +52,18 @@ datablock["population"]["population"] = pop
 FAOSTAT *= 1
 # 1000 T / year
 food_uk = FAOSTAT.sel(Region=229)
+
+# Delete summary items
+food_uk = food_uk.drop_sel(Item=[2905, 2943, 2924,
+                                 2946, 2961, 2960,
+                                 2919, 2945, 2913,
+                                 2911, 2923, 2907,
+                                 2918, 2914, 2912,
+                                 2908, 2909, 2922,
+                                 ])
+
 datablock["food"]["1000 T/year"] = food_uk
+
 
 # ----------------
 # Emission factors
@@ -208,3 +220,9 @@ datablock["land"]["percentage_land_use"] = LC
 datablock["land"]["dominant_classification"] = ALC.grade
 datablock["land"]["peatland"] = peatland
 
+# -------------------------------
+# Baseline data for comparison
+# -------------------------------
+
+datablock["land"]["baseline"] = copy.deepcopy(datablock["land"]["percentage_land_use"])
+datablock["food"]["baseline"] = copy.deepcopy(datablock["food"]["g/cap/day"])

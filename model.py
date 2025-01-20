@@ -475,19 +475,22 @@ def compute_t_anomaly(datablock):
 
     return datablock
 
-def spare_alc_model(datablock, spare_fraction, land_type, items, map_mask=None, mask_vals=None):
-    """Replaces a specified land type fraction and sets it to a new type called
-    'spared'. Scales food production and imports to reflect the change in land
-    use.
+def forest_pasture_model(datablock, spare_fraction, land_type, items,
+                         bdleaf_conif_ratio, map_mask=None, mask_vals=None):
+    """Replaces a specified land type fraction and sets it to forests acording
+    to the relative fraction of broadleaf and coniferous woodland. Scales food
+    production and imports to reflect the change in land use.
     """
     
     timescale = datablock["global_parameters"]["timescale"]
     pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
     old_use = datablock["land"]["percentage_land_use"].sel({"aggregate_class":land_type}).sum()
 
-    total_uk_land = pctg.sum()
-    total_sparable = pctg.sel({"aggregate_class":land_type}).sum()
-    sparable_ratio = total_sparable / total_uk_land
+    baseline_pctg = datablock["land"]["baseline"]
+    baseline_forest_area = baseline_pctg.sel({"aggregate_class":["Broadleaf woodland",
+                                                                 "Coniferous woodland"]}).sum()
+    current_forest_area = pctg.sel({"aggregate_class":["Broadleaf woodland",
+                                                                 "Coniferous woodland"]}).sum()
 
     # if no alc grade is provided, then use the whole map
     if mask_vals is not None or map_mask is not None:
@@ -496,19 +499,39 @@ def spare_alc_model(datablock, spare_fraction, land_type, items, map_mask=None, 
     else:
         alc_mask = np.ones_like(pctg, dtype=bool)
 
+    total_uk_land = pctg.sum()
+    baseline_forest_percentage = baseline_forest_area / total_uk_land
+    print("Baseline forest percentage is {:.2f}% of total UK land".format(baseline_forest_percentage * 100))
+
+    current_new_forest_percentage = (current_forest_area - baseline_forest_area) / total_uk_land
+
+    print("Current new forest percentage is {:.2f}% of total UK land".format(current_new_forest_percentage * 100))
+
+    if spare_fraction <= current_new_forest_percentage:
+        print("Enough sparing!")
+        return datablock
+
+    spare_fraction = spare_fraction - current_new_forest_percentage
+
+    print("Foresting the remaining {:.2f}% of the UK land remaining".format(spare_fraction * 100))
+
+    total_forestable_land = pctg.where(alc_mask, other=0).sel({"aggregate_class":land_type}).sum()
+    forestable_ratio = total_forestable_land / total_uk_land
+
     to_spare = pctg.where(alc_mask, other=0).sel({"aggregate_class":land_type})
 
     # Spare the specified land type
-    delta_spared = to_spare * spare_fraction / sparable_ratio
+    delta_spared = to_spare * spare_fraction / forestable_ratio
 
     pctg.loc[{"aggregate_class":land_type}] -= delta_spared
 
-    if "Spared" not in pctg.aggregate_class.values:
-        spared_new_class = xr.zeros_like(pctg.isel(aggregate_class=0)).where(np.isfinite(pctg.isel(aggregate_class=0)))
-        spared_new_class["aggregate_class"] = "Spared"
-        pctg = xr.concat([pctg, spared_new_class], dim="aggregate_class")
+    # if "Spared" not in pctg.aggregate_class.values:
+    #     spared_new_class = xr.zeros_like(pctg.isel(aggregate_class=0)).where(np.isfinite(pctg.isel(aggregate_class=0)))
+    #     spared_new_class["aggregate_class"] = "Spared"
+    #     pctg = xr.concat([pctg, spared_new_class], dim="aggregate_class")
 
-    pctg.loc[{"aggregate_class":"Spared"}] += delta_spared.sum(dim="aggregate_class")
+    pctg.loc[{"aggregate_class":"Broadleaf woodland"}] += delta_spared.sum(dim="aggregate_class")*bdleaf_conif_ratio
+    pctg.loc[{"aggregate_class":"Coniferous woodland"}] += delta_spared.sum(dim="aggregate_class")*(1-bdleaf_conif_ratio)
 
     # Add spared class to the land use map
     datablock["land"]["percentage_land_use"] = pctg
@@ -600,26 +623,6 @@ def peatland_restoration(datablock, restore_fraction, land_type, items,
         datablock["food"][key] *= ratio
 
     # datablock["food"]["g/cap/day"] = out
-
-    return datablock
-
-def foresting_spared_model(datablock, forest_fraction, bdleaf_conif_ratio):
-    """Replaces a the "spared" land type fraction and sets it to "forested".
-    """
-
-    # Load land use data from datablock
-    pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
-
-    # Compute spared fraction to be re forested and remove from the spared class
-    delta_spared = pctg.loc[{"aggregate_class":"Spared"}] * forest_fraction
-    pctg.loc[{"aggregate_class":"Spared"}] -= delta_spared
-
-    # Add forested percentage to the land use map
-    pctg.loc[{"aggregate_class":"Broadleaf woodland"}] += delta_spared * bdleaf_conif_ratio
-    pctg.loc[{"aggregate_class":"Coniferous woodland"}] += delta_spared * (1-bdleaf_conif_ratio)
-
-    # Rewrite land use data to datablock
-    datablock["land"]["percentage_land_use"] = pctg
 
     return datablock
 
@@ -813,32 +816,42 @@ def scale_production(datablock, scale_factor, item_origin=None, items=None):
 
     return datablock
 
-def BECCS_farm_land(datablock, farm_percentage):
+def BECCS_farm_land(datablock, farm_percentage, land_type="Arable",
+                    new_land_type="BECCS", mask_map=None, mask_values=None):
     """Repurposes farm land for BECCS, reducing the amount of food production,
     and increasing the amount of CO2e sequestered.
     """
 
     timescale = datablock["global_parameters"]["timescale"]
     pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
-    old_use = datablock["land"]["percentage_land_use"].sel({"aggregate_class":"Arable"}).sum()
+    old_use = datablock["land"]["percentage_land_use"].sel({"aggregate_class":land_type}).sum()
+
+    mask_map = datablock["land"][mask_map].copy(deep=True)
     
-    to_spare = pctg.sel({"aggregate_class":"Arable"})
+    # if no alc grade is provided, then use the whole map
+    if mask_values is not None:
+        peat_mask = np.isin(mask_map, mask_values)
+    else:
+        peat_mask = np.ones_like(pctg, dtype=bool)
+
+    to_spare = pctg.where(peat_mask, other=0).sel({"aggregate_class":land_type})
+
     # Spare the specified land type
     delta_spared =  to_spare * farm_percentage
-    pctg.loc[{"aggregate_class":"Arable"}] -= delta_spared
+    pctg.loc[{"aggregate_class":land_type}] -= delta_spared
 
-    if "BECCS" not in pctg.aggregate_class.values:
+    if new_land_type not in pctg.aggregate_class.values:
         spared_new_class = xr.zeros_like(pctg.isel(aggregate_class=0)).where(np.isfinite(pctg.isel(aggregate_class=0)))
-        spared_new_class["aggregate_class"] = "BECCS"
+        spared_new_class["aggregate_class"] = new_land_type
         pctg = xr.concat([pctg, spared_new_class], dim="aggregate_class")
 
-    pctg.loc[{"aggregate_class":"BECCS"}] += delta_spared
+    pctg.loc[{"aggregate_class":new_land_type}] += delta_spared
 
     # Add spared class to the land use map
     datablock["land"]["percentage_land_use"] = pctg
 
     # Scale food production and imports
-    new_use = pctg.sel({"aggregate_class":"Arable"}).sum()
+    new_use = pctg.sel({"aggregate_class":land_type}).sum()
     scale_use = (new_use/old_use).fillna(1).to_numpy()
 
     food_orig = datablock["food"]["g/cap/day"]
