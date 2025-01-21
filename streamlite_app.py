@@ -127,7 +127,7 @@ with st.sidebar:
         land_slider_keys = ["foresting_pasture", "land_BECCS", "lowland_peatland", "upland_peatland", "soil_carbon", "mixed_farming"]
 
         foresting_pasture = st.slider('Additional forested UK land area percentage',
-                        min_value=-20, max_value=20, step=1,
+                        min_value=-25, max_value=25, step=1, value=0,
                         key="foresting_pasture", help=help_str(help, "sidebar_land", 0, "oqoktlcczgw8"))        
 
         land_BECCS = st.slider('Percentage of farmland used for BECCS crops',
