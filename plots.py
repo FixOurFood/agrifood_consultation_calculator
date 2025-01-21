@@ -69,8 +69,7 @@ def plots(datablock):
                     emissions_balance.loc[{"Sector": "Agriculture"}] = total_emissions
                     emissions_balance.loc[{"Sector": "Land use sinks"}] = -total_seq
                     emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
-
-                    reference = 92.39
+                    reference = 97.09
 
                     if st.session_state["show_afolu_only"]:
                         reference = 31.61
@@ -88,7 +87,7 @@ def plots(datablock):
                     seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
 
                     emissions_balance = xr.concat([emissions/1e6, -seq_da/1e6], dim="Item")
-
+                    
                     c = plot_single_bar_altair(emissions_balance, show="Item",
                                                     axis_title="Sequestration / Production emissions [M tCO2e]",
                                                     ax_min=-3e2, ax_max=3e2, unit="M tCO2e", vertical=True,
@@ -97,7 +96,7 @@ def plots(datablock):
                 c = c.properties(height=500)
                 st.altair_chart(c, use_container_width=True)
                 st.checkbox("Show agriculture and land use only", value=False, on_change=change_to_afolu_only, key="show_afolu_only_checkbox")
-
+                st.markdown(f"Total emissions: **{emissions_balance.sum().to_numpy():.2f} Mt CO2e / year**")
                 st.caption('''<div style="text-align: justify;">
                            The diagram above visualises the balance between total
                            emissions produced in the UK, and carbon storage.
@@ -487,11 +486,11 @@ def plots(datablock):
 
             baseline_forest_fraction = 12.88
             forest_fraction = land_pctg.sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values
+            mixed_farming_fraction = land_pctg.sel(aggregate_class="Mixed farming").sum().values
             total_area = land_pctg.sum().values
 
-            print(forest_fraction, total_area)
-
             st.metric("Forested % of UK land", value=f"{100*forest_fraction/total_area:.2f}% ")
+            st.metric("Mixed farming % of UK land", value=f"{100*mixed_farming_fraction/total_area:.2f}% ")
     
     st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list, on_change=update_plot_key, key="update_plot_key")
 
