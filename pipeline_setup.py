@@ -12,26 +12,6 @@ def pipeline_setup(food_system):
     food_system.add_step(project_future,
                             {"scale":proj_pop,
                             "cc_decline":st.session_state.cc_production_decline})
-
-    food_system.add_step(cultured_meat_model,
-                            {"cultured_scale":st.session_state.meat_alternatives/100,
-                            "labmeat_co2e":st.session_state.labmeat_co2e,
-                            "items":[2731, 2732, 2733, 2734],
-                            "copy_from":2731,
-                            "new_items":5000,
-                            "new_item_name":"Alternative meat",
-                            "source":["production", "imports"],
-                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity]})
-
-    food_system.add_step(cultured_meat_model,
-                            {"cultured_scale":st.session_state.dairy_alternatives/100,
-                            "labmeat_co2e":st.session_state.dairy_alternatives_co2e,
-                            "items":[2948, 2743, 2740],
-                            "copy_from":2948,
-                            "new_items":5001,
-                            "new_item_name":"Alternative dairy",
-                            "source":["production", "imports"],
-                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity]})
     
     food_system.add_step(item_scaling,
                             {"scale":1-st.session_state.ruminant/100,
@@ -69,6 +49,26 @@ def pipeline_setup(food_system):
                             "constant":st.session_state.cereal_scaling,
                             "non_sel_items":cereal_items})
 
+    food_system.add_step(cultured_meat_model,
+                            {"cultured_scale":st.session_state.meat_alternatives/100,
+                            "labmeat_co2e":st.session_state.labmeat_co2e,
+                            "items":[2731, 2732, 2733, 2734],
+                            "copy_from":2731,
+                            "new_items":5000,
+                            "new_item_name":"Alternative meat",
+                            "source":["production", "imports"],
+                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity]})
+
+    food_system.add_step(cultured_meat_model,
+                            {"cultured_scale":st.session_state.dairy_alternatives/100,
+                            "labmeat_co2e":st.session_state.dairy_alternatives_co2e,
+                            "items":[2948, 2743, 2740],
+                            "copy_from":2948,
+                            "new_items":5001,
+                            "new_item_name":"Alternative dairy",
+                            "source":["production", "imports"],
+                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity]})
+    
     if not st.session_state.cereal_scaling:
         food_system.add_step(item_scaling,
                             {"scale":1+st.session_state.cereals/100,
