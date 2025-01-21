@@ -417,6 +417,7 @@ def cultured_meat_model(datablock, cultured_scale, labmeat_co2e, items, copy_fro
 
     out_kcal_cap_day = scale_kcal_feed(kcal_cap_day, kcal_orig, new_items)
     ratio = out_kcal_cap_day / kcal_cap_day
+    ratio = ratio.where(~np.isnan(ratio), 1)
 
     for key in qty_key:
         datablock["food"][key] *= ratio
@@ -471,22 +472,19 @@ def compute_t_anomaly(datablock):
 
     return datablock
 
-def forest_pasture_model(datablock, spare_fraction, land_type, items,
-                         bdleaf_conif_ratio, map_mask=None, mask_vals=None):
-    """Replaces a specified land type fraction and sets it to forests acording
-    to the relative fraction of broadleaf and coniferous woodland. Scales food
-    production and imports to reflect the change in land use.
+def forest_land_model(datablock, forest_fraction, bdleaf_conif_ratio,
+                      map_mask=None, mask_vals=None):
+    """Replaces arable and livestock land with forest land.
+    If positive, spare_fraction only replaces pasature land and changes it to forest land.
+    If negative, spare_fraction only replaces forest land and changes it to a mix of
+    pasture land and arable land, which depends on the original land distribution.
     """
     
     timescale = datablock["global_parameters"]["timescale"]
     pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
-    old_use = datablock["land"]["percentage_land_use"].sel({"aggregate_class":land_type}).sum()
-
+    old_use_pasture = datablock["land"]["percentage_land_use"].sel({"aggregate_class":["Improved grassland", "Semi-natural grassland"]}).sum()
+    old_use_arable = datablock["land"]["percentage_land_use"].sel({"aggregate_class":["Arable"]}).sum()
     baseline_pctg = datablock["land"]["baseline"]
-    baseline_forest_area = baseline_pctg.sel({"aggregate_class":["Broadleaf woodland",
-                                                                 "Coniferous woodland"]}).sum()
-    current_forest_area = pctg.sel({"aggregate_class":["Broadleaf woodland",
-                                                                 "Coniferous woodland"]}).sum()
 
     # if no alc grade is provided, then use the whole map
     if mask_vals is not None or map_mask is not None:
@@ -496,57 +494,65 @@ def forest_pasture_model(datablock, spare_fraction, land_type, items,
         alc_mask = np.ones_like(pctg, dtype=bool)
 
     total_uk_land = pctg.sum()
-    # baseline_forest_percentage = baseline_forest_area / total_uk_land
-    # print("Baseline forest percentage is {:.2f}% of total UK land".format(baseline_forest_percentage * 100))
 
-    # current_new_forest_percentage = (current_forest_area - baseline_forest_area) / total_uk_land
+    total_forestable_pasture_land = pctg.where(alc_mask, other=0).sel({"aggregate_class":["Improved grassland", "Semi-natural grassland"]}).sum()
+    total_forestable_arable_land = pctg.where(alc_mask, other=0).sel({"aggregate_class":["Arable"]}).sum()
 
-    # print("Current new forest percentage is {:.2f}% of total UK land".format(current_new_forest_percentage * 100))
+    pasture_to_agricultural = total_forestable_pasture_land / (total_forestable_arable_land + total_forestable_pasture_land)
 
-    # if spare_fraction <= current_new_forest_percentage:
-    #     print("Enough sparing!")
-    #     return datablock
+    forestable_pasture_ratio = total_forestable_pasture_land / total_uk_land
+    forestable_arable_ratio = total_forestable_arable_land / total_uk_land
 
-    # spare_fraction = spare_fraction - current_new_forest_percentage
-
-    # print("Foresting the remaining {:.2f}% of the UK land remaining".format(spare_fraction * 100))
-
-    total_forestable_land = pctg.where(alc_mask, other=0).sel({"aggregate_class":land_type}).sum()
-    forestable_ratio = total_forestable_land / total_uk_land
-
-    to_spare = pctg.where(alc_mask, other=0).sel({"aggregate_class":land_type})
+    to_forest_pasture = pctg.where(alc_mask, other=0).sel({"aggregate_class":["Improved grassland", "Semi-natural grassland"]})
+    to_forest_arable = pctg.where(alc_mask, other=0).sel({"aggregate_class":"Arable"})
 
     # Spare the specified land type
-    delta_spared = to_spare * spare_fraction / forestable_ratio
-
-    pctg.loc[{"aggregate_class":land_type}] -= delta_spared
-
-    # if "Spared" not in pctg.aggregate_class.values:
-    #     spared_new_class = xr.zeros_like(pctg.isel(aggregate_class=0)).where(np.isfinite(pctg.isel(aggregate_class=0)))
-    #     spared_new_class["aggregate_class"] = "Spared"
-    #     pctg = xr.concat([pctg, spared_new_class], dim="aggregate_class")
-
-    pctg.loc[{"aggregate_class":"Broadleaf woodland"}] += delta_spared.sum(dim="aggregate_class")*bdleaf_conif_ratio
-    pctg.loc[{"aggregate_class":"Coniferous woodland"}] += delta_spared.sum(dim="aggregate_class")*(1-bdleaf_conif_ratio)
+    if forest_fraction >= 0:
+        delta_forest_pasture = to_forest_pasture * forest_fraction / forestable_pasture_ratio
+        
+    else:
+        delta_forest_pasture = to_forest_pasture * forest_fraction / forestable_pasture_ratio * pasture_to_agricultural
+        delta_forest_arable = to_forest_arable * forest_fraction / forestable_arable_ratio * (1-pasture_to_agricultural)
+        pctg.loc[{"aggregate_class":"Arable"}] -= delta_forest_arable
+        pctg.loc[{"aggregate_class":"Broadleaf woodland"}] += delta_forest_arable*bdleaf_conif_ratio
+        pctg.loc[{"aggregate_class":"Coniferous woodland"}] += delta_forest_arable*(1-bdleaf_conif_ratio)
+        
+    pctg.loc[{"aggregate_class":["Improved grassland", "Semi-natural grassland"]}] -= delta_forest_pasture
+    pctg.loc[{"aggregate_class":"Broadleaf woodland"}] += delta_forest_pasture.sum(dim="aggregate_class")*bdleaf_conif_ratio
+    pctg.loc[{"aggregate_class":"Coniferous woodland"}] += delta_forest_pasture.sum(dim="aggregate_class")*(1-bdleaf_conif_ratio)
 
     # Add spared class to the land use map
     datablock["land"]["percentage_land_use"] = pctg
 
     # Scale food production and imports
-    new_use = pctg.sel({"aggregate_class":land_type}).sum()
-    scale_use = (new_use/old_use).to_numpy()
+    new_use_pasture = pctg.sel({"aggregate_class":["Improved grassland", "Semi-natural grassland"]}).sum()
+    new_use_arable = pctg.sel({"aggregate_class":"Arable"}).sum()
+    
+    scale_use_pasture = (new_use_pasture/old_use_pasture).to_numpy()
+    scale_use_arable = (new_use_arable/old_use_arable).to_numpy()
 
     food_orig = datablock["food"]["g/cap/day"]
-    scale_spare = logistic_food_supply(food_orig, timescale, 1, scale_use)
+    scale_forest_pasture = logistic_food_supply(food_orig, timescale, 1, scale_use_pasture)
+    scale_forest_arable = logistic_food_supply(food_orig, timescale, 1, scale_use_arable)
 
-    scaled_items = food_orig.sel(Item=food_orig.Item_origin==items).Item.values
+    scaled_items_pasture = food_orig.sel(Item=food_orig.Item_origin=="Animal Products").Item.values
+    scaled_items_arable = food_orig.sel(Item=food_orig.Item_origin=="Vegetal Products").Item.values
 
     out = food_orig.fbs.scale_add(element_in="production",
                                   element_out="imports",
-                                  scale=scale_spare,
-                                  items=scaled_items,
+                                  scale=scale_forest_pasture,
+                                  items=scaled_items_pasture,
                                   add=False)
     
+    out = food_orig.fbs.scale_add(element_in="production",
+                                  element_out="imports",
+                                  scale=scale_forest_arable,
+                                  items=scaled_items_arable,
+                                  add=False)
+    
+    out = check_negative_source(out, "production")
+    out = check_negative_source(out, "imports")
+
     ratio = out / food_orig
     ratio = ratio.where(~np.isnan(ratio), 1)
 
@@ -608,13 +614,14 @@ def peatland_restoration(datablock, restore_fraction, land_type, items,
                                   scale=scale_spare,
                                   items=scaled_items,
                                   add=False)
+    datablock["food"]["g/cap/day"] = out
     
     ratio = out / food_orig
     ratio = ratio.where(~np.isnan(ratio), 1)
 
     # Update per cap/day values and per year values using the same ratio, which
     # is independent of population growth
-    qty_key = ["g/cap/day", "g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
+    qty_key = ["g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
     for key in qty_key:
         datablock["food"][key] *= ratio
 
@@ -863,10 +870,11 @@ def BECCS_farm_land(datablock, farm_percentage, land_type="Arable",
     
     ratio = out / food_orig
     ratio = ratio.where(~np.isnan(ratio), 1)
+    datablock["food"]["g/cap/day"] = out
 
     # Update per cap/day values and per year values using the same ratio, which
     # is independent of population growth
-    qty_key = ["g/cap/day", "g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
+    qty_key = ["g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
     for key in qty_key:
         datablock["food"][key] *= ratio
 
@@ -944,6 +952,9 @@ def agroecology_model(datablock, land_percentage, land_type,
                                 scale=scale_arr,
                                 items=replaced_items,
                                 add=False)
+        
+        out = check_negative_source(out, "production", "imports")
+        out = check_negative_source(out, "imports", "production")
 
     # Add new items by scaling production from current values to future values
     if new_items is not None:
@@ -1265,7 +1276,7 @@ def mixed_farming_model(datablock, fraction, prod_scale_factor, items,
                                   scale=scale,
                                   items=items,
                                   add=False)
-
+    
     # Compute relative change in secondary items
     # Get relative new area of mixed farming to secondary producing area
     total_area_secondary = pctg.loc[{"aggregate_class":secondary_land_type}].sum()
@@ -1276,10 +1287,11 @@ def mixed_farming_model(datablock, fraction, prod_scale_factor, items,
     secondary_scale = logistic_food_supply(food_orig, timescale, 1, secondary_ratio)
 
     out = out.fbs.scale_add(element_in="production",
-                                  element_out="imports",
+                                  element_out="exports",
                                   scale=secondary_scale,
                                   items=secondary_items,
-                                  add=False)
+                                  add=True)
+    
 
     # Update land use data to datablock
     datablock["land"]["percentage_land_use"] = pctg

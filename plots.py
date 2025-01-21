@@ -320,7 +320,7 @@ def plots(datablock):
             to_plot = datablock["food"][y_key].sel(Year=slice(None, metric_yr))
             to_plot = to_plot[element_key].sel(Item=to_plot["Item_group"] == option_key)
         
-        f = plot_years_altair(to_plot, show="Item", ylabel="t CO2e / Year")
+        f = plot_years_altair(to_plot, show="Item_group", ylabel="t CO2e / Year")
         f = f.configure_axis(
                 labelFontSize=15,
                 titleFontSize=15)
@@ -484,6 +484,14 @@ def plots(datablock):
                 land_pctg = pctg.sum(dim=["x", "y"])
                 pie = pie_chart_altair(land_pctg, show="aggregate_class", unit="ha")
                 st.altair_chart(pie)
+
+            baseline_forest_fraction = 12.88
+            forest_fraction = land_pctg.sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values
+            total_area = land_pctg.sum().values
+
+            print(forest_fraction, total_area)
+
+            st.metric("Forested % of UK land", value=f"{100*forest_fraction/total_area:.2f}% ")
     
     st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list, on_change=update_plot_key, key="update_plot_key")
 

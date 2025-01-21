@@ -42,7 +42,7 @@ def pipeline_setup(food_system):
 
     food_system.add_step(item_scaling,
                             {"scale":1+st.session_state.fruit_veg/100,
-                            "item_group":["Vegetables", "Fruits - Excluding Wine"],
+                            "item_group":["Vegetables", "Fruits - Excluding Wine", "Vegetables, other"],
                             "source":["production", "imports"],
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
                             "scaling_nutrient":st.session_state.scaling_nutrient,
@@ -86,10 +86,8 @@ def pipeline_setup(food_system):
 
 
     # Land management
-    food_system.add_step(forest_pasture_model,
-                            {"spare_fraction":st.session_state.foresting_pasture/100,
-                            "land_type":["Improved grassland", "Semi-natural grassland"],
-                            "items":"Animal Products",
+    food_system.add_step(forest_land_model,
+                            {"forest_fraction":st.session_state.foresting_pasture/100,
                             "map_mask":"peatland",
                             "mask_vals":0,
                             "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100,
