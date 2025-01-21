@@ -6,10 +6,6 @@ import warnings
 import copy
 import streamlit as st
 
-# from agrifoodpy.food.food_supply import scale_food, SSR
-# from afp_config import *
-# from helper_functions import *
-
 def project_future(datablock, scale, cc_decline=False):
     """Project future food consumption based on scale
     
@@ -116,20 +112,20 @@ def item_scaling(datablock, scale, source, scaling_nutrient,
                            add=True,
                            elasticity=elasticity,
                            constant=constant,
-                           fallback="exports",
-                           add_fallback=False,
                            non_sel_items=non_sel_items)
 
     # Scale feed, seed and processing
     out = feed_scale(out, food_orig)
-    
+
+    out = check_negative_source(out, "production", "imports")
+    out = check_negative_source(out, "imports", "production")
+
     ratio = out / food_orig
     ratio = ratio.where(~np.isnan(ratio), 1)
 
     # Scale land use
     pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
-    land_out = production_land_scale(pctg, out, food_orig, bdleaf_conif_ratio=st.session_state.bdleaf_conif_ratio)
-
+    land_out = production_land_scale(pctg, out, food_orig, bdleaf_conif_ratio=st.session_state.bdleaf_conif_ratio/100)
     datablock["land"]["percentage_land_use"] = land_out
 
     # Update per cap/day values and per year values using the same ratio, which
@@ -331,10 +327,11 @@ def food_waste_model(datablock, waste_scale, kcal_rda, source, elasticity=None):
                                   elasticity=elasticity)
     
     # Scale feed, seed and processing
-    # out = feed_scale(out, food_orig)
+    out = feed_scale(out, food_orig)
 
     # If supply element is negative, set to zero and add the negative delta to imports
-    # out = check_negative_source(out, source)
+    out = check_negative_source(out, "production")
+    out = check_negative_source(out, "imports")
 
     # Scale all per capita qantities proportionally
     ratio = out / food_orig
@@ -342,7 +339,7 @@ def food_waste_model(datablock, waste_scale, kcal_rda, source, elasticity=None):
 
     # Scale land use
     pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
-    land_out = production_land_scale(pctg, out, food_orig, bdleaf_conif_ratio=st.session_state.bdleaf_conif_ratio)
+    land_out = production_land_scale(pctg, out, food_orig, bdleaf_conif_ratio=st.session_state.bdleaf_conif_ratio/100)
 
     datablock["land"]["percentage_land_use"] = land_out
 
@@ -353,16 +350,13 @@ def food_waste_model(datablock, waste_scale, kcal_rda, source, elasticity=None):
     return datablock
 
 def cultured_meat_model(datablock, cultured_scale, labmeat_co2e, items, copy_from,
-                        new_items, new_item_name, source, extra_items = []):
+                        new_items, new_item_name, source, elasticity=None):
     """Replaces selected items by cultured products on a weight by weight
     basis. 
     """
 
     timescale = datablock["global_parameters"]["timescale"]
     items_to_replace = items
-
-    if len(extra_items) > 0:
-        items_to_replace = np.concatenate([items_to_replace, extra_items])
 
     # Add cultured meat to the dataset
     qty_key = ["g/cap/day", "g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
@@ -386,15 +380,17 @@ def cultured_meat_model(datablock, cultured_scale, labmeat_co2e, items, copy_fro
                                   element_out=source,
                                   scale=scale_labmeat,
                                   items=items_to_replace,
-                                  add=True)
-    
-    # If production is negative, set to zero and add the negative delta to
-    # imports
-    out = check_negative_source(out, source)
+                                  add=True,
+                                  elasticity=elasticity)
     
     # Add delta to cultured meat
     delta = (datablock["food"]["g/cap/day"]-out).sel(Item=items_to_replace).sum(dim="Item")
     out.loc[{"Item":new_items}] += delta
+
+    # If production is negative, set to zero and add the negative delta to
+    # imports
+    out = check_negative_source(out, "production")
+    out = check_negative_source(out, "imports")
 
     # Reduce feed and seed
     out = feed_scale(out, food_orig)
@@ -427,7 +423,7 @@ def cultured_meat_model(datablock, cultured_scale, labmeat_co2e, items, copy_fro
 
     # Scale land use
     pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
-    land_out = production_land_scale(pctg, out, food_orig, bdleaf_conif_ratio=st.session_state.bdleaf_conif_ratio)
+    land_out = production_land_scale(pctg, out, food_orig, bdleaf_conif_ratio=st.session_state.bdleaf_conif_ratio/100)
 
     datablock["land"]["percentage_land_use"] = land_out
 
@@ -1035,16 +1031,17 @@ def feed_scale(fbs, ref):
     
     return out
 
-def check_negative_source(fbs, source):
+def check_negative_source(fbs, source, fallback=None):
     """Checks for negative values in the source element and adds the difference
     to the fallback element"""
 
-    if source == "production":
-        fallback = "imports"
-    elif source == "imports":
-        fallback = "production"
-    elif source == "exports":
-        fallback = "production"
+    if fallback is None:
+        if source == "production":
+            fallback = "imports"
+        elif source == "imports":
+            fallback = "production"
+        elif source == "exports":
+            fallback = "production"
 
     delta_neg = fbs[source].where(fbs[source] < 0, other=0)
     fbs[source] -= delta_neg
@@ -1084,7 +1081,8 @@ def scale_kcal_feed(obs, ref, items):
     feed_scale = (obs_feed + delta) / obs_feed
 
     # Adjust feed quantities
-    out = obs.fbs.scale_add(element_in="feed", element_out="production",
+    out = obs.fbs.scale_add(element_in="feed",
+                            element_out="production",
                             scale=feed_scale)
     
     return out
@@ -1099,7 +1097,6 @@ def production_land_scale(land, obs, ref, bdleaf_conif_ratio):
     obs_arable = obs["production"].sel(Year=2100, Item=obs.Item_origin=="Vegetal Products").sum(dim="Item")
 
     # Compute ratios
-
     livest_ratio = obs_livest / ref_livest
     arable_ratio = obs_arable / ref_arable
 
@@ -1116,13 +1113,21 @@ def production_land_scale(land, obs, ref, bdleaf_conif_ratio):
     
     # Check if total differs from 100
     delta = 100 - total
+    delta = delta.where(np.isfinite(land.isel(aggregate_class=0)))
     
     # Adjust Broadleaf woodland to maintain 100% total
     if "Broadleaf woodland" in land.aggregate_class:
-        land.loc[{"aggregate_class":"Broadleaf woodland"}] += delta
+        land.loc[{"aggregate_class":"Broadleaf woodland"}] += delta*bdleaf_conif_ratio
     else:
         # If Broadleaf woodland doesn't exist, create it
-        land.loc[{"aggregate_class":"Broadleaf woodland"}] = delta
+        land.loc[{"aggregate_class":"Broadleaf woodland"}] = delta*bdleaf_conif_ratio
+
+    # Adjust Broadleaf woodland to maintain 100% total
+    if "Coniferous woodland" in land.aggregate_class:
+        land.loc[{"aggregate_class":"Coniferous woodland"}] += delta*(1-bdleaf_conif_ratio)
+    else:
+        # If Broadleaf woodland doesn't exist, create it
+        land.loc[{"aggregate_class":"Coniferous woodland"}] = delta*(1-bdleaf_conif_ratio)
     
     return land
 

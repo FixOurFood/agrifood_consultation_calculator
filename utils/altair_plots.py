@@ -71,7 +71,7 @@ def plot_years_total(food, ylabel=None, sumdim=None, color="red", yrange=None):
 
     return c
 
-def plot_bars_altair(food, show="Item", x_axis_title='', xlimit=None):
+def plot_bars_altair(food, show="Item", x_axis_title='', xlimit=None, labels=None, colors=None):
 
     n_origins = len(food.Item.values)
 
@@ -83,20 +83,22 @@ def plot_bars_altair(food, show="Item", x_axis_title='', xlimit=None):
     df["Item"] = df["Item"].replace("Vegetal Products", "Plant Products")
     df["Item"] = df["Item"].replace("Alternative Food", "Alternative Products")
     
-
-    for i in range(2*n_origins,10*n_origins):
-        if i % n_origins==0:
-            temp = df.iloc[i].copy()
-            df.iloc[i] = df.iloc[i+1]
-            df.iloc[i+1] = temp
-        else:
-            pass
+    if n_origins > 1:
+        for i in range(2*n_origins,10*n_origins):
+            if i % n_origins==0:
+                temp = df.iloc[i].copy()
+                df.iloc[i] = df.iloc[i+1]
+                df.iloc[i+1] = temp
+            else:
+                pass
 
     cumul = 0
     for i in range(2*n_origins):
         df.loc[i, "value_start"] = cumul
         cumul += df.loc[i, "value"]
         df.loc[i, "value_end"] = cumul
+
+    max_cumul = cumul
 
     cumul = 0
     for i in reversed(range(2*n_origins,10*n_origins)):
@@ -108,20 +110,29 @@ def plot_bars_altair(food, show="Item", x_axis_title='', xlimit=None):
 
     selection = alt.selection_point(on='mouseover')
 
+    default_items = ["Animal Products", "Alternative Products", "Plant Products"]
+    default_colors = ["red", "blue", "green"]
+    
+    if all(item in df["Item"].unique() for item in default_items):
+        color_encoding = alt.Color('Item', scale=alt.Scale(domain=default_items, range=default_colors))
+    else:
+        color_encoding = alt.Color('Item', scale=alt.Scale(scheme='category20b'))
+
+    if xlimit is not None:
+        scale=alt.Scale(domain=(0, xlimit))
+    else:
+        scale=alt.Scale(domain=(0, max_cumul))
+
     c = alt.Chart(source).mark_bar().encode(
         y = alt.Y('variable', sort=None, axis=alt.Axis(title='')),
         x2 ='value_start:Q',
-        x = alt.X('value_end:Q', scale=alt.Scale(domain=(0, xlimit)), axis=alt.Axis(title=x_axis_title)),
-        # x = alt.X('value_end:Q', axis=alt.Axis(title=x_axis_title)),
-        # x = alt.X('value_end:Q'),
-        # color=alt.Color('Item'),
-        color=alt.Color('Item', scale=alt.Scale(domain=["Animal Products", "Alternative Products", "Plant Products"], range=["red", "blue", "green"])),
+        x = alt.X('value_end:Q', scale=scale, axis=alt.Axis(title=x_axis_title)),
+        color=color_encoding,
         opacity=alt.condition(selection, alt.value(0.9), alt.value(0.5)),
         tooltip=['Item:N', 'value:Q'],
         ).add_params(selection).properties(height=500)
 
     return c
-
 def plot_land_altair(land):
     df = land.to_dataframe().reset_index()
     df = df.melt(id_vars = ['x', 'y'], value_vars = 'grade')

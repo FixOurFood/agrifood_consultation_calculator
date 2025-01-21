@@ -20,7 +20,8 @@ def pipeline_setup(food_system):
                             "copy_from":2731,
                             "new_items":5000,
                             "new_item_name":"Alternative meat",
-                            "source":"production"})
+                            "source":["production", "imports"],
+                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity]})
 
     food_system.add_step(cultured_meat_model,
                             {"cultured_scale":st.session_state.dairy_alternatives/100,
@@ -29,7 +30,8 @@ def pipeline_setup(food_system):
                             "copy_from":2948,
                             "new_items":5001,
                             "new_item_name":"Alternative dairy",
-                            "source":"production"})
+                            "source":["production", "imports"],
+                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity]})
     
     food_system.add_step(item_scaling,
                             {"scale":1-st.session_state.ruminant/100,

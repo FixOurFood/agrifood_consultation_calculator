@@ -330,19 +330,32 @@ def plots(datablock):
     # FAOSTAT bar plot with per-capita daily values
     # ---------------------------------------------
     elif plot_key == "Per capita daily values":
-        per_cap_options = {"g/cap/day": 8000,
-                   "g_prot/cap/day": 500,
-                   "g_fat/cap/day": 550,
-                   "g_co2e/cap/day": 18000,
-                   "kCal/cap/day": 14000}
-
-        option_key = st.selectbox("Plot options", list(per_cap_options.keys()))
+        per_cap_options = {"g/cap/day": 5000,
+                   "g_prot/cap/day": 250,
+                   "g_fat/cap/day": 275,
+                   "g_co2e/cap/day": 9000,
+                   "kCal/cap/day": 7000}
+        col_cap1, col_cap2, col_cap3 = st.columns(3)
+        with col_cap1:
+            option_key = st.selectbox("Plot options", list(per_cap_options.keys()))
+        with col_cap2:
+            dissagregation = st.selectbox("Disaggregation", ["Item_origin", "Item_group", "Item_name"])
+        with col_cap3:
+            item_list = st.multiselect("Item", np.unique(datablock["food"][option_key][dissagregation].values))
+        item_selection = {}
+        if len(item_list) > 0:
+            item_selection = {"Item":item_list}
+        adjust_scale = st.checkbox("Adjust scale", value=True)
 
         to_plot = datablock["food"][option_key].sel(Year=metric_yr).fillna(0)
-        to_plot.Item_origin.values = np.array(to_plot.Item_origin.values, dtype=str)
-        to_plot = to_plot.fbs.group_sum(coordinate="Item_origin", new_name="Item")
+        to_plot[dissagregation].values = np.array(to_plot[dissagregation].values, dtype=str)
+        to_plot = to_plot.fbs.group_sum(coordinate=dissagregation, new_name="Item")
+        to_plot = to_plot.sel(item_selection)
 
-        f = plot_bars_altair(to_plot, show="Item", x_axis_title=option_key, xlimit=per_cap_options[option_key])
+        if adjust_scale:
+            f = plot_bars_altair(to_plot, show="Item", x_axis_title=option_key, xlimit=per_cap_options[option_key])
+        else:
+            f = plot_bars_altair(to_plot, show="Item", x_axis_title=option_key)
 
         if option_key == "kCal/cap/day":
             f += alt.Chart(pd.DataFrame({
@@ -378,7 +391,7 @@ def plots(datablock):
                         production, while a lower SSR indicates that a country relies more on
                         imports to meet its food needs.""")
 
-        SSR = datablock["food"][ssr_metric].fbs.SSR().sel(Year=slice(None, metric_yr)) * 100
+        SSR = datablock["food"][ssr_metric].fillna(0).fbs.SSR().sel(Year=slice(None, metric_yr)) * 100
 
         f = plot_years_total(SSR, ylabel="Self-sufficiency ratio [%]", yrange=(40, 95)).configure_axis(
                 labelFontSize=10,
@@ -492,7 +505,9 @@ def plots(datablock):
             with col3_submit:
                 st.file_uploader("Optionally, add a narrative (PDF format) to go with your submission", accept_multiple_files=False)
 
+            
             allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
+            st.caption("""To learn what we will do with your data, please refer to the [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
             submit_state = st.button("Submit pathway")
 
             # submit scenario

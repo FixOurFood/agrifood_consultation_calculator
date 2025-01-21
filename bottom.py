@@ -16,7 +16,7 @@ def bottom_panel(datablock, metric_yr):
     # -----------
 
     with botcol2:
-        SSR = datablock["food"]["g/cap/day"].fbs.SSR()
+        SSR = datablock["food"]["g/cap/day"].fillna(0).fbs.SSR()
 
         SSR_metric_yr = SSR.sel(Year=metric_yr).to_numpy()
         SSR_ref = SSR.sel(Year=2020).to_numpy()
