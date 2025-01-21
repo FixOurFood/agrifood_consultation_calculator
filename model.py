@@ -496,20 +496,20 @@ def forest_pasture_model(datablock, spare_fraction, land_type, items,
         alc_mask = np.ones_like(pctg, dtype=bool)
 
     total_uk_land = pctg.sum()
-    baseline_forest_percentage = baseline_forest_area / total_uk_land
-    print("Baseline forest percentage is {:.2f}% of total UK land".format(baseline_forest_percentage * 100))
+    # baseline_forest_percentage = baseline_forest_area / total_uk_land
+    # print("Baseline forest percentage is {:.2f}% of total UK land".format(baseline_forest_percentage * 100))
 
-    current_new_forest_percentage = (current_forest_area - baseline_forest_area) / total_uk_land
+    # current_new_forest_percentage = (current_forest_area - baseline_forest_area) / total_uk_land
 
-    print("Current new forest percentage is {:.2f}% of total UK land".format(current_new_forest_percentage * 100))
+    # print("Current new forest percentage is {:.2f}% of total UK land".format(current_new_forest_percentage * 100))
 
-    if spare_fraction <= current_new_forest_percentage:
-        print("Enough sparing!")
-        return datablock
+    # if spare_fraction <= current_new_forest_percentage:
+    #     print("Enough sparing!")
+    #     return datablock
 
-    spare_fraction = spare_fraction - current_new_forest_percentage
+    # spare_fraction = spare_fraction - current_new_forest_percentage
 
-    print("Foresting the remaining {:.2f}% of the UK land remaining".format(spare_fraction * 100))
+    # print("Foresting the remaining {:.2f}% of the UK land remaining".format(spare_fraction * 100))
 
     total_forestable_land = pctg.where(alc_mask, other=0).sel({"aggregate_class":land_type}).sum()
     forestable_ratio = total_forestable_land / total_uk_land
