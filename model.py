@@ -544,7 +544,7 @@ def forest_land_model(datablock, forest_fraction, bdleaf_conif_ratio,
                                   items=scaled_items_pasture,
                                   add=False)
     
-    out = food_orig.fbs.scale_add(element_in="production",
+    out = out.fbs.scale_add(element_in="production",
                                   element_out="imports",
                                   scale=scale_forest_arable,
                                   items=scaled_items_arable,

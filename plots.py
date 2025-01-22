@@ -13,6 +13,8 @@ from consultation_utils import submit_scenario, get_user_list, stage_I_deadline
 
 
 def plots(datablock):
+    reference_emissions_baseline = 97.09
+    reference_emissions_baseline_agriculture = 52.08
 
     # ----------------------------------------    
     #                  Plots
@@ -69,16 +71,15 @@ def plots(datablock):
                     emissions_balance.loc[{"Sector": "Agriculture"}] = total_emissions
                     emissions_balance.loc[{"Sector": "Land use sinks"}] = -total_seq
                     emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
-                    reference = 97.09
-
+                    
                     if st.session_state["show_afolu_only"]:
-                        reference = 31.61
+                        reference_emissions_baseline = 31.61
                         emissions_balance = emissions_balance.sel(Sector=["Agriculture", "Land use sinks", "Removals"])
 
                     c = plot_single_bar_altair(emissions_balance, show="Sector",
                         axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,
                         mark_total=True, show_zero=True, ax_ticks=True, legend=True,
-                        ax_min=-90, ax_max=120, reference=reference)
+                        ax_min=-90, ax_max=120, reference=reference_emissions_baseline)
                     
                 elif st.session_state.emission_factors == "PN18":
 
@@ -484,13 +485,13 @@ def plots(datablock):
                 pie = pie_chart_altair(land_pctg, show="aggregate_class", unit="ha")
                 st.altair_chart(pie)
 
-            baseline_forest_fraction = 12.88
-            forest_fraction = land_pctg.sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values
-            mixed_farming_fraction = land_pctg.sel(aggregate_class="Mixed farming").sum().values
             total_area = land_pctg.sum().values
+            baseline_forest_fraction = 100*datablock["land"]["baseline"].sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values/total_area
+            forest_fraction = 100*land_pctg.sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values/total_area
+            mixed_farming_fraction = land_pctg.sel(aggregate_class="Mixed farming").sum().values/total_area
 
-            st.metric("Forested % of UK land", value=f"{100*forest_fraction/total_area:.2f}% ")
-            st.metric("Mixed farming % of UK land", value=f"{100*mixed_farming_fraction/total_area:.2f}% ")
+            st.metric("Forested % of UK land", value=f"{forest_fraction:.2f}% ", delta=f"{forest_fraction-baseline_forest_fraction:.2f}%")
+            st.metric("Mixed farming % of UK land", value=f"{100*mixed_farming_fraction:.2f}% ")
     
     st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list, on_change=update_plot_key, key="update_plot_key")
 
@@ -519,7 +520,48 @@ def plots(datablock):
 
             # submit scenario
             if submit_state:
-                submit_scenario(user_id, SSR_metric_yr, emissions_balance.sum(), ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name)
+                total_emissions = emissions_balance.sum()
+                reducion_emissions_pctg = (total_emissions - reference_emissions_baseline) / reference_emissions_baseline * 100
+                forest_land_ha = datablock["land"]["percentage_land_use"].sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values
+                total_area = datablock["land"]["percentage_land_use"].sum().values
+                forest_land_pctg = 100*forest_land_ha/total_area
+                new_forest_land_Mha = (forest_land_ha - datablock["land"]["baseline"].sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values)/1e6
+                new_forest_land_pctg = 100*new_forest_land_Mha/total_area/1e6
+                agricultural_emissions = emissions_balance.sel(Sector="Agriculture").sum().values
+                reduction_emissions_agricultural_pctg = (agricultural_emissions - reference_emissions_baseline_agriculture) / reference_emissions_baseline_agriculture * 100
+
+                arable_land = datablock["land"]["percentage_land_use"].sel(aggregate_class=["Arable", "Managed arable", "Mixed farming", "Agroforestry"]).sum().values / 1e6
+                baseline_arable = datablock["land"]["baseline"].sel(aggregate_class=["Arable"]).sum().values / 1e6
+                new_arable_land_pctg = (arable_land - baseline_arable) / baseline_arable * 100
+
+                pasture_land = datablock["land"]["percentage_land_use"].sel(aggregate_class=["Improved grassland",
+                                                                                             "Semi-natural grassland",
+                                                                                             "Managed pasture",
+                                                                                             "Silvopasture"]).sum().values / 1e6
+
+                baseline_pasture = datablock["land"]["baseline"].sel(aggregate_class=["Improved grassland",
+                                                                                      "Semi-natural grassland"]).sum().values / 1e6
+                
+                new_pasture_land_pctg = (pasture_land - baseline_pasture) / baseline_pasture * 100
+
+                forest_sequestration_MtCO2 = seq_da.sel(Item=["Broadleaf woodland", "Coniferous woodland"]).sum(dim="Item").values/1e6
+                total_removals = seq_da.sel(Item=["BECCS from waste", "BECCS from overseas biomass", "BECCS from land", "DACCS"]).sum(dim="Item").values/1e6
+
+                extra_values = [SSR_metric_yr,
+                                total_emissions,
+                                reducion_emissions_pctg,
+                                new_forest_land_Mha,
+                                forest_sequestration_MtCO2,
+                                reduction_emissions_agricultural_pctg,
+                                agricultural_emissions,
+                                total_removals,
+                                arable_land,
+                                new_arable_land_pctg,
+                                pasture_land,
+                                new_pasture_land_pctg,
+                                ]
+
+                submit_scenario(user_id, ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name, extra_values=extra_values)
 
     if plot_key != "Summary":
         with bottom():
