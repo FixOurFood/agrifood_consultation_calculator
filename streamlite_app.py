@@ -142,7 +142,7 @@ with st.sidebar:
                              min_value=0, max_value=100, step=1,
                              key="upland_peatland", help=help_str(help, "sidebar_land", 2, "rgtch9lm7i39"))
 
-        soil_carbon = st.slider('Percentage of managed land for soil carbon management',
+        soil_carbon = st.slider('Percentage of land managed for soil carbon management',
                                  min_value=0, max_value=100, step=1,
                                  key="soil_carbon", help=help_str(help, "sidebar_land", 3, "3a92auci0xj5"))
         

@@ -515,8 +515,8 @@ def plots(datablock):
 
             
             allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
-            st.caption("""To learn what we will do with your data, please refer to the [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
-            submit_state = st.button("Submit pathway")
+            st.caption("""By clicking ‘Submit’ you are agreeing to our Data Protection Policy [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
+            submit_state = st.button("Submit")
 
             # submit scenario
             if submit_state:
@@ -524,9 +524,7 @@ def plots(datablock):
                 reducion_emissions_pctg = (total_emissions - reference_emissions_baseline) / reference_emissions_baseline * 100
                 forest_land_ha = datablock["land"]["percentage_land_use"].sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values
                 total_area = datablock["land"]["percentage_land_use"].sum().values
-                forest_land_pctg = 100*forest_land_ha/total_area
                 new_forest_land_Mha = (forest_land_ha - datablock["land"]["baseline"].sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values)/1e6
-                new_forest_land_pctg = 100*new_forest_land_Mha/total_area/1e6
                 agricultural_emissions = emissions_balance.sel(Sector="Agriculture").sum().values
                 reduction_emissions_agricultural_pctg = (agricultural_emissions - reference_emissions_baseline_agriculture) / reference_emissions_baseline_agriculture * 100
 
