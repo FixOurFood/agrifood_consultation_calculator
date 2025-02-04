@@ -153,37 +153,69 @@ def read_advanced_settings():
             st.session_state[row["key"]] = row["value"] == "TRUE"
 
 def set_advanced_settings():
-    st.session_state.labmeat_co2e = 2
-    st.session_state.dairy_alternatives_co2e = 0.14
-    st.session_state.rda_kcal = 2250
-    st.session_state.n_scale = 20
-    st.session_state.max_ghge_animal = 30
-    st.session_state.max_ghge_plant = 30
-    st.session_state.bdleaf_conif_ratio = 75
-    st.session_state.bdleaf_seq_ha_yr = 3.5
-    st.session_state.conif_seq_ha_yr = 6.5
-    st.session_state.peatland_seq_ha_yr = 5
-    st.session_state.managed_arable_seq_ha_yr = 1
-    st.session_state.managed_pasture_seq_ha_yr = 1
-    st.session_state.mixed_farming_seq_ha_yr = 1
-    st.session_state.beccs_crops_seq_ha_yr = 23.5
-    st.session_state.mixed_farming_production_scale = 0.9
-    st.session_state.mixed_farming_secondary_production_scale = 0.9
-    st.session_state.elasticity = 0.5
-    st.session_state.agroecology_tree_coverage = 0.1
-    st.session_state.manure_prod_factor = 0
-    st.session_state.manure_ghg_factor = 0.3
-    st.session_state.breeding_prod_factor = 0
-    st.session_state.breeding_ghg_factor = 0.3
-    st.session_state.methane_prod_factor = 0
-    st.session_state.methane_ghg_factor = 0.3
-    st.session_state.fossil_arable_ghg_factor = 0
-    st.session_state.fossil_livestock_ghg_factor = 0.05
-    st.session_state.fossil_arable_prod_factor = 0
-    st.session_state.fossil_livestock_prod_factor = 0.05
-    st.session_state.scaling_nutrient = "kCal/cap/day"
-    st.session_state.cc_production_decline = False
-    st.session_state.emission_factors = "NDC 2020"
-    st.session_state.population_projection = "Medium"
+    if "labmeat_co2e" not in st.session_state:
+        st.session_state.labmeat_co2e = 2
+    if "dairy_alternatives_co2e" not in st.session_state:
+        st.session_state.dairy_alternatives_co2e = 0.14
+    if "rda_kcal" not in st.session_state:    
+        st.session_state.rda_kcal = 2250
+    if "n_scale" not in st.session_state:
+        st.session_state.n_scale = 20
+    if "max_ghge_animal" not in st.session_state:    
+        st.session_state.max_ghge_animal = 30
+    if "max_ghge_plant" not in st.session_state:    
+        st.session_state.max_ghge_plant = 30
+    if "bdleaf_conif_ratio" not in st.session_state:    
+        st.session_state.bdleaf_conif_ratio = 75
+    if "bdleaf_seq_ha_yr" not in st.session_state:    
+        st.session_state.bdleaf_seq_ha_yr = 3.5
+    if "conif_seq_ha_yr" not in st.session_state:    
+        st.session_state.conif_seq_ha_yr = 6.5
+    if "peatland_seq_ha_yr" not in st.session_state:    
+        st.session_state.peatland_seq_ha_yr = 5
+    if "managed_arable_seq_ha_yr" not in st.session_state:    
+        st.session_state.managed_arable_seq_ha_yr = 1
+    if "managed_pasture_seq_ha_yr" not in st.session_state:    
+        st.session_state.managed_pasture_seq_ha_yr = 1
+    if "mixed_farming_seq_ha_yr" not in st.session_state:    
+        st.session_state.mixed_farming_seq_ha_yr = 1
+    if "beccs_crops_seq_ha_yr" not in st.session_state:    
+        st.session_state.beccs_crops_seq_ha_yr = 23.5
+    if "mixed_farming_production_scale" not in st.session_state:    
+        st.session_state.mixed_farming_production_scale = 0.9
+    if "mixed_farming_secondary_production_scale" not in st.session_state:    
+        st.session_state.mixed_farming_secondary_production_scale = 0.9
+    if "elasticity" not in st.session_state:    
+        st.session_state.elasticity = 0.5
+    if "agroecology_tree_coverage" not in st.session_state:    
+        st.session_state.agroecology_tree_coverage = 0.1
+    if "manure_prod_factor" not in st.session_state:    
+        st.session_state.manure_prod_factor = 0
+    if "manure_ghg_factor" not in st.session_state:    
+        st.session_state.manure_ghg_factor = 0.3
+    if "breeding_prod_factor" not in st.session_state:    
+        st.session_state.breeding_prod_factor = 0
+    if "breeding_ghg_factor" not in st.session_state:    
+        st.session_state.breeding_ghg_factor = 0.3
+    if "methane_prod_factor" not in st.session_state:    
+        st.session_state.methane_prod_factor = 0
+    if "methane_ghg_factor" not in st.session_state:    
+        st.session_state.methane_ghg_factor = 0.3
+    if "fossil_arable_ghg_factor" not in st.session_state:    
+        st.session_state.fossil_arable_ghg_factor = 0
+    if "fossil_livestock_ghg_factor" not in st.session_state:    
+        st.session_state.fossil_livestock_ghg_factor = 0.05
+    if "fossil_arable_prod_factor" not in st.session_state:    
+        st.session_state.fossil_arable_prod_factor = 0
+    if "fossil_livestock_prod_factor" not in st.session_state:    
+        st.session_state.fossil_livestock_prod_factor = 0.05
+    if "scaling_nutrient" not in st.session_state:    
+        st.session_state.scaling_nutrient = "kCal/cap/day"
+    if "cc_production_decline" not in st.session_state:    
+        st.session_state.cc_production_decline = False
+    if "emission_factors" not in st.session_state:    
+        st.session_state.emission_factors = "NDC 2020"
+    if "population_projection" not in st.session_state:    
+        st.session_state.population_projection = "Medium"
 
     read_advanced_settings()
