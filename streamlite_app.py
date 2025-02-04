@@ -39,7 +39,7 @@ st.set_page_config(layout='wide',
                    page_icon="images/fof_icon.png")
 
 help = read_help()
-read_advanced_settings()
+set_advanced_settings()
 
 with open('utils/style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
