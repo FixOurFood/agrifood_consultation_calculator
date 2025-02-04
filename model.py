@@ -647,7 +647,7 @@ def ccs_model(datablock, waste_BECCS, overseas_BECCS, DACCS):
     # sequestration in Mt CO2e / year
 
     land_BECCS_area = pctg.sel({"aggregate_class":"BECCS"}).sum().to_numpy()
-    land_BECCS = land_BECCS_area * 23.5
+    land_BECCS = land_BECCS_area * st.session_state.beccs_crops_seq_ha_yr
 
     logistic_0_val = logistic_food_supply(food_orig, timescale, 0, 1)
 

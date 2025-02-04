@@ -136,17 +136,33 @@ land_label_dict = {
 }
 
 sector_emissions_dict = {
-    "Surface transport":0.87,
-    "Buildings":1.1,
-    "Manufacturing and construction":2.81,
-    "Electricity generation":1.2,
-    "Fuel supply":0.43,
-    "Agriculture":0,
-    "Land use sinks":0,
-    "Land use sources":19.79,
-    "Aviation":23.38,
-    "Shipping":0.89,
-    "Waste":7.83,
     "F-gases":2.48,
-    "Removals":0
+    "Waste":7.83,
+    "Shipping":0.89,
+    "Aviation":23.38,
+    "Land use sources":19.79,
+    "Agriculture":0,
+    "Fuel supply":0.43,
+    "Electricity generation":1.2,
+    "Manufacturing and construction":2.81,
+    "Buildings":1.1,
+    "Surface transport":0.87,
+    "Land use sinks":0,
+    "Removals":0,
+}
+
+sector_emissions_colors = {
+    "F-gases":"#280049",
+    "Waste":"#96e9ff",
+    "Shipping":"#ca7880",
+    "Aviation":"#ab6b99",
+    "Land use sources":"#cde7b0",
+    "Agriculture":"#a1d800",
+    "Fuel supply":"#369993",
+    "Electricity generation":"#ffff4b",
+    "Manufacturing and construction":"#aec5eb",
+    "Buildings":"#ffac00",
+    "Surface transport":"#7142ff",
+    "Land use sinks":"#1a5f31",
+    "Removals":"#000000",
 }

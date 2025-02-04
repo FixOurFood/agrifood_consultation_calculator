@@ -82,16 +82,10 @@ with st.sidebar:
 
         consumer_slider_keys = ["ruminant", "dairy", "pig_poultry_eggs", "fruit_veg", "cereals", "waste", "meat_alternatives", "dairy_alternatives"]
 
-        col_rum, col_rum_pop = st.columns([3, 1])
-        with col_rum:
-            ruminant = st.slider('Reduce ruminant meat consumption',
-                            min_value=-100, max_value=100, step=1, value=0,
-                            key="ruminant", help=help_str(help, "sidebar_consumer", 1, "pjtbcox0lw1k"))
+        ruminant = st.slider('Reduce ruminant meat consumption',
+                        min_value=-100, max_value=100, step=1, value=0,
+                        key="ruminant", help=help_str(help, "sidebar_consumer", 1, "pjtbcox0lw1k"))
         
-        with col_rum_pop:
-            with st.popover(":gear:"):
-                ruminant_elasticity = st.slider("Elasticity of ruminant meat demand", min_value=0., max_value=1., value=0.5, step=0.1, key="ruminant_elasticity", help=help["advanced_options"][9])
-
         dairy = st.slider('Reduce dairy consumption',
                         min_value=-100, max_value=100, step=1, value=0,
                         key="dairy", help=help_str(help, "sidebar_consumer", 2, "z0gjphyzstcl"))

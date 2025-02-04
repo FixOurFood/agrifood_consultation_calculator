@@ -57,17 +57,6 @@ default_widget_values = {
     "fossil_arable": 0,
     "vertical_farming": 0,
 
-    # Advanced settings sliders and widgets
-    "labmeat_slider": 25,
-    "rda_slider": 2250,
-    "timescale_slider": 20,
-    "max_ghg_animal": 30,
-    "max_ghg_plant": 30,
-    "bdleaf_conif_ratio": 75,
-    "bdleaf_seq_ha_yr": 3.5,
-    "conif_seq_ha_yr": 6.5,
-    "nutrient_constant": "kCal/cap/day",
-    "domestic_use_source": "production"
 }
 
 def reset_sliders(keys=None):
@@ -85,22 +74,6 @@ def map_max(map, dim):
     map_fixed = map.assign_coords({dim:np.arange(length_dim)})
 
     return map_fixed.idxmax(dim=dim, skipna=True)
-
-def item_name_code(arr):
-    if np.array_equal([2949],arr):
-        return "Egg"
-    elif np.array_equal([2761, 2762, 2763, 2764, 2765, 2766, 2767, 2768, 2769], arr):
-        return "Fish/Seafood"
-    elif np.array_equal([2740, 2743, 2948], arr):
-        return "Dairy"
-    elif np.array_equal([2734], arr):
-        return "Poultry"
-    elif np.array_equal([2733], arr):
-        return "Pigmeat"
-    
-def update_progress(bar_values, bar_key):
-    session_vals = [st.session_state[val] for val in bar_values]
-    st.session_state[bar_key] = 4 * sum(session_vals) / 100 / len(session_vals)
 
 def capitalize_first_character(s):
     if len(s) == 0:
@@ -164,10 +137,12 @@ def update_plot_key():
 
 @st.cache_data(ttl=60*60*24)
 def read_help():
+    """Reads the tooltip text from tooltips URL"""
     return pd.read_csv(st.secrets["tooltips_url"], dtype='string')
 
-# @st.cache_data(ttl=60*60*24)
+@st.cache_data(ttl=60*60*24)
 def read_advanced_settings():
+    """Reads the advanced settings from the spreadsheet URL"""
     advanced_settings  = pd.read_csv(st.secrets["advanced_settings_url"], dtype='string')
     for index, row in advanced_settings.iterrows():
         if row["type"] == "float": 

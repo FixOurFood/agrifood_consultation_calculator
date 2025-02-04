@@ -5,6 +5,9 @@ from utils.altair_plots import *
 import pandas as pd
 
 def bottom_panel(datablock, metric_yr):
+    """ Bottom panel of the dashboard. Contains the SSR, net zero and land use
+    summary charts, displayed as horizontal bars.
+    """
 
     # ----------------------------------------
     #               Bottom Panel

@@ -10,6 +10,23 @@ from io import BytesIO
 from PIL import Image
 
 def plot_years_altair(food, show="Item", ylabel=None, colors=None, ymin=None, ymax=None):
+    """Plots a stacked area chart for the given xarray dataarray using altair.
+
+    Parameters
+    ----------
+
+    food : xarray.DataArray
+        The dataarray to be plotted. The dataarray must have a 'Year' dimension.
+    show : str
+        The coordinate name to use to dissagregate the vertical chart stack.
+    ylabel : str
+        The label for the y-axis. Default is None.
+    colors : list
+        The list of colors to assign to each of the vertical stacks.
+    ymin, ymax : float
+        The minimum and maximum values for the y-axis. If not provided, the
+        minimum and maximum values of the dataarray will be used.
+    """
 
     # If no years are found in the dimensions, raise an exception
     sum_dims = list(food.coords)
@@ -51,6 +68,28 @@ def plot_years_altair(food, show="Item", ylabel=None, colors=None, ymin=None, ym
     return c
 
 def plot_years_total(food, ylabel=None, sumdim=None, color="red", yrange=None):
+    """
+    Plots the total values over years from the given food dataset using Altair.
+
+    Parameters
+    ----------
+    food : xarray.DataArray 
+        The dataset containing food data with 'Year' as one of the dimensions.
+    ylabel : str, optional
+        The label for the y-axis.
+    sumdim : str, optional
+        The dimension to sum over.
+    color : str, optional
+        The color of the line in the plot.
+    yrange: list, optional
+        The range for the y-axis. If None, it is set to
+        [0, max value of the total].
+    
+    Returns
+    -------
+        alt.Chart: An Altair chart object representing the plot.
+    """
+
     years = food.Year.values
     if sumdim is not None and sumdim in food.dims:
         total = food.sum(dim="Item")
@@ -72,6 +111,30 @@ def plot_years_total(food, ylabel=None, sumdim=None, color="red", yrange=None):
     return c
 
 def plot_bars_altair(food, show="Item", x_axis_title='', xlimit=None, labels=None, colors=None):
+    """
+    Creates a horizontal stacked bar chart using Altair to visualize various
+    food balance sheet quantities.
+    Parameters:
+
+    -----------
+    food : xarray.Dataset
+        The food balance sheet dataset.
+    show : str, optional
+        The coordinate to use to dissagregate quantities into the bars.
+    x_axis_title : str, optional
+        The title for the x-axis.
+    xlimit : float, optional
+        The upper limit for the x-axis. If None, the limit is determined by the data.
+    labels : list, optional
+        A list of labels for the bars.
+    colors : list, optional
+        A list of colors for the bars.
+
+    Returns:
+    --------
+    alt.Chart
+        An Altair Chart object representing the stacked bar chart.
+    """
 
     n_origins = len(food.Item.values)
 
@@ -133,7 +196,16 @@ def plot_bars_altair(food, show="Item", x_axis_title='', xlimit=None, labels=Non
         ).add_params(selection).properties(height=500)
 
     return c
+
 def plot_land_altair(land):
+    """Creates an Altair chart from a land DataArray
+
+    Parameters
+    ----------
+    land : xarray.DataArray        
+        The land use dataarray to be plotted.
+    """
+
     df = land.to_dataframe().reset_index()
     df = df.melt(id_vars = ['x', 'y'], value_vars = 'grade')
     c = alt.Chart(df).mark_rect().encode(
@@ -151,6 +223,43 @@ def plot_single_bar_altair(da, show="Item", axis_title=None,
                                     bar_width=80, show_zero=False,
                                     ax_ticks=False, color=None, legend=False,
                                     reference=None):
+    
+    """Creates a single bar chart using Altair to visualize the given dataarray.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        The dataarray to be plotted.
+    show : str, optional
+        The coordinate to use to dissagregate the bars.
+    axis_title : str, optional
+        The title for the x or y axis.
+    ax_min, ax_max : float, optional
+        The minimum and maximum values for the y or x axis.
+    unit : str, optional
+        The units of the quantity to be displayed in the tooltip.
+    vertical : bool, optional
+        If True, the chart is vertical, otherwise it is horizontal.
+    mark_total : bool, optional
+        If True, a marker for the total value is added to the chart.
+    bar_width : int, optional
+        The width of the bars in the chart.
+    show_zero : bool, optional
+        If True, a marker for the zero value is added to the chart.
+    ax_ticks : bool, optional
+        If True, the axis ticks are displayed.
+    color : dict, optional
+        A dictionary mapping the show values to colors.
+    legend : bool, optional
+        If True, a legend is displayed.
+    reference : float, optional
+        A reference value to add to the chart.
+
+    Returns
+    -------
+    alt.Chart
+        An Altair chart object representing the single bar chart
+    """
     
     df_pos = da.where(da>0).to_dataframe().reset_index().fillna(0)
     df_neg = da.where(da<0).to_dataframe().reset_index().fillna(0)
@@ -295,6 +404,23 @@ def plot_single_bar_altair(da, show="Item", axis_title=None,
     return c
 
 def pie_chart_altair(da, show="Item", unit=""):
+    """Creates a pie chart using Altair to visualize the given dataarray.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        The dataarray to be plotted.
+    show : str, optional
+        The coordinate to use to dissagregate the pie chart.
+    unit : str, optional
+        The unit of the quantity to be displayed in the tooltip.
+
+    Returns
+    -------
+    alt.Chart
+        An Altair chart object representing the pie chart.
+    """
+
     df = da.to_dataframe().reset_index().fillna(0)
     df = df.melt(id_vars=show, value_vars=da.name)
     df["order"] = np.arange(len(da[show].values))

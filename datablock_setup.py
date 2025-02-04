@@ -36,12 +36,14 @@ def datablock_setup():
     # ------------------------------
 
     pop = UN.Medium.sel(Region=[area_pop, area_pop_world], Year=years, Datatype="Total")*1000
-    # pop_world = UN.Medium.sel(Region=area_pop_world, Year=years, Datatype="Total")*1000
+    pop_proj = UN[st.session_state["population_projection"]].sel(Region=[area_pop, area_pop_world], Year=years, Datatype="Total")*1000
 
-    # pop_past = pop_uk[pop_uk["Year"] < 2021]
-    # pop_future = pop_uk[pop_uk["Year"] >= 2021]
+    years_with_data = pop_proj.where(np.isfinite(pop_proj), drop=True).Year.values
+    years_to_fill = np.setdiff1d(years, years_with_data)
+    
+    pop_proj.loc[{"Year":years_to_fill}] = pop.sel(Year=years_to_fill)
 
-    datablock["population"]["population"] = pop
+    datablock["population"]["population"] = pop_proj
 
     # -----------------------------------------
     # Select food consumption data from FAOSTAT

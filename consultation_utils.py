@@ -56,7 +56,7 @@ keys=[
 ]
 
 def get_user_list():
-    """Get the list of user IDs from the Google Sheet"""
+    """Get the list of user IDs from the spreadsheet URL"""
 
     user_list = enrolments_worksheet.col_values(5)
     user_list = user_list[1:]
@@ -147,14 +147,14 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
         stage_I_worksheet.append_row(row)
         st.success(f'Scenario submitted for user {user_id}', icon="✅")
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=60*60*24)
 def get_pathways():
     """Get the pathways names from the Google Sheet"""
 
     values = pathways_worksheet.col_values(1)
     return values[2:]
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=60*60*24)
 def get_pathway_data(pathway_name):
     """Get the scenario data from the Google Sheet"""
 
@@ -184,6 +184,8 @@ def call_scenarios(scenario=None):
     update_slider(keys, pathway_data)
 
 def get_latest_commit_hash():
+    """Returns the hash of the latest commit in the repository.
+    """
     try:
         # Run 'git rev-parse HEAD' to get the last commit hash
         commit_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip().decode('utf-8')

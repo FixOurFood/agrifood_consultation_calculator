@@ -27,19 +27,19 @@ def plots(datablock):
 
     if plot_key == "Summary":
 
-        st.markdown("# Agrifood Calculator")
-        st.write("""Click on an aspect of the food system you would like to change - on
-                the left side of the page. Move the sliders to explore how different
-                interventions in the food system impact the UK emissions balance,
-                self-sufficiency, and land use. Alternatively, select a scenario
-                from the dropdown menu on the top of the sidebar to automatically
-                position sliders to pre-set values. Detailed charts describing the
-                effects of interventions on different aspects of the food system
-                can be found in the dropdown menu at the bottom of the page.""")
-        st.write("""Challenge: can you move the sliders to get the UK to net zero
-                (diamond is at zero)? Are you happy with this solution? If so, submit
-                your proposed solution at the bottom of this page!
-                """)
+        # st.markdown("# Agrifood Calculator")
+        # st.write("""Click on an aspect of the food system you would like to change - on
+        #         the left side of the page. Move the sliders to explore how different
+        #         interventions in the food system impact the UK emissions balance,
+        #         self-sufficiency, and land use. Alternatively, select a scenario
+        #         from the dropdown menu on the top of the sidebar to automatically
+        #         position sliders to pre-set values. Detailed charts describing the
+        #         effects of interventions on different aspects of the food system
+        #         can be found in the dropdown menu at the bottom of the page.""")
+        # st.write("""Challenge: can you move the sliders to get the UK to net zero
+        #         (diamond is at zero)? Are you happy with this solution? If so, submit
+        #         your proposed solution at the bottom of this page!
+        #         """)
                 
         col_comp_1, col_comp_2, col_comp_3 = st.columns([1,1,1])
 
@@ -76,7 +76,7 @@ def plots(datablock):
                         reference_emissions_baseline = 31.61
                         emissions_balance = emissions_balance.sel(Sector=["Agriculture", "Land use sinks", "Removals"])
 
-                    c = plot_single_bar_altair(emissions_balance, show="Sector",
+                    c = plot_single_bar_altair(emissions_balance, show="Sector", color=sector_emissions_colors,
                         axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,
                         mark_total=True, show_zero=True, ax_ticks=True, legend=True,
                         ax_min=-90, ax_max=120, reference=reference_emissions_baseline)
@@ -128,7 +128,7 @@ def plots(datablock):
                 SSR_metric_yr = gcapday.fbs.SSR()
 
                 st.metric(label="SSR", value="{:.2f} %".format(100*SSR_metric_yr),
-                    delta="{:.2f} %".format(100*(SSR_metric_yr-SSR_ref)))
+                    delta="{:.2f} %".format(100*(SSR_metric_yr-SSR_ref)), label_visibility="collapsed")
                 
                 origin_color={"Animal Products": "red",
                               "Plant Products": "green",
@@ -374,6 +374,7 @@ def plots(datablock):
 
         col1_ssr, col2_ssr, col3_ssr = st.columns([1,2,1])
 
+        # Inputs
         with col3_ssr:
             ssr_metric = st.selectbox("Metric", ["g/cap/day", "kCal/cap/day", "g_prot/cap/day", "g_fat/cap/day"])
             dissagregation = st.selectbox("Disaggregation", ["Item_name", "Item_group", "Item_origin"])
@@ -382,57 +383,66 @@ def plots(datablock):
             if len(item_list) > 0:
                 item_selection = {"Item":item_list}
 
+            # Build fbs for plotting
+            fbs = datablock["food"][ssr_metric].sel(Year=metric_yr).fillna(0)
+            fbs = fbs.fbs.group_sum(coordinate=dissagregation, new_name="Item")
+            fbs = fbs.sel(item_selection)
+            SSR_metric_yr = fbs.fbs.SSR()
+            SSR = datablock["food"][ssr_metric].fillna(0).fbs.SSR().sel(Year=slice(None, metric_yr)) * 100
+
+            with st.container(border=True):
+                st.metric("Self-sufficiency for your selection",
+                        value="{:.2f} %".format(100*fbs.fbs.SSR()))
+
+
         with col1_ssr:
             st.markdown("""# Self-sufficiency""")
-            st.markdown("""The self-sufficiency ratio (SSR) is a measure of the proportion of a
+            st.markdown("""<div style="text-align: justify;">
+                        The self-sufficiency ratio (SSR) is a measure of the proportion of a
                         country's food production that is consumed domestically. It is calculated
-                        as the ratio of domestic food production to domestic food consumption.
+                        as the ratio of production to domestic consumption.
                         A higher SSR indicates that a country is more self-sufficient in food
                         production, while a lower SSR indicates that a country relies more on
-                        imports to meet its food needs.""")
+                        imports to meet its food needs. </div>""", unsafe_allow_html=True)
 
-        SSR = datablock["food"][ssr_metric].fillna(0).fbs.SSR().sel(Year=slice(None, metric_yr)) * 100
 
-        f = plot_years_total(SSR, ylabel="Self-sufficiency ratio [%]", yrange=(40, 95)).configure_axis(
+        # plots
+        with col2_ssr:
+            
+            f = plot_years_total(SSR, ylabel="Self-sufficiency ratio [%]", yrange=(40, 95)).configure_axis(
                 labelFontSize=10,
                 titleFontSize=15,
                 labelAngle=-45,
-                ).properties(height=300)
-        
-        gcapday = datablock["food"][ssr_metric].sel(Year=metric_yr).fillna(0)
-        gcapday = gcapday.fbs.group_sum(coordinate=dissagregation, new_name="Item")
-        gcapday = gcapday.sel(item_selection)
-        SSR_metric_yr = gcapday.fbs.SSR()
+                ).properties(height=300)        
 
-        origin_color={"Animal Products": "red",
+            origin_color={"Animal Products": "red",
                         "Plant Products": "green",
                         "Alternative Food": "blue"}
         
-        domestic_use = gcapday["imports"]+gcapday["production"]-gcapday["exports"]
-        domestic_use.name="domestic"
+            domestic_use = fbs["imports"]+fbs["production"]-fbs["exports"]
+            domestic_use.name="domestic"
         
-        production_bar = plot_single_bar_altair(gcapday["production"],
+            production_bar = plot_single_bar_altair(fbs["production"],
                                                         show="Item",
                                                         vertical=False,
                                                         ax_ticks=True,
                                                         bar_width=100,
                                                         ax_min=0,
-                                                        ax_max=np.max([gcapday["production"].sum(), domestic_use.sum()]),
+                                                        ax_max=np.max([fbs["production"].sum(), domestic_use.sum()]),
                                                         axis_title="Food production per capita",
                                                         unit=ssr_metric.replace("_"," "))
 
-        imports_bar = plot_single_bar_altair(domestic_use,
+            imports_bar = plot_single_bar_altair(domestic_use,
                                                      show="Item",
                                                      vertical=False,
                                                      ax_ticks=True,
                                                      bar_width=100,
                                                      ax_min=0,
-                                                     ax_max=np.max([gcapday["production"].sum(), domestic_use.sum()]),
+                                                     ax_max=np.max([fbs["production"].sum(), domestic_use.sum()]),
                                                      axis_title="Domestic use per capita",
                                                      unit=ssr_metric.replace("_"," "))
         
 
-        with col2_ssr:
             with st.container(border=True):
                 st.altair_chart(f, use_container_width=True)
             with st.container(border=True):
