@@ -27,19 +27,19 @@ def plots(datablock):
 
     if plot_key == "Summary":
 
-        # st.markdown("# Agrifood Calculator")
-        # st.write("""Click on an aspect of the food system you would like to change - on
-        #         the left side of the page. Move the sliders to explore how different
-        #         interventions in the food system impact the UK emissions balance,
-        #         self-sufficiency, and land use. Alternatively, select a scenario
-        #         from the dropdown menu on the top of the sidebar to automatically
-        #         position sliders to pre-set values. Detailed charts describing the
-        #         effects of interventions on different aspects of the food system
-        #         can be found in the dropdown menu at the bottom of the page.""")
-        # st.write("""Challenge: can you move the sliders to get the UK to net zero
-        #         (diamond is at zero)? Are you happy with this solution? If so, submit
-        #         your proposed solution at the bottom of this page!
-        #         """)
+        st.markdown("# Agrifood Calculator - The UK in 2050")
+        st.write("""Click on an aspect of the food system you would like to change - on
+                the left side of the page. Move the sliders to explore how different
+                interventions in the food system impact the UK emissions balance,
+                self-sufficiency, and land use. Alternatively, select a scenario
+                from the dropdown menu on the top of the sidebar to automatically
+                position sliders to pre-set values. Detailed charts describing the
+                effects of interventions on different aspects of the food system
+                can be found in the dropdown menu at the bottom of the page.""")
+        st.write("""Challenge: can you move the sliders to get the UK to net zero
+                (diamond is at zero)? Are you happy with this solution? If so, submit
+                your proposed solution at the bottom of this page!
+                """)
                 
         col_comp_1, col_comp_2, col_comp_3 = st.columns([1,1,1])
 
