@@ -38,27 +38,6 @@ st.set_page_config(layout='wide',
                    page_title="Agrifood Calculator",
                    page_icon="images/fof_icon.png")
 
-st.markdown("""
-        <style>
-                .stAppHeader {
-                    background-color: rgba(255, 255, 255, 0.0);  /* Transparent background */
-                    visibility: visible;  /* Ensure the header is visible */
-                }
-                
-                .block-container {
-                    padding-top: 0rem;
-                    padding-bottom: 0rem;
-                    padding-left: 1rem;
-                    padding-right: 1rem;
-                }
-            
-                .stSidebarUserContent {
-                    padding-top: 0rem;
-                }
-            
-        </style>
-        """, unsafe_allow_html=True)
-
 help = read_help()
 set_advanced_settings()
 

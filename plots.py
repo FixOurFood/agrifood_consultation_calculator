@@ -16,7 +16,11 @@ from streamlit_theme import st_theme
 def plots(datablock):
 
     theme = st_theme()
-    background_color = theme["backgroundColor"]
+    if theme is not None:
+        background_color = theme["backgroundColor"]
+    else:
+        background_color = 'white'
+
     plt.rcParams['axes.facecolor'] = background_color
 
     reference_emissions_baseline = 97.09
@@ -33,19 +37,19 @@ def plots(datablock):
 
     if plot_key == "Summary":
 
-        st.markdown("# Agrifood Calculator - The UK in 2050")
-        st.write("""Click on an aspect of the food system you would like to change - on
-                the left side of the page. Move the sliders to explore how different
-                interventions in the food system impact the UK emissions balance,
-                self-sufficiency, and land use. Alternatively, select a scenario
-                from the dropdown menu on the top of the sidebar to automatically
-                position sliders to pre-set values. Detailed charts describing the
-                effects of interventions on different aspects of the food system
-                can be found in the dropdown menu at the bottom of the page.""")
-        st.write("""Challenge: can you move the sliders to get the UK to net zero
-                (diamond is at zero)? Are you happy with this solution? If so, submit
-                your proposed solution at the bottom of this page!
-                """)
+        # st.markdown("# Agrifood Calculator - The UK in 2050")
+        # st.write("""Click on an aspect of the food system you would like to change - on
+        #         the left side of the page. Move the sliders to explore how different
+        #         interventions in the food system impact the UK emissions balance,
+        #         self-sufficiency, and land use. Alternatively, select a scenario
+        #         from the dropdown menu on the top of the sidebar to automatically
+        #         position sliders to pre-set values. Detailed charts describing the
+        #         effects of interventions on different aspects of the food system
+        #         can be found in the dropdown menu at the bottom of the page.""")
+        # st.write("""Challenge: can you move the sliders to get the UK to net zero
+        #         (diamond is at zero)? Are you happy with this solution? If so, submit
+        #         your proposed solution at the bottom of this page!
+        #         """)
                 
         col_comp_1, col_comp_2, col_comp_3 = st.columns([1,1,1])
 
@@ -75,12 +79,12 @@ def plots(datablock):
                                           coords={"Sector": list(sector_emissions_dict.keys())})
                     
                     emissions_balance.loc[{"Sector": "Agriculture"}] = total_emissions
-                    emissions_balance.loc[{"Sector": "Land use sinks"}] = -total_seq
+                    emissions_balance.loc[{"Sector": "LU sinks"}] = -total_seq
                     emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
                     
                     if st.session_state["show_afolu_only"]:
                         reference_emissions_baseline = 31.61
-                        emissions_balance = emissions_balance.sel(Sector=["Agriculture", "Land use sinks", "Removals"])
+                        emissions_balance = emissions_balance.sel(Sector=["Agriculture", "LU sinks", "Removals"])
 
                     c = plot_single_bar_altair(emissions_balance, show="Sector", color=sector_emissions_colors,
                         axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,
@@ -243,17 +247,19 @@ def plots(datablock):
                 plot1.set_xlim(left=-100)
                 plot1.set_ylim(top=1000)
 
-                _, col_plot, _ = st.columns((0.1, 0.7, 0.1))
-                with col_plot:
-                    st.pyplot(f)
+                _, col_plot = st.columns((0.1, 0.7))
 
                 pctg = datablock["land"]["percentage_land_use"]
                 totals = pctg.sum(dim=["x", "y"])
-                bar_land_use = plot_single_bar_altair(totals, show="aggregate_class",
-                    axis_title="Land use [ha]", unit="Hectares", vertical=False,
-                    color=land_color_dict, ax_ticks=True, bar_width=100)
+                # bar_land_use = plot_single_bar_altair(totals, show="aggregate_class",
+                #     axis_title="Land use [ha]", unit="Hectares", vertical=False,
+                #     color=land_color_dict, ax_ticks=True, bar_width=100)
                 
-                st.altair_chart(bar_land_use, use_container_width=True)
+                bar_land_use = pie_chart_altair(totals, show="aggregate_class",
+                                                unit="Hectares")
+                with col_plot:
+                    st.pyplot(f)
+                    st.altair_chart(bar_land_use, use_container_width=True)
 
                 st.caption('''<div style="text-align: justify;">
                 The map above shows the distribution of land use types in the UK.
@@ -265,73 +271,36 @@ def plots(datablock):
 
     # Emissions per food group or origin
     # ----------------------------------
-    if plot_key == "CO2e emission per food group":
-        col_opt, col_element, col_y = st.columns([1,1,1])
+    if plot_key == "Annual quantities":
+        col_element, col_opt, col_y, col_sel = st.columns([1,1,1,1])
         with col_opt:
-            option_key = st.selectbox("Plot options", ["Food group", "Food origin"])
+            dissagregation = st.selectbox("Plot options", ["Item_group", "Item_origin", "Item_name"], format_func=lambda x: x.replace("_"," "))
         with col_element:
             element_key = st.selectbox("Food Supply Element", ["production", "food", "imports", "exports", "feed"])
         with col_y:
-            y_key = st.selectbox("Quantity", ["Emissions", "kCal/cap/day", "g/cap/day"])
+            qty_key = st.selectbox("Quantity", ["g_co2e/year", "kCal/cap/day", "g/cap/day", "g_prot/cap/day", "g_fat/cap/day"])
 
-        if y_key == "Emissions":
-            emissions = datablock["impact"]["g_co2e/year"].sel(Year=slice(None, metric_yr))
-            seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=slice(None, metric_yr))
+        with col_sel:
+            item_list = st.multiselect("Item", np.unique(datablock["food"][qty_key][dissagregation].values))
+        item_selection = {}
+        if len(item_list) > 0:
+            item_selection = {"Item":item_list}
 
-            if option_key == "Food origin":
-                f = plot_years_altair(emissions[element_key]/1e6, show="Item_origin", ylabel="t CO2e / Year")
 
-            elif option_key == "Food group":
-                f = plot_years_altair(emissions[element_key]/1e6, show="Item_group", ylabel="t CO2e / Year")
-
-            if element_key == "production":
-                # Plot sequestration
-                f += plot_years_altair(-seq_da, show="Item", ylabel="t CO2e / Year")
-                emissions_sum = emissions[element_key].sum(dim="Item")
-                seqestration_sum = seq_da.sum(dim="Item")
-
-                f += plot_years_total((emissions_sum/1e6 - seqestration_sum),
-                                    ylabel="t CO2e / Year",
-                                    color="black")
+        if qty_key == "g_co2e/year":
+            to_plot = datablock["impact"][qty_key][element_key].fillna(0)/1e6
         else:
-            emissions = datablock["food"][y_key].sel(Year=slice(None, metric_yr))
+            to_plot = datablock["food"][qty_key][element_key].fillna(0)
+        to_plot[dissagregation].values = np.array(to_plot[dissagregation].values, dtype=str)
+        to_plot = to_plot.fbs.group_sum(coordinate=dissagregation, new_name="Item")
+        to_plot = to_plot.sel(item_selection)
 
-            if option_key == "Food origin":
-                f = plot_years_altair(emissions[element_key], show="Item_origin", ylabel=y_key)
-
-            elif option_key == "Food group":
-                f = plot_years_altair(emissions[element_key], show="Item_group", ylabel=y_key)
+        f = plot_years_altair(to_plot, show="Item", ylabel=qty_key)
 
         f=f.configure_axis(
             labelFontSize=15,
             titleFontSize=15)
         
-        st.altair_chart(f, use_container_width=True)
-
-    # Emissions per food item from each group
-    # ---------------------------------------
-    elif plot_key == "CO2e emission per food item":
-        col_opt, col_element, col_y = st.columns(3)
-        with col_opt:
-            option_key = st.selectbox("Plot options", np.unique(datablock["impact"]["g_co2e/year"].Item_group.values))
-        with col_element:
-            element_key = st.selectbox("Food Supply Element", ["production", "food", "imports", "exports", "feed"])
-        with col_y:
-            y_key = st.selectbox("Quantity", ["Emissions", "kCal/cap/day", "g/cap/day"])
-
-        if y_key == "Emissions":
-            to_plot = datablock["impact"]["g_co2e/year"].sel(Year=slice(None, metric_yr))
-            to_plot = to_plot[element_key].sel(Item=to_plot["Item_group"] == option_key)/1e6
-
-        else:
-            to_plot = datablock["food"][y_key].sel(Year=slice(None, metric_yr))
-            to_plot = to_plot[element_key].sel(Item=to_plot["Item_group"] == option_key)
-        
-        f = plot_years_altair(to_plot, show="Item_group", ylabel="t CO2e / Year")
-        f = f.configure_axis(
-                labelFontSize=15,
-                titleFontSize=15)
-            
         st.altair_chart(f, use_container_width=True)
 
     # FAOSTAT bar plot with per-capita daily values

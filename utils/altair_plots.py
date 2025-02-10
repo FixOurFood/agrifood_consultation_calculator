@@ -435,6 +435,6 @@ def pie_chart_altair(da, show="Item", unit=""):
         tooltip=[alt.Tooltip(f'{show}:N'),
                  alt.Tooltip('value_with_unit:N', title='Total')],
         order=alt.Order(f'order:N', sort='ascending')
-    ).resolve_scale(theta='independent')
+    ).resolve_scale(theta='independent').configure_legend(labelFontSize=10)
 
     return c

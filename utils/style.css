@@ -25,3 +25,19 @@ div.stSlider [data-testid="stTickBar"] {
 button[title="View fullscreen"] {
      display: none;
  }
+
+ .stAppHeader {
+     background-color: rgba(255, 255, 255, 0.0);  /* Transparent background */
+     visibility: visible;  /* Ensure the header is visible */
+ }
+ 
+ .block-container {
+     padding-top: 1.5rem;
+     padding-bottom: 1.5rem;
+     padding-left: 0.5rem;
+     padding-right: 0.5rem;
+ }
+
+ .stVerticalBlock{
+     gap: 0.5rem;
+ }

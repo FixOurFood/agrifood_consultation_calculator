@@ -97,7 +97,7 @@ def bottom_panel(datablock, metric_yr):
                                     coords={"Sector": list(sector_emissions_dict.keys())})
             
             emissions_balance.loc[{"Sector": "Agriculture"}] = total_emissions
-            emissions_balance.loc[{"Sector": "Land use sinks"}] = -total_seq
+            emissions_balance.loc[{"Sector": "LU sinks"}] = -total_seq
             emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
 
             c = plot_single_bar_altair(emissions_balance, show="Sector",
