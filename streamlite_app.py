@@ -131,7 +131,7 @@ with st.sidebar:
         
         bdleaf_conif_ratio = st.slider('Percentage of new forested land that is broadleaf',
                                        min_value=0, max_value=100, step=1,
-                                       value=st.session_state["bdleaf_conif_ratio_default"],
+                                       value=int(st.session_state["bdleaf_conif_ratio_default"]),
                                        key="bdleaf_conif_ratio")
 
         land_BECCS = st.slider('Percentage of farmland used for BECCS crops',
