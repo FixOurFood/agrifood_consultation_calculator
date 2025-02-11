@@ -165,8 +165,8 @@ def set_advanced_settings():
         st.session_state.max_ghge_animal = 30
     if "max_ghge_plant" not in st.session_state:    
         st.session_state.max_ghge_plant = 30
-    if "bdleaf_conif_ratio" not in st.session_state:    
-        st.session_state.bdleaf_conif_ratio = 75
+    if "bdleaf_conif_ratio_default" not in st.session_state:    
+        st.session_state.bdleaf_conif_ratio_default = 75
     if "bdleaf_seq_ha_yr" not in st.session_state:    
         st.session_state.bdleaf_seq_ha_yr = 3.5
     if "conif_seq_ha_yr" not in st.session_state:    

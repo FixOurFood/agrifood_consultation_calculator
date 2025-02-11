@@ -123,11 +123,16 @@ with st.sidebar:
 
     with st.expander("**:earth_africa: Land use change**"):
 
-        land_slider_keys = ["foresting_pasture", "land_BECCS", "lowland_peatland", "upland_peatland", "soil_carbon", "mixed_farming"]
+        land_slider_keys = ["foresting_pasture", "land_BECCS", "lowland_peatland", "upland_peatland", "soil_carbon", "mixed_farming", "bdleaf_conif_ratio"]
 
         foresting_pasture = st.slider('Additional forested UK land area percentage',
                         min_value=-25, max_value=25, step=1, value=0,
-                        key="foresting_pasture", help=help_str(help, "sidebar_land", 0, "oqoktlcczgw8"))        
+                        key="foresting_pasture", help=help_str(help, "sidebar_land", 0, "oqoktlcczgw8"))
+        
+        bdleaf_conif_ratio = st.slider('Percentage of new forested land that is broadleaf',
+                                       min_value=0, max_value=100, step=1,
+                                       value=st.session_state["bdleaf_conif_ratio_default"],
+                                       key="bdleaf_conif_ratio")
 
         land_BECCS = st.slider('Percentage of farmland used for BECCS crops',
                         min_value=0, max_value=20, step=1,
