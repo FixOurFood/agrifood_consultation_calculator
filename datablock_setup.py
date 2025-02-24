@@ -7,9 +7,9 @@ from agrifoodpy.impact.model import fbs_impacts, fair_co2_only
 from agrifoodpy.pipeline import Pipeline
 
 @st.cache_data(ttl=60*60*24)
-def datablock_setup():
+def datablock_setup(population_projection="Medium"):
     from agrifoodpy_data.food import FAOSTAT, Nutrients_FAOSTAT
-    from agrifoodpy_data.impact import PN18_FAOSTAT
+    from agrifoodpy_data.impact import PN18_FAOSTAT, UKNDC_FAOSTAT
     from agrifoodpy_data.population import UN
     from agrifoodpy_data.land import NaturalEngland_ALC_1000 as ALC
     from agrifoodpy_data.land import UKCEH_LC_1000
@@ -36,7 +36,8 @@ def datablock_setup():
     # ------------------------------
 
     pop = UN.Medium.sel(Region=[area_pop, area_pop_world], Year=years, Datatype="Total")*1000
-    pop_proj = UN[st.session_state["population_projection"]].sel(Region=[area_pop, area_pop_world], Year=years, Datatype="Total")*1000
+    # pop_proj = UN[st.session_state["population_projection"]].sel(Region=[area_pop, area_pop_world], Year=years, Datatype="Total")*1000
+    pop_proj = UN[population_projection].sel(Region=[area_pop, area_pop_world], Year=years, Datatype="Total")*1000
 
     years_with_data = pop_proj.where(np.isfinite(pop_proj), drop=True).Year.values
     years_to_fill = np.setdiff1d(years, years_with_data)
@@ -115,46 +116,7 @@ def datablock_setup():
         scale_ones = xr.DataArray(data = np.ones_like(food_uk.Year.values),
                             coords = {"Year":food_uk.Year.values})
 
-        NDC_emissions = PN18_FAOSTAT["GHG Emissions (IPCC 2013)"]
-
-        NDC_emissions.loc[{}] = 0
-
-        NDC_emissions.loc[{"Item":2731}] = 16.94 
-        NDC_emissions.loc[{"Item":2617}] = 0.13
-        NDC_emissions.loc[{"Item":2513}] = 1.06
-        NDC_emissions.loc[{"Item":2656}] = 0.21
-        NDC_emissions.loc[{"Item":2658}] = 0.54
-        NDC_emissions.loc[{"Item":2520}] = 0.00
-        NDC_emissions.loc[{"Item":2740}] = 0.00
-        NDC_emissions.loc[{"Item":2614}] = 0.10
-        NDC_emissions.loc[{"Item":2743}] = 0.27 
-        NDC_emissions.loc[{"Item":2625}] = 0.10 
-        NDC_emissions.loc[{"Item":2620}] = 0.16
-        NDC_emissions.loc[{"Item":2582}] = 1.63
-        NDC_emissions.loc[{"Item":2735}] = 2.74
-        NDC_emissions.loc[{"Item":2948}] = 0.27
-        NDC_emissions.loc[{"Item":2732}] = 11.32
-        NDC_emissions.loc[{"Item":2516}] = 1.06
-        NDC_emissions.loc[{"Item":2586}] = 1.63
-        NDC_emissions.loc[{"Item":2570}] = 1.63
-        NDC_emissions.loc[{"Item":2602}] = 0.05
-        NDC_emissions.loc[{"Item":2547}] = 1.66
-        NDC_emissions.loc[{"Item":2733}] = 0.97
-        NDC_emissions.loc[{"Item":2531}] = 0.29
-        NDC_emissions.loc[{"Item":2734}] = 0.15
-        NDC_emissions.loc[{"Item":2549}] = 0.91
-        NDC_emissions.loc[{"Item":2574}] = 1.63
-        NDC_emissions.loc[{"Item":2558}] = 1.63
-        NDC_emissions.loc[{"Item":2515}] = 1.06
-        NDC_emissions.loc[{"Item":2571}] = 2.05
-        NDC_emissions.loc[{"Item":2542}] = 0.52
-        NDC_emissions.loc[{"Item":2537}] = 0.36
-        NDC_emissions.loc[{"Item":2601}] = 0.03
-        NDC_emissions.loc[{"Item":2605}] = 0.23
-        NDC_emissions.loc[{"Item":2511}] = 0.80
-        NDC_emissions.loc[{"Item":2655}] = 0.54
-
-        extended_impact = NDC_emissions.drop_vars(["Item_name", "Item_group", "Item_origin"]) * scale_ones
+        extended_impact = UKNDC_FAOSTAT["GHG Emissions (IPCC 2013)"].drop_vars(["Item_name", "Item_group", "Item_origin"]) * scale_ones
 
         datablock["impact"]["gco2e/gfood"] = extended_impact
 
@@ -188,19 +150,6 @@ def datablock_setup():
                 "Fat":fats_year_baseline,
                 "Proteins":prot_year_baseline,
                 "Emissions":co2e_year_baseline}
-
-    # -------------------------------
-    # Atmosferic model - Baseline run
-    # -------------------------------
-
-    # # Convert from grams to Gt: /1e15
-    # total_emissions_gtco2e_baseline = (co2e_year_baseline["food"] * pop_world_past / pop_past_uk).sum(dim="Item")/1e15
-
-    # T_base, C_base, F_base = fair_co2_only(total_emissions_gtco2e_baseline)
-
-    # datablock["impact"]["T"] = T_base
-    # datablock["impact"]["C"] = C_base
-    # datablock["impact"]["F"] = F_base
 
     # -------------------------------
     # Land use data

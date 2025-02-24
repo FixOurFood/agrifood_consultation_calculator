@@ -131,7 +131,7 @@ with st.sidebar:
         
         bdleaf_conif_ratio = st.slider('Percentage of new forested land that is broadleaf',
                                        min_value=0, max_value=100, step=1,
-                                       value=int(st.session_state["bdleaf_conif_ratio_default"]),
+                                       value=75,
                                        key="bdleaf_conif_ratio")
 
         land_BECCS = st.slider('Percentage of farmland used for BECCS crops',
@@ -233,6 +233,37 @@ with st.sidebar:
         st.button("Reset", on_click=reset_sliders, key='reset_technology',
                   kwargs={"keys": [technology_slider_keys, "innovation_bar"]})
         
+    with st.expander("**📈 Scenario settings**"):
+        # Defines the population projection model to use from the UN dataset
+        pop_projection = st.segmented_control("Population projection",
+                                              ["Low", "Medium", "High", "Zero migration"],
+                                              default="Medium",
+                                              selection_mode="single",
+                                              key="pop_proj")
+        
+        # Defines the crop yield change projection 
+        yield_proj = st.segmented_control("Crop yield change projection",
+                                              ["-20%", "Constant", "+20%"],
+                                              default="Constant",
+                                              selection_mode="single",
+                                              key="yield_proj")
+        
+        def format_elasticity(x):
+            if x == 0:
+                return "Imports"
+            elif x == 0.5:
+                return "Mixed"
+            elif x == 1:
+                return "Production"
+            
+        # Defines the elasticity value for the trade model
+        elasticity = st.segmented_control("International trade projection",
+                                              [0, 0.5, 1],
+                                              default=0.5,
+                                              format_func=format_elasticity,
+                                              selection_mode="single",
+                                              key="elasticity")
+        
     st.button("Reset all sliders", on_click=reset_sliders, key='reset_all')
     
     st.caption('''--- Developed with funding from [FixOurFood](https://fixourfood.org/).''')
@@ -250,7 +281,7 @@ with st.sidebar:
 #                  Main
 # ----------------------------------------
 
-food_system = Pipeline(datablock_setup())
+food_system = Pipeline(datablock_setup(pop_projection))
 food_system = pipeline_setup(food_system)
 food_system.run()
 datablock_result = food_system.datablock

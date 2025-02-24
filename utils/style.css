@@ -34,8 +34,8 @@ button[title="View fullscreen"] {
  .block-container {
      padding-top: 1.5rem;
      padding-bottom: 1.5rem;
-     padding-left: 0.5rem;
-     padding-right: 0.5rem;
+     padding-left: 2rem;
+     padding-right: 2rem;
  }
 
  .stVerticalBlock{

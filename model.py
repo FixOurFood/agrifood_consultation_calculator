@@ -6,7 +6,7 @@ import warnings
 import copy
 import streamlit as st
 
-def project_future(datablock, cc_decline=False):
+def project_future(datablock, yield_change=None):
     """Project future food consumption based on scale
     
     Parameters
@@ -16,6 +16,8 @@ def project_future(datablock, cc_decline=False):
 
     scale : xarray.DataArray
         Scale to apply to food consumption
+    yield_change : float
+        Percentage change by the end of the projection period.
 
     Returns
     -------
@@ -28,6 +30,12 @@ def project_future(datablock, cc_decline=False):
 
     scale = pop.sel(Region=826, Year=np.arange(2021, 2051)) / \
                pop.sel(Region=826, Year=2020)
+    
+    yield_change_options = {
+        "-20%": -0.2,
+        "Constant": 0,
+        "+20%": 0.2
+    }
 
     # Per capita per day values remain constant
     g_cap_day = datablock["food"]["g/cap/day"]
@@ -46,11 +54,11 @@ def project_future(datablock, cc_decline=False):
     scale_past = xr.DataArray(np.ones(len(years_past)), dims=["Year"], coords={"Year": years_past})
     scale_tot = xr.concat([scale_past, scale], dim="Year")
 
-    if cc_decline:
+    if yield_change is not None:
         # Apply 1% decline per year after 2020
-        decline_mask = scale_tot.Year >= 2021
-        decline_years = scale_tot.Year.where(decline_mask, drop=False) - 2021
-        scale_tot = scale_tot.where(~decline_mask, scale_tot / (0.99 ** decline_years))
+        decline_mask = scale_tot.Year >= 2020
+        decline_years = scale_tot.Year.where(decline_mask, drop=False) - 2020
+        scale_tot = scale_tot.where(~decline_mask, scale_tot / (1+decline_years/29*yield_change_options[yield_change]))
 
     g_cap_day = g_cap_day.fbs.scale_add(element_in="production", element_out="imports", scale=1/scale_tot, add=False)
     g_prot_cap_day = g_prot_cap_day.fbs.scale_add(element_in="production", element_out="imports", scale=1/scale_tot, add=False)
@@ -71,6 +79,7 @@ def project_future(datablock, cc_decline=False):
     datablock["food"]["g_fat/cap/day"] = g_fat_cap_day
     datablock["food"]["kCal/cap/day"] = kcal_cap_day
     datablock["impact"]["gco2e/gfood"] = g_co2e_g
+    datablock["impact"]["baseline"] = copy.deepcopy(datablock["impact"]["gco2e/gfood"])
 
     return datablock
 
@@ -79,8 +88,7 @@ def item_scaling(datablock, scale, source, scaling_nutrient,
                  non_sel_items=None):
     """Reduces per capita intake quantities and replaces them by other items
     keeping the overall consumption constant. Scales land use if production
-    changes
-    """
+    changes"""
 
     timescale = datablock["global_parameters"]["timescale"]
     # We can use any quantity here, either per cap/day or per year. The ratio
@@ -113,8 +121,8 @@ def item_scaling(datablock, scale, source, scaling_nutrient,
     # Scale feed, seed and processing
     out = feed_scale(out, food_orig)
 
-    out = check_negative_source(out, "production", "imports")
-    out = check_negative_source(out, "imports", "production")
+    # out = check_negative_source(out, "production", "imports")
+    out = check_negative_source(out, "imports", "exports", add=False)
 
     ratio = out / food_orig
     ratio = ratio.where(~np.isnan(ratio), 1)
@@ -562,7 +570,7 @@ def forest_land_model(datablock, forest_fraction, bdleaf_conif_ratio,
 
     return datablock
 
-def peatland_restoration(datablock, restore_fraction, land_type, items,
+def peatland_restoration(datablock, restore_fraction, new_land_type, old_land_type, items,
                          peat_map_key=None, mask_val=None):
     """Replaces a specified land type fraction and sets it to a new type called
     'peatland'. Scales food production and imports to reflect the change in land
@@ -570,34 +578,38 @@ def peatland_restoration(datablock, restore_fraction, land_type, items,
     """
         
     timescale = datablock["global_parameters"]["timescale"]
-    peat_map_da = datablock["land"][peat_map_key]
+    
     pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
-    old_use = datablock["land"]["percentage_land_use"].sel({"aggregate_class":land_type}).sum()
+    old_use = datablock["land"]["percentage_land_use"].sel({"aggregate_class":old_land_type}).sum()
 
-    # if no alc grade is provided, then use the whole map
-    if mask_val is not None:
-        peat_mask = np.isin(peat_map_da, mask_val)
+    if peat_map_key is not None:
+        peat_map_da = datablock["land"][peat_map_key]
+    
+        if mask_val is not None:
+            peat_mask = np.isin(peat_map_da, mask_val)
+    
+    # if no mask is provided, then use the whole map
     else:
         peat_mask = np.ones_like(pctg, dtype=bool)
 
-    to_spare = pctg.where(peat_mask, other=0).sel({"aggregate_class":land_type})
+    to_spare = pctg.where(peat_mask, other=0).sel({"aggregate_class":old_land_type})
 
     # Spare the specified land type
     delta_spared =  to_spare * restore_fraction
-    pctg.loc[{"aggregate_class":land_type}] -= delta_spared
+    pctg.loc[{"aggregate_class":old_land_type}] -= delta_spared
 
-    if "Peatland" not in pctg.aggregate_class.values:
+    if new_land_type not in pctg.aggregate_class.values:
         spared_new_class = xr.zeros_like(pctg.isel(aggregate_class=0)).where(np.isfinite(pctg.isel(aggregate_class=0)))
-        spared_new_class["aggregate_class"] = "Peatland"
+        spared_new_class["aggregate_class"] = new_land_type
         pctg = xr.concat([pctg, spared_new_class], dim="aggregate_class")
 
-    pctg.loc[{"aggregate_class":"Peatland"}] += delta_spared.sum(dim="aggregate_class")
+    pctg.loc[{"aggregate_class":new_land_type}] += delta_spared.sum(dim="aggregate_class")
 
     # Add spared class to the land use map
     datablock["land"]["percentage_land_use"] = pctg
 
     # Scale food production and imports
-    new_use = pctg.sel({"aggregate_class":land_type}).sum()
+    new_use = pctg.sel({"aggregate_class":old_land_type}).sum()
     scale_use = (new_use/old_use).to_numpy()
 
     food_orig = datablock["food"]["g/cap/day"]
@@ -743,38 +755,28 @@ def forest_sequestration_model(datablock, land_type, seq):
 
     return datablock
 
-def scale_impact(datablock, scale_factor, item_origin=None, items=None):
-    """ Scales the impact values for the selected items by multiplying them by
-    a multiplicative factor.
+def scale_impact(datablock, scale_factor, items=None):
+    """ Scales the impact values for the selected items relative to the
+    the baseline impact factors.
     """
 
     timescale = datablock["global_parameters"]["timescale"]
     # load quantities and impacts
     food_orig = datablock["food"]["g/cap/day"]
     impacts = datablock["impact"]["gco2e/gfood"].copy(deep=True)
+    impacts_baseline = datablock["impact"]["baseline"].copy(deep=True)
 
-    # if no items are specified, do nothing
-    if items is None and item_origin is None:
-        return datablock
-    else:
-        # if items are specified, select the items to scale
-        # we prioritise items over item_origin
-        if items is not None:
-            pass
-        # if item_origin is specified, select the items to scale
-        elif item_origin is not None:
-            items = food_orig.sel(Item = food_orig.Item_origin==item_origin).Item.values
-            items = items[np.isin(items, impacts.Item.values)]
-    
-    scale = logistic_food_supply(food_orig, timescale, 1, scale_factor)
+    items = get_items(food_orig, items)
 
-    # scale the impacts
-    impacts.loc[{"Item": items}] *= scale
+    # scale the impacts using the baseline values as reference
+    scale = logistic_food_supply(food_orig, timescale, 0, scale_factor)
+    delta = impacts_baseline.loc[{"Item": items}] * scale
+    impacts.loc[{"Item": items}] = impacts.loc[{"Item": items}] - delta
     datablock["impact"]["gco2e/gfood"] = impacts
 
     return datablock
 
-def scale_production(datablock, scale_factor, item_origin=None, items=None):
+def scale_production(datablock, scale_factor, items=None):
     """ Scales the production values for the selected items by multiplying them by
     a multiplicative factor.
     """
@@ -785,16 +787,7 @@ def scale_production(datablock, scale_factor, item_origin=None, items=None):
     food_orig = datablock["food"]["g/cap/day"].copy(deep=True)
 
     # if no items are specified, do nothing
-    if items is None and item_origin is None:
-        return datablock
-    else:
-        # if items are specified, select the items to scale
-        # we prioritise items over item_origin
-        if items is not None:
-            pass
-        # if item_origin is specified, select the items to scale
-        elif item_origin is not None:
-            items = food_orig.sel(Item = food_orig.Item_origin==item_origin).Item.values
+    items = get_items(food_orig, items)
 
     scale_prod = logistic_food_supply(food_orig, timescale, 1, scale_factor)
 
@@ -825,11 +818,13 @@ def BECCS_farm_land(datablock, farm_percentage, land_type="Arable",
     pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
     old_use = datablock["land"]["percentage_land_use"].sel({"aggregate_class":land_type}).sum()
 
-    mask_map = datablock["land"][mask_map].copy(deep=True)
+    if mask_map is not None:
+        mask_map = datablock["land"][mask_map].copy(deep=True)
     
     # if no alc grade is provided, then use the whole map
-    if mask_values is not None:
-        peat_mask = np.isin(mask_map, mask_values)
+        if mask_values is not None:
+            peat_mask = np.isin(mask_map, mask_values)
+    
     else:
         peat_mask = np.ones_like(pctg, dtype=bool)
 
@@ -1038,7 +1033,7 @@ def feed_scale(fbs, ref):
     
     return out
 
-def check_negative_source(fbs, source, fallback=None):
+def check_negative_source(fbs, source, fallback=None, add=True):
     """Checks for negative values in the source element and adds the difference
     to the fallback element"""
 
@@ -1052,7 +1047,11 @@ def check_negative_source(fbs, source, fallback=None):
 
     delta_neg = fbs[source].where(fbs[source] < 0, other=0)
     fbs[source] -= delta_neg
-    fbs[fallback] += delta_neg
+
+    if add:
+        fbs[fallback] += delta_neg
+    else:
+        fbs[fallback] -= delta_neg
 
     return fbs
 
@@ -1176,10 +1175,7 @@ def zero_land_farming_model(datablock, fraction, items, land_type="Arable",
 
     food_orig = datablock["food"]["g/cap/day"].copy(deep=True)
     
-    if isinstance(items, tuple):
-        items = food_orig.sel(Item=np.isin(food_orig[items[0]], items[1])).Item.values
-    else:
-        items = [items]
+    items = get_items(food_orig, items)
 
     timescale = datablock["global_parameters"]["timescale"]
 
@@ -1255,15 +1251,8 @@ def mixed_farming_model(datablock, fraction, prod_scale_factor, items,
     arable_scale = arable_scale.values
 
     # Get items
-    if isinstance(items, tuple):
-        items = food_orig.sel(Item=np.isin(food_orig[items[0]], items[1])).Item.values
-    else:
-        items = [items]
-
-    if isinstance(secondary_items, tuple):
-        secondary_items = food_orig.sel(Item=np.isin(food_orig[secondary_items[0]], secondary_items[1])).Item.values
-    else:
-        secondary_items = [secondary_items]
+    items = get_items(food_orig, items)
+    secondary_items = get_items(food_orig, secondary_items)
 
     scale = logistic_food_supply(food_orig, timescale, 1, arable_scale)
 

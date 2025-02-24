@@ -23,7 +23,7 @@ def plots(datablock):
 
     plt.rcParams['axes.facecolor'] = background_color
 
-    reference_emissions_baseline = 97.09
+    reference_emissions_baseline = 104.40
     reference_emissions_baseline_agriculture = 52.08
 
     # ----------------------------------------    
@@ -37,19 +37,19 @@ def plots(datablock):
 
     if plot_key == "Summary":
 
-        # st.markdown("# Agrifood Calculator - The UK in 2050")
-        # st.write("""Click on an aspect of the food system you would like to change - on
-        #         the left side of the page. Move the sliders to explore how different
-        #         interventions in the food system impact the UK emissions balance,
-        #         self-sufficiency, and land use. Alternatively, select a scenario
-        #         from the dropdown menu on the top of the sidebar to automatically
-        #         position sliders to pre-set values. Detailed charts describing the
-        #         effects of interventions on different aspects of the food system
-        #         can be found in the dropdown menu at the bottom of the page.""")
-        # st.write("""Challenge: can you move the sliders to get the UK to net zero
-        #         (diamond is at zero)? Are you happy with this solution? If so, submit
-        #         your proposed solution at the bottom of this page!
-        #         """)
+        st.markdown("# Agrifood Calculator - The UK in 2050")
+        st.write("""Click on an aspect of the food system you would like to change - on
+                the left side of the page. Move the sliders to explore how different
+                interventions in the food system impact the UK emissions balance,
+                self-sufficiency, and land use. Alternatively, select a scenario
+                from the dropdown menu on the top of the sidebar to automatically
+                position sliders to pre-set values. Detailed charts describing the
+                effects of interventions on different aspects of the food system
+                can be found in the dropdown menu at the bottom of the page.""")
+        st.write("""Challenge: can you move the sliders to get the UK to net zero
+                (diamond is at zero)? Are you happy with this solution? If so, submit
+                your proposed solution at the bottom of this page!
+                """)
                 
         col_comp_1, col_comp_2, col_comp_3 = st.columns([1,1,1])
 
@@ -66,7 +66,6 @@ def plots(datablock):
                     total_emissions = emissions.sum(dim="Item").values/1e6
                     total_seq = seq_da.sel(Item=["Broadleaf woodland",
                                                  "Coniferous woodland",
-                                                 "Peatland",
                                                  "Managed pasture",
                                                  "Managed arable",
                                                  "Mixed farming",
@@ -81,6 +80,8 @@ def plots(datablock):
                     emissions_balance.loc[{"Sector": "Agriculture"}] = total_emissions
                     emissions_balance.loc[{"Sector": "LU sinks"}] = -total_seq
                     emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
+
+                    emissions_balance.loc[{"Sector": "LU sources"}] -= seq_da.sel(Item=["Restored upland peat", "Restored lowland peat"]).sum(dim="Item").values/1e6
                     
                     if st.session_state["show_afolu_only"]:
                         reference_emissions_baseline = 31.61
@@ -247,19 +248,14 @@ def plots(datablock):
                 plot1.set_xlim(left=-100)
                 plot1.set_ylim(top=1000)
 
-                _, col_plot = st.columns((0.1, 0.7))
-
                 pctg = datablock["land"]["percentage_land_use"]
                 totals = pctg.sum(dim=["x", "y"])
-                # bar_land_use = plot_single_bar_altair(totals, show="aggregate_class",
-                #     axis_title="Land use [ha]", unit="Hectares", vertical=False,
-                #     color=land_color_dict, ax_ticks=True, bar_width=100)
+                bar_land_use = plot_single_bar_altair(totals, show="aggregate_class",
+                    axis_title="Land use [ha]", unit="Hectares", vertical=False,
+                    color=land_color_dict, ax_ticks=True, bar_width=100)
                 
-                bar_land_use = pie_chart_altair(totals, show="aggregate_class",
-                                                unit="Hectares")
-                with col_plot:
-                    st.pyplot(f)
-                    st.altair_chart(bar_land_use, use_container_width=True)
+                st.pyplot(f)
+                st.altair_chart(bar_land_use, use_container_width=True)
 
                 st.caption('''<div style="text-align: justify;">
                 The map above shows the distribution of land use types in the UK.

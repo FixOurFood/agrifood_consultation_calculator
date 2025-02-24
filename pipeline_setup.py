@@ -10,7 +10,7 @@ def pipeline_setup(food_system):
 
     # Consumer demand
     food_system.add_node(project_future,
-                            {"cc_decline":st.session_state.cc_production_decline})
+                            {"yield_change":st.session_state.yield_proj})
     
     food_system.add_node(item_scaling,
                             {"scale":1-st.session_state.ruminant/100,
@@ -87,29 +87,26 @@ def pipeline_setup(food_system):
     # Land management
     food_system.add_node(forest_land_model,
                             {"forest_fraction":st.session_state.foresting_pasture/100,
-                            "map_mask":"peatland",
-                            "mask_vals":0,
                             "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100,
                             })
 
     food_system.add_node(BECCS_farm_land,
                             {"farm_percentage":st.session_state.land_BECCS/100,
-                             "mask_map":"peatland",
-                             "mask_values":0})
+                            })
 
     food_system.add_node(peatland_restoration,
-                        {"restore_fraction":st.session_state.lowland_peatland/100,
-                         "land_type":["Arable"],
+                        {"restore_fraction":0.0475*st.session_state.lowland_peatland/100,
+                         "new_land_type":"Restored lowland peat",
+                         "old_land_type":["Arable"],
                          "items":"Vegetal Products",
-                         "peat_map_key":"peatland",
-                         "mask_val":1})
+                         })
     
     food_system.add_node(peatland_restoration,
-                        {"restore_fraction":st.session_state.upland_peatland/100,
-                         "land_type":["Improved grassland", "Semi-natural grassland"],
+                        {"restore_fraction":0.0273*st.session_state.upland_peatland/100,
+                         "new_land_type":"Restored upland peat",
+                         "old_land_type":["Improved grassland", "Semi-natural grassland"],
                          "items":"Animal Products",
-                         "peat_map_key":"peatland",
-                         "mask_val":1})
+                         })
 
     food_system.add_node(managed_agricultural_land_carbon_model,
                         {"fraction":st.session_state.soil_carbon/100})
@@ -134,35 +131,35 @@ def pipeline_setup(food_system):
 
     food_system.add_node(scale_impact,
                             {"items":[2731, 2732],
-                            "scale_factor":1 - st.session_state.methane_ghg_factor*st.session_state.methane_inhibitor/100})
+                            "scale_factor":st.session_state.methane_ghg_factor*st.session_state.methane_inhibitor/100})
 
-    food_system.add_node(scale_production,
-                            {"scale_factor":1-st.session_state.methane_prod_factor*st.session_state.methane_inhibitor/100,
-                            "items":[2731, 2732]})
+    # food_system.add_node(scale_production,
+    #                         {"scale_factor":1-st.session_state.methane_prod_factor*st.session_state.methane_inhibitor/100,
+    #                         "items":[2731, 2732]})
+
+    food_system.add_node(scale_impact,
+                            {"items":[2731, 2732, 2733, 2735, 2948, 2740, 2743],
+                            "scale_factor":st.session_state.manure_ghg_factor*st.session_state.manure_management/100})
+
+    # food_system.add_node(scale_production,
+    #                         {"scale_factor":1-st.session_state.manure_prod_factor*st.session_state.manure_management/100,
+    #                         "items":[2731, 2732, 2733, 2735, 2948, 2740, 2743]})
 
     food_system.add_node(scale_impact,
                             {"items":[2731, 2732],
-                            "scale_factor":1 - st.session_state.manure_ghg_factor*st.session_state.manure_management/100})
+                            "scale_factor":st.session_state.breeding_ghg_factor*st.session_state.animal_breeding/100})
 
-    food_system.add_node(scale_production,
-                            {"scale_factor":1-st.session_state.manure_prod_factor*st.session_state.manure_management/100,
-                            "items":[2731, 2732]})
-
-    food_system.add_node(scale_impact,
-                            {"items":[2731, 2732],
-                            "scale_factor":1 - st.session_state.breeding_ghg_factor*st.session_state.animal_breeding/100})
-
-    food_system.add_node(scale_production,
-                            {"scale_factor":1-st.session_state.breeding_prod_factor*st.session_state.animal_breeding/100,
-                            "items":[2731, 2732]})
+    # food_system.add_node(scale_production,
+    #                         {"scale_factor":1-st.session_state.breeding_prod_factor*st.session_state.animal_breeding/100,
+    #                         "items":[2731, 2732]})
     
     food_system.add_node(scale_impact,
-                            {"items":[2731, 2732],
-                            "scale_factor":1 - st.session_state.fossil_livestock_ghg_factor*st.session_state.fossil_livestock/100})
+                            {"items":("Item_origin","Animal Products"),
+                            "scale_factor":st.session_state.fossil_livestock_ghg_factor*st.session_state.fossil_livestock/100})
 
-    food_system.add_node(scale_production,
-                            {"scale_factor":1 - st.session_state.fossil_livestock_prod_factor*st.session_state.fossil_livestock/100,
-                            "items":[2731, 2732]})
+    # food_system.add_node(scale_production,
+    #                         {"scale_factor":1 - st.session_state.fossil_livestock_prod_factor*st.session_state.fossil_livestock/100,
+    #                         "items":("Item_origin","Animal Products")})
 
     # Arable farming practices
     food_system.add_node(agroecology_model,
@@ -180,12 +177,12 @@ def pipeline_setup(food_system):
                           "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100})
 
     food_system.add_node(scale_impact,
-                            {"item_origin":"Vegetal Products",
-                            "scale_factor":1 - st.session_state.fossil_arable_ghg_factor*st.session_state.fossil_arable/100})
+                            {"items":("Item_origin","Vegetal Products"),
+                            "scale_factor":st.session_state.fossil_arable_ghg_factor*st.session_state.fossil_arable/100})
 
     food_system.add_node(scale_production,
                             {"scale_factor":1 - st.session_state.fossil_arable_prod_factor*st.session_state.fossil_arable/100,
-                            "item_origin":"Vegetal Products"})
+                            "items":("Item_origin", "Vegetal Products")})
 
     # Technology & Innovation    
     food_system.add_node(ccs_model,
@@ -198,13 +195,15 @@ def pipeline_setup(food_system):
     food_system.add_node(forest_sequestration_model,
                             {"land_type":["Broadleaf woodland",
                                           "Coniferous woodland",
-                                          "Peatland",
+                                          "Restored upland peat",
+                                          "Restored lowland peat",
                                           "Managed arable",
                                           "Managed pasture",
                                           "Mixed farming",
                                           ],
                             "seq":[st.session_state.bdleaf_seq_ha_yr,
                                    st.session_state.conif_seq_ha_yr,
+                                   st.session_state.peatland_seq_ha_yr,
                                    st.session_state.peatland_seq_ha_yr,
                                    st.session_state.managed_arable_seq_ha_yr,
                                    st.session_state.managed_pasture_seq_ha_yr,

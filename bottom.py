@@ -84,7 +84,6 @@ def bottom_panel(datablock, metric_yr):
             total_emissions = emissions.sum(dim="Item").values/1e6
             total_seq = seq_da.sel(Item=["Broadleaf woodland",
                                         "Coniferous woodland",
-                                        "Peatland",
                                         "Managed pasture",
                                         "Managed arable",
                                         "Mixed farming",
@@ -99,6 +98,8 @@ def bottom_panel(datablock, metric_yr):
             emissions_balance.loc[{"Sector": "Agriculture"}] = total_emissions
             emissions_balance.loc[{"Sector": "LU sinks"}] = -total_seq
             emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
+
+            emissions_balance.loc[{"Sector": "LU sources"}] -= seq_da.sel(Item=["Restored upland peat", "Restored lowland peat"]).sum(dim="Item").values/1e6
 
             c = plot_single_bar_altair(emissions_balance, show="Sector",
                 axis_title="Sectoral emissions and removals", unit="Mt CO2e / year", vertical=False,

@@ -111,7 +111,8 @@ land_color_dict = {
     'BECCS' : "red",
     'Silvopasture' : "lightgreen",
     'Agroforestry' : "lightblue",
-    'Peatland' : "darkred",
+    'Restored upland peat' : "darkred",
+    'Restored lowland peat' : "darkred",
 }
 
 land_label_dict = {
@@ -132,7 +133,8 @@ land_label_dict = {
     'BECCS' : "BECCS",
     'Silvopasture' : "Silvopasture",
     'Agroforestry' : "Agroforestry",
-    'Peatland' : "Peatland",
+    'Restored lowland peat' : "Restored peatland",
+    'Restored upland peat' : "Restored peatland",
 }
 
 sector_emissions_dict = {
@@ -140,7 +142,7 @@ sector_emissions_dict = {
     "Waste":7.83,
     "Shipping":0.89,
     "Aviation":23.38,
-    "LU sources":19.79,
+    "LU sources":29.81,
     "Agriculture":0,
     "Fuel supply":0.43,
     "Electricity":1.2,
