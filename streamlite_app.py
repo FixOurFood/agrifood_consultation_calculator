@@ -29,6 +29,9 @@ if "ssr_metric" not in st.session_state:
 if "plot_key" not in st.session_state:
     st.session_state["plot_key"] = "Summary"
 
+if "check_ID" not in st.session_state:
+    st.session_state["check_ID"] = False
+
 # ------------------------
 # Help and tooltip strings
 # ------------------------
