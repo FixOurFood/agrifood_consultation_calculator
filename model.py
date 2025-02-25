@@ -32,9 +32,9 @@ def project_future(datablock, yield_change=None):
                pop.sel(Region=826, Year=2020)
     
     yield_change_options = {
-        "-20%": -0.2,
+        "20% decrease": -0.2,
         "Constant": 0,
-        "+20%": 0.2
+        "20% increase": 0.2
     }
 
     # Per capita per day values remain constant

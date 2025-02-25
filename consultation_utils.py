@@ -24,6 +24,11 @@ enrolments_worksheet = sh.worksheet("Form responses 2")
 stage_I_deadline = 'December 31, 2024'
 
 keys=[
+
+    "pop_proj",
+    "yield_proj",
+    "elasticity",
+
     "ruminant",
     "dairy",
     "pig_poultry_eggs",
@@ -98,6 +103,11 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
     else:
         row = [user_id,
                name,
+
+            st.session_state["pop_proj"],
+            st.session_state["yield_proj"],
+            st.session_state["elasticity"],
+
             st.session_state["ruminant"],
             st.session_state["dairy"],
             st.session_state["pig_poultry_eggs"],
@@ -145,7 +155,9 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
             row.extend(values_formatted)
 
         stage_I_worksheet.append_row(row)
-        st.success(f'Scenario submitted for user {user_id}', icon="✅")
+        st.success(f'Succesfully submitted scenario {name}', icon="✅")
+        st.write("""If you want to modify your submission, please use the same
+                 scenario name as before.""")
 
 @st.cache_data(ttl=60*60*24)
 def get_pathways():
@@ -164,8 +176,12 @@ def get_pathway_data(pathway_name):
     pathway_values = pathways_worksheet.row_values(idx + 1)
     pathway_values = pathway_values[1:]
 
+    # Convert string values to numbers, replacing empty strings with 0
+    pathway_values = [str(x) if any(c.isalpha() for c in str(x)) else float(x) if x != "" else 0 for x in pathway_values]
+    
+
     # Convert string values to numbers, replacing "no value" with 0
-    pathway_values = [float(x) if x != "Float" and x != "" else 0 for x in pathway_values]
+    # pathway_values = [float(x) if x != "Float" and x != "" else 0 for x in pathway_values]
     
     return pathway_values
 

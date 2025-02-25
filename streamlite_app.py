@@ -9,7 +9,7 @@ from datablock_setup import datablock_setup
 from pipeline_setup import pipeline_setup
 
 from glossary import *
-from consultation_utils import get_pathways, call_scenarios
+from consultation_utils import get_pathways, call_scenarios, submit_scenario
 
 if "cereal_scaling" not in st.session_state:
     st.session_state["cereal_scaling"] = True
@@ -237,19 +237,51 @@ with st.sidebar:
                   kwargs={"keys": [technology_slider_keys, "innovation_bar"]})
         
     with st.expander("**📈 Scenario settings**"):
+
+        help_pop_projection = """
+The population projection describes the expected  
+population growth rate until 2050.  
+The options presented here correspond to the UN's  
+population prospects models, which are modelled  
+asumming various rates of fertility, mortality,  
+and migration.
+
+For further details, [see the World Population Prospects 2024 report](https://population.un.org/wpp/assets/Files/WPP2024_Methodology.pdf).
+"""
+
+        help_yield_proj = """
+The crop yield change projection describes  
+the expected change in crop yields until 2050.  
+The values presented here describe a linear change  
+in yield over the 2025-2050 period, which can be  
+caused by a variety of factors, including climate,  
+technological improvements, and changes in  
+agricultural practices.
+        """
+
+        help_elasticity = """
+The trade model projection describes how the changes  
+in domestic use of agricultural products are supplied  
+from production and imports, with changes being fully  
+supplied from imports, from production, or from a  
+combination of both.
+        """
+
         # Defines the population projection model to use from the UN dataset
         pop_projection = st.segmented_control("Population projection",
                                               ["Low", "Medium", "High", "Zero migration"],
                                               default="Medium",
                                               selection_mode="single",
-                                              key="pop_proj")
+                                              key="pop_proj",
+                                              help=help_pop_projection)
         
         # Defines the crop yield change projection 
         yield_proj = st.segmented_control("Crop yield change projection",
-                                              ["-20%", "Constant", "+20%"],
+                                              ["20% increase", "Constant", "20% decrease"],
                                               default="Constant",
                                               selection_mode="single",
-                                              key="yield_proj")
+                                              key="yield_proj",
+                                              help=help_yield_proj)
         
         def format_elasticity(x):
             if x == 0:
@@ -265,8 +297,36 @@ with st.sidebar:
                                               default=0.5,
                                               format_func=format_elasticity,
                                               selection_mode="single",
-                                              key="elasticity")
+                                              key="elasticity",
+                                              help=help_elasticity)
         
+
+# ----------------------------------------
+#                  Main
+# ----------------------------------------
+
+food_system = Pipeline(datablock_setup(pop_projection))
+food_system = pipeline_setup(food_system)
+food_system.run()
+datablock_result = food_system.datablock
+
+with st.sidebar:
+    with st.expander("**:arrow_right: Submit slider positions**"):
+        st.markdown("""<div style="text-align: justify;">
+            Once you have used the sliders to select your preferred levels of
+            intervention, enter your email address in the field below and click
+            the "Submit pathway" button. You can change your responses as many
+            times as you want before the expert submission deadline on 26th
+            March 2025.</div>""", unsafe_allow_html=True)
+        
+        submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden")
+        
+        allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
+        st.caption("""By clicking ‘Submit’ you are agreeing to our Data Protection Policy [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
+        submit_state = st.button("Submit")
+        if submit_state:
+            submit_scenario(" ", ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name)
+
     st.button("Reset all sliders", on_click=reset_sliders, key='reset_all')
     
     st.caption('''--- Developed with funding from [FixOurFood](https://fixourfood.org/).''')
@@ -279,15 +339,6 @@ with st.sidebar:
     
     if st.button("Help"):
         first_run_dialog()
-
-# ----------------------------------------
-#                  Main
-# ----------------------------------------
-
-food_system = Pipeline(datablock_setup(pop_projection))
-food_system = pipeline_setup(food_system)
-food_system.run()
-datablock_result = food_system.datablock
 
 # -------------------
 # Execute plots block
