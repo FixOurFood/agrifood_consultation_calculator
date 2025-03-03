@@ -23,8 +23,8 @@ def plots(datablock):
 
     plt.rcParams['axes.facecolor'] = background_color
 
-    reference_emissions_baseline = 104.40
-    reference_emissions_baseline_agriculture = 52.08
+    reference_emissions_baseline = 94.24
+    reference_emissions_baseline_agriculture = 53.69
 
     # ----------------------------------------    
     #                  Plots

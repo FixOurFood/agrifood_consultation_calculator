@@ -8,6 +8,17 @@ from agrifoodpy.pipeline import Pipeline
 
 @st.cache_data(ttl=60*60*24)
 def datablock_setup(population_projection="Medium"):
+
+    """
+    This function sets up the datablock for the Agrifood Calculator.
+
+    It loads the data from the agrifoodpy_data package and returns a datablock
+    type dictionary with all the necessary data. This function is cached to
+    improve performance and avoid re-running the function if the data has not
+    changed. It takes a single argument, population_projection, which is a
+    string that specifies the population projection to use.
+    """
+
     from agrifoodpy_data.food import FAOSTAT, Nutrients_FAOSTAT
     from agrifoodpy_data.impact import PN18_FAOSTAT, UKNDC_FAOSTAT
     from agrifoodpy_data.population import UN

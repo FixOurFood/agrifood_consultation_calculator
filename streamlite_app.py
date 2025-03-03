@@ -3,6 +3,8 @@ import pandas as pd
 
 from utils.altair_plots import *
 from utils.helper_functions import *
+from utils.custom_widgets import text_plus_slider, text_plus_segment
+from utils.help_dialogs import *
 
 from agrifoodpy.pipeline import Pipeline
 from datablock_setup import datablock_setup
@@ -85,39 +87,26 @@ with st.sidebar:
 
         consumer_slider_keys = ["ruminant", "dairy", "pig_poultry_eggs", "fruit_veg", "cereals", "waste", "meat_alternatives", "dairy_alternatives"]
 
-        ruminant = st.slider('Reduce ruminant meat consumption',
-                        min_value=-100, max_value=100, step=1, value=0,
-                        key="ruminant", help=help_str(help, "sidebar_consumer", 1, "pjtbcox0lw1k"))
+        text_plus_slider("Reduce ruminant meat consumption",
+                         key="ruminant", help_dialog=ruminant_help)
         
-        dairy = st.slider('Reduce dairy consumption',
-                        min_value=-100, max_value=100, step=1, value=0,
-                        key="dairy", help=help_str(help, "sidebar_consumer", 2, "z0gjphyzstcl"))
+        text_plus_slider("Reduce dairy consumption",
+                         key="dairy", help_dialog=dairy_help)
         
-        pig_poultry_eggs = st.slider('Reduce pig, poultry and eggs consumption',
-                        min_value=-100, max_value=100, step=1, value=0,
-                        key="pig_poultry_eggs", help=help_str(help, "sidebar_consumer", 3, "6u16n1fg1w03"))
+        text_plus_slider("Reduce pig, poultry and eggs consumption",
+                         key="pig_poultry_eggs", help_dialog=pig_pultry_eggs_help)
         
-        fruit_veg = st.slider('Increase fruit and vegetable consumption',
-                        min_value=-100, max_value=100, step=1, value=0,
-                        key="fruit_veg", help=help_str(help, "sidebar_consumer", 4, "okbabgaqb068"))
+        text_plus_slider("Increase fruit and vegetable consumption",
+                         key="fruit_veg", help_dialog=fruits_veg_help)
         
-        if not st.session_state["cereal_scaling"]:
-            cereals = st.slider('Increase cereal consumption',
-                            min_value=-100, max_value=100, step=1, value=0,
-                            key="cereals", help=help_str(help, "sidebar_consumer", 5, "p0a3p6fkxlzn"),
-                            disabled=st.session_state["cereal_scaling"])
-
-        meat_alternatives = st.slider('Increase meat alternatives uptake',
-                        min_value=-100, max_value=100, step=1, value=0,
-                        key="meat_alternatives", help=help_str(help, "sidebar_consumer", 7, "ty2fxim28j6p"))     
+        text_plus_slider("Increase meat alternatives consumption", min_value=0,
+                         key="meat_alternatives", help_dialog=alternative_products_help)
         
-        dairy_alternatives = st.slider('Increase dairy alternatives uptake',
-                        min_value=-100, max_value=100, step=1, value=0,
-                        key="dairy_alternatives", help=help_str(help, "sidebar_consumer", 8, "ty2fxim28j6p"))
+        text_plus_slider("Increase dairy alternatives consumption", min_value=0,
+                         key="dairy_alternatives", help_dialog=alternative_products_help)
         
-        waste = st.slider('Food waste and over-eating reduction',
-                        min_value=-100, max_value=100, step=1, value=0,
-                        key="waste", help=help_str(help, "sidebar_consumer", 6, "jjk6fgg4t69m"))  
+        text_plus_slider("Reduce food waste and overeating", min_value=0,
+                         key="waste", help_dialog=waste_help)
 
         st.button("Reset", on_click=reset_sliders, key='reset_consumer',
                   kwargs={"keys": [consumer_slider_keys, "consumer_bar"]})
@@ -128,34 +117,26 @@ with st.sidebar:
 
         land_slider_keys = ["foresting_pasture", "land_BECCS", "lowland_peatland", "upland_peatland", "soil_carbon", "mixed_farming", "bdleaf_conif_ratio"]
 
-        foresting_pasture = st.slider('Additional forested UK land area percentage',
-                        min_value=-25, max_value=25, step=1, value=0,
-                        key="foresting_pasture", help=help_str(help, "sidebar_land", 0, "oqoktlcczgw8"))
+        text_plus_slider("Additional forested UK land area percentage", min_value=-25, max_value=25,
+                         key="foresting_pasture", help_dialog=afforestation_help)
         
-        bdleaf_conif_ratio = st.slider('Percentage of new forested land that is broadleaf',
-                                       min_value=0, max_value=100, step=1,
-                                       value=75,
-                                       key="bdleaf_conif_ratio")
+        text_plus_slider("Percentage of new forested land that is broadleaf", min_value=0, max_value=100,
+                         key="bdleaf_conif_ratio")
 
-        land_BECCS = st.slider('Percentage of farmland used for BECCS crops',
-                        min_value=0, max_value=20, step=1,
-                        key="land_BECCS", help=help_str(help, "sidebar_land", 1, "hjx1wpsuoy8u"))
-
-        lowland_peatland = st.slider('Percentage of lowland peatland restored',
-                             min_value=0, max_value=100, step=1,
-                             key="lowland_peatland", help=help_str(help, "sidebar_land", 2, "eln33eildo1k"))
+        text_plus_slider("Percentage of farmland used for BECCS crops", min_value=0, max_value=20,
+                         key="land_BECCS", help_dialog=beccs_help)
         
-        upland_peatland = st.slider('Percentage of upland peatland restored',
-                             min_value=0, max_value=100, step=1,
-                             key="upland_peatland", help=help_str(help, "sidebar_land", 2, "rgtch9lm7i39"))
-
-        soil_carbon = st.slider('Percentage of land managed for soil carbon management',
-                                 min_value=0, max_value=100, step=1,
-                                 key="soil_carbon", help=help_str(help, "sidebar_land", 3, "3a92auci0xj5"))
+        text_plus_slider("Percentage of lowland peatland restored", min_value=0, max_value=100,
+                         key="lowland_peatland", help_dialog=peatland_restoration_help)
         
-        mixed_farming = st.slider('Percentage of arable land converted to mixed farming',
-                                  min_value=0, max_value=100, step=1,
-                                  key="mixed_farming", help=help_str(help, "sidebar_land", 4, "7su0nj7wz5ct"))
+        text_plus_slider("Percentage of upland peatland restored", min_value=0, max_value=100,
+                         key="upland_peatland", help_dialog=peatland_restoration_help)
+        
+        text_plus_slider("Percentage of land managed for soil carbon management", min_value=0, max_value=100,
+                         key="soil_carbon", help_dialog=soil_management_help)
+        
+        text_plus_slider("Percentage of arable land converted to mixed farming", min_value=0, max_value=100,
+                         key="mixed_farming", help_dialog=mixed_farming_help)
 
         st.button("Reset", on_click=reset_sliders, key='reset_land',
                   kwargs={"keys":[land_slider_keys, "land_bar"]})
@@ -170,26 +151,20 @@ with st.sidebar:
                                  "animal_breeding",
                                  "fossil_livestock"]
         
-        silvopasture = st.slider('Pasture land % converted to silvopasture',
-                        min_value=0, max_value=100, step=1,
-                        key='silvopasture', help=help_str(help, "sidebar_livestock", 0, "8r8po4kj9qqw"))        
+        text_plus_slider('Pasture land % converted to silvopasture', min_value=0,
+                         key="silvopasture", help_dialog=silvopasture_help)
         
-        methane_inhibitor = st.slider('Methane inhibitor use in livestock feed',
-                        min_value=0, max_value=100, step=1,
-                        key='methane_inhibitor', help=help_str(help, "sidebar_livestock", 1, "tbok5jqrlrxb"))
+        text_plus_slider('Methane inhibitor use in livestock feed', min_value=0,
+                         key="methane_inhibitor", help_dialog=methane_inhibitor_help)
         
-        manure_management = st.slider('Manure management in livestock farming',
-                        min_value=0, max_value=100, step=1,
-                        key='manure_management', help=help_str(help, "sidebar_livestock", 2, "aqz9utt7u1x"))
+        text_plus_slider('Manure management in livestock farming', min_value=0,
+                         key="manure_management", help_dialog=manure_management_help)
         
-        animal_breeding = st.slider('Livestock breeding',
-                        min_value=0, max_value=100, step=1,
-                        key='animal_breeding', help=help_str(help, "sidebar_livestock", 3, "u9p65u7y1vdc"))
+        text_plus_slider('Animal breeding practices', min_value=0,
+                         key="animal_breeding", help_dialog=breeding_help)
         
-        fossil_livestock = st.slider('Fossil fuel use for heating, machinery',
-                        min_value=0, max_value=100, step=1,
-                        key='fossil_livestock', help=help_str(help, "sidebar_livestock", 4, "qtazr4y5dfwi"))
-        
+        text_plus_slider('Fossil fuel use in livestock farming', min_value=0,
+                         key="fossil_livestock", help_dialog=fossil_livestock_help)
 
         st.button("Reset", on_click=reset_sliders, key='reset_livestock',
             kwargs={"keys": [livestock_slider_keys, "livestock_bar"]})
@@ -200,18 +175,15 @@ with st.sidebar:
 
         arable_slider_keys = ["agroforestry", "fossil_arable", "vertical_farming"]
         
-        agroforestry = st.slider('Arable land % converted to agroforestry',
-                        min_value=0, max_value=100, step=1,
-                        key='agroforestry', help=help_str(help,"sidebar_land",4, "90swrlvdy6f8"))
-
-        fossil_arable = st.slider('Fossil fuel use for machinery',
-                        min_value=0, max_value=100, step=1,
-                        key='fossil_arable', help=help_str(help,"sidebar_arable",1,"6j2golzh19zq"))
+        text_plus_slider('Arable land % converted to agroforestry', min_value=0,
+                         key="agroforestry", help_dialog=agroforestry_help)
         
-        vertical_farming = st.slider('Vertical and urban farming',
-                        min_value=0, max_value=100, step=1,
-                        key='vertical_farming', help=help_str(help,"sidebar_arable",2,"2w3tq0fbry5i"))
-                        
+        text_plus_slider('Fossil fuel use for machinery in arable farms', min_value=0,
+                         key="fossil_arable", help_dialog=fossil_arable_help)
+        
+        text_plus_slider('Vertical and urban farming', min_value=0,
+                         key="vertical_farming", help_dialog=urban_help)
+        
         st.button("Reset", on_click=reset_sliders, key='reset_arable',
             kwargs={"keys": [arable_slider_keys, "arable_bar"]})        
 
@@ -221,68 +193,33 @@ with st.sidebar:
         
         technology_slider_keys = ["waste_BECCS", "overseas_BECCS", "DACCS"]
 
-        waste_BECCS = st.slider('BECCS sequestration from waste \n [Mt CO2e / yr]',
-                        min_value=0, max_value=100, step=1,
-                        key='waste_BECCS', help=help["sidebar_innovation"][0])
+        text_plus_slider('BECCS sequestration from waste', min_value=0,
+                         key="waste_BECCS", help_dialog=beccs_waste_help)
 
-        overseas_BECCS = st.slider('BECCS sequestration from overseas biomass \n [Mt CO2e / yr]',
-                        min_value=0, max_value=100, step=1,
-                        key='overseas_BECCS', help=help["sidebar_innovation"][1])
-
-        DACCS = st.slider('DACCS sequestration \n [Mt CO2e / yr]',
-                        min_value=0, max_value=20, step=1,
-                        key='DACCS', help=help["sidebar_innovation"][3])
+        text_plus_slider('BECCS sequestration from overseas biomass', min_value=0,
+                         key="overseas_BECCS", help_dialog=beccs_overseas_help)
+        
+        text_plus_slider('DACCS sequestration', min_value=0, max_value=20, 
+                         key="DACCS", help_dialog=daccs_help)
 
         st.button("Reset", on_click=reset_sliders, key='reset_technology',
                   kwargs={"keys": [technology_slider_keys, "innovation_bar"]})
         
     with st.expander("**📈 Scenario settings**"):
 
-        help_pop_projection = """
-The population projection describes the expected  
-population growth rate until 2050.  
-The options presented here correspond to the UN's  
-population prospects models, which are modelled  
-asumming various rates of fertility, mortality,  
-and migration.
-
-For further details, [see the World Population Prospects 2024 report](https://population.un.org/wpp/assets/Files/WPP2024_Methodology.pdf).
-"""
-
-        help_yield_proj = """
-The crop yield change projection describes  
-the expected change in crop yields until 2050.  
-The values presented here describe a linear change  
-in yield over the 2025-2050 period, which can be  
-caused by a variety of factors, including climate,  
-technological improvements, and changes in  
-agricultural practices.
-        """
-
-        help_elasticity = """
-The trade model projection describes how the changes  
-in domestic use of agricultural products are supplied  
-from production and imports, with changes being fully  
-supplied from imports, from production, or from a  
-combination of both.
-        """
-
-        # Defines the population projection model to use from the UN dataset
-        pop_projection = st.segmented_control("Population projection",
-                                              ["Low", "Medium", "High", "Zero migration"],
-                                              default="Medium",
-                                              selection_mode="single",
-                                              key="pop_proj",
-                                              help=help_pop_projection)
+        pop_projection = text_plus_segment("Population projection",
+                                           ["Low", "Medium", "High", "Zero migration"],
+                                           default="Medium",
+                                           key="pop_proj",
+                                           help_dialog=population_help)
         
-        # Defines the crop yield change projection 
-        yield_proj = st.segmented_control("Crop yield change projection",
-                                              ["20% increase", "Constant", "20% decrease"],
-                                              default="Constant",
-                                              selection_mode="single",
-                                              key="yield_proj",
-                                              help=help_yield_proj)
+        text_plus_segment("Yield projection",
+                            ["20% increase", "Constant", "20% decrease"],
+                            default="Constant",
+                            key="yield_proj",
+                            help_dialog=crop_yields_help)
         
+
         def format_elasticity(x):
             if x == 0:
                 return "Imports"
@@ -290,16 +227,13 @@ combination of both.
                 return "Mixed"
             elif x == 1:
                 return "Production"
-            
-        # Defines the elasticity value for the trade model
-        elasticity = st.segmented_control("International trade projection",
-                                              [0, 0.5, 1],
-                                              default=0.5,
-                                              format_func=format_elasticity,
-                                              selection_mode="single",
-                                              key="elasticity",
-                                              help=help_elasticity)
-        
+
+        text_plus_segment("International trade projection",
+                            [0, 0.5, 1],
+                            default=0.5,
+                            format_func=format_elasticity,
+                            key="elasticity",
+                            help_dialog=trade_help)
 
 # ----------------------------------------
 #                  Main

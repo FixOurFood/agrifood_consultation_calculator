@@ -137,20 +137,22 @@ land_label_dict = {
     'Restored upland peat' : "Restored peatland",
 }
 
+# These are the sectoral emissions predicted by the CCC under its "Balanced
+# Pathway" scenario. From the 6th carbon budget report (2020).
 sector_emissions_dict = {
-    "F-gases":2.48,
-    "Waste":7.83,
-    "Shipping":0.89,
-    "Aviation":23.38,
-    "LU sources":29.81,
-    "Agriculture":0,
-    "Fuel supply":0.43,
-    "Electricity":1.2,
-    "Manufacturing":2.81,
-    "Buildings":1.1,
-    "Transport":0.87,
-    "LU sinks":0,
-    "Removals":0,
+    "F-gases":1.60,
+    "Waste":5.11,
+    "Shipping":0.51,
+    "Aviation":22.67,
+    "LU sources":20.82, # Sum of 2025 land use sources
+    "Agriculture":0, # Set to be calculated by the model
+    "Fuel supply":1.57, 
+    "Electricity":1.00,
+    "Manufacturing":3.57,
+    "Buildings":1.11, # Sum of residential and non-residential
+    "Transport":1.07,
+    "LU sinks":0, # Set to be calculated by the model
+    "Removals":0, # Set to be calculated by the model
 }
 
 sector_emissions_colors = {
