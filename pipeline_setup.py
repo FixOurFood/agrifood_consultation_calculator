@@ -137,6 +137,10 @@ def pipeline_setup(food_system):
                             "tree_coverage":st.session_state.agroecology_tree_coverage,
                             "replaced_items":[2731, 2732],
                             "seq_ha_yr":st.session_state.agroecology_tree_coverage*st.session_state.bdleaf_seq_ha_yr})
+    
+    food_system.add_node(scale_impact,
+                         {"items":("Item_origin","Vegetal Products"),
+                          "scale_factor":st.session_state.nitrogen_ghg_factor*st.session_state.nitrogen/100})
 
     food_system.add_node(scale_impact,
                             {"items":[2731, 2732],
