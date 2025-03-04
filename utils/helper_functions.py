@@ -191,3 +191,14 @@ def format_elasticity(x):
         return "Mixed"
     elif x == 1:
         return "Production"
+
+def format_yield_proj(x):
+    """Formats the yield projection values to a string """
+    if x == -0.27:
+        return "Climate sensitivity"
+    elif x == 0.0:
+        return "Baseline"
+    elif x == 0.34:
+        return "Medium"
+    elif x == 0.58:
+        return "High"

@@ -176,7 +176,7 @@ def daccs_help():
 #                                Projection baseline
 # ------------------------------------------------------------------------------
 
-@st.dialog("BECCS sequestration from waste", width="small")
+@st.dialog("Population projection", width="small")
 def population_help():
     st.markdown("""
                 The population projection describes the expected population
@@ -187,19 +187,30 @@ def population_help():
                 For further details, [see the World Population Prospects 2024 report](https://population.un.org/wpp/assets/Files/WPP2024_Methodology.pdf).
                 """)
 
-@st.dialog("BECCS sequestration from overseas biomass", width="small")
+@st.dialog("Crop yields", width="small")
 def crop_yields_help():
     st.markdown("""
-                The crop yield change projection describes  
-                the expected change in crop yields until 2050.  
-                The values presented here describe a linear change  
-                in yield over the 2025-2050 period, which can be  
-                caused by a variety of factors, including climate,  
-                technological improvements, and changes in  
-                agricultural practices.
+                The crop yield projection describes the expected change in crop
+                yields until 2050. The values presented here describe a linear change  
+                in yield over the 2025-2050 period, which can be caused by a
+                variety of factors, including climate, technological improvements,
+                and changes in agricultural practices.
+
+                4 scenarios are available, which match the crop yield assumptions from
+                the 6th Carbon Budget:
+                - **Baseline**: The baseline scenario assumes no change in crop yields,
+                staying constant at around 8.2 of wheat tonnes per hectare.
+                - **Climate sensitivity**: Climate risks dominate future yield,
+                resulting in a reduction of 27% in crop yields.
+                - **Medium**: Assumes a 34% increase in crop yields, to 11 tonnes per hectare.
+                Primarily driven by the increased CO2 fertilization effect, longer growing seasons,
+                and improved agricultural practices.
+                - **High**: Assumes a 58% increase in crop yields, to 13 tonnes of wheat per hectare.
+                Driven  by the increased CO2 fertilization effect, longer growing seasons,
+                and improved agricultural practices, as well as reduced risks from climate change.
                 """)
 
-@st.dialog("DACCS sequestration", width="small")
+@st.dialog("Trade elasticity", width="small")
 def trade_help():
     st.markdown("""
                 The trade model projection describes how the changes  

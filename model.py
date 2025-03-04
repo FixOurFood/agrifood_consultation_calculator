@@ -31,12 +31,6 @@ def project_future(datablock, yield_change=None):
     scale = pop.sel(Region=826, Year=np.arange(2021, 2051)) / \
                pop.sel(Region=826, Year=2020)
     
-    yield_change_options = {
-        "20% decrease": -0.2,
-        "Constant": 0,
-        "20% increase": 0.2
-    }
-
     # Per capita per day values remain constant
     g_cap_day = datablock["food"]["g/cap/day"]
     g_prot_cap_day = datablock["food"]["g_prot/cap/day"]
@@ -58,7 +52,7 @@ def project_future(datablock, yield_change=None):
         # Apply 1% decline per year after 2020
         decline_mask = scale_tot.Year >= 2020
         decline_years = scale_tot.Year.where(decline_mask, drop=False) - 2020
-        scale_tot = scale_tot.where(~decline_mask, scale_tot / (1+decline_years/29*yield_change_options[yield_change]))
+        scale_tot = scale_tot.where(~decline_mask, scale_tot / (1+decline_years/29*yield_change))
 
     g_cap_day = g_cap_day.fbs.scale_add(element_in="production", element_out="imports", scale=1/scale_tot, add=False)
     g_prot_cap_day = g_prot_cap_day.fbs.scale_add(element_in="production", element_out="imports", scale=1/scale_tot, add=False)

@@ -247,8 +247,9 @@ with st.sidebar:
                                            help_dialog=population_help)
         
         text_plus_segment("Yield projection",
-                            ["20% increase", "Constant", "20% decrease"],
-                            default="Constant",
+                            [-0.27, 0.0, 0.34, 0.58],
+                            default=0.0,
+                            format_func=format_yield_proj,
                             key="yield_proj",
                             help_dialog=crop_yields_help)
         
