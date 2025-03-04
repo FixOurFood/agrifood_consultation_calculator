@@ -1088,6 +1088,8 @@ def scale_kcal_feed(obs, ref, items):
     return out
 
 def production_land_scale(land, obs, ref, bdleaf_conif_ratio):
+    """Scales land based on the relative production change of livestock and
+    arable crops"""
 
     # Obtain reference and observed production values
     ref_livest = ref["production"].sel(Year=2050, Item=ref.Item_origin=="Animal Products").sum(dim="Item")
