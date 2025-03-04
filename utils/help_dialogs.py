@@ -52,6 +52,18 @@ def fruits_veg_help():
         with 100% meaning that each person is eating double the amount of fruit and
         vegetables.""")
     
+@st.dialog("Increase fruit and vegetable consumption", width="small")
+def pulses_help():
+    st.markdown("""
+        Pulses can be a good replacement for animal proteins, while having a
+        smaller land and GHG footprint. \n
+
+        This slider lets you increase the quantities of pulses eaten per
+        person per day.  \n
+
+        A value above 0 means some increase in pulses consumption,
+        with 100% meaning that each person is eating double the amount of pulses.""")
+    
 @st.dialog("Food waste and overeating reduction", width="small")
 def waste_help():
     st.markdown("""

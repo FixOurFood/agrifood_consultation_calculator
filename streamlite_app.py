@@ -85,7 +85,7 @@ with st.sidebar:
 
     with st.expander("**:spaghetti: Consumer demand**", expanded=False):
 
-        consumer_slider_keys = ["ruminant", "dairy", "pig_poultry_eggs", "fruit_veg", "cereals", "waste", "meat_alternatives", "dairy_alternatives"]
+        consumer_slider_keys = ["ruminant", "dairy", "pig_poultry_eggs", "pulses", "fruit_veg", "cereals", "waste", "meat_alternatives", "dairy_alternatives"]
 
         text_plus_slider("Reduce ruminant meat consumption",
                          key="ruminant", help_dialog=ruminant_help)
@@ -95,6 +95,9 @@ with st.sidebar:
         
         text_plus_slider("Reduce pig, poultry and eggs consumption",
                          key="pig_poultry_eggs", help_dialog=pig_pultry_eggs_help)
+        
+        text_plus_slider("Increase pulses consumption",
+                         key="pulses", help_dialog=pulses_help)
         
         text_plus_slider("Increase fruit and vegetable consumption",
                          key="fruit_veg", help_dialog=fruits_veg_help)

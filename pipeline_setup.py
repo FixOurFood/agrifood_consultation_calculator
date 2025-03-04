@@ -48,6 +48,15 @@ def pipeline_setup(food_system):
                             "constant":st.session_state.cereal_scaling,
                             "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
 
+    food_system.add_node(item_scaling,
+                            {"scale":1+st.session_state.pulses/100,
+                            "items":("Item_group", ["Pulses"]),
+                            "source":["production", "imports"],
+                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
+                            "scaling_nutrient":st.session_state.scaling_nutrient,
+                            "constant":st.session_state.cereal_scaling,
+                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
+
     food_system.add_node(cultured_meat_model,
                             {"cultured_scale":st.session_state.meat_alternatives/100,
                             "labmeat_co2e":st.session_state.labmeat_co2e,

@@ -23,6 +23,7 @@ default_widget_values = {
     "ruminant": 0,
     "dairy": 0,
     "pig_poultry_eggs": 0,
+    "pulses": 0,
     "fruit_veg": 0,
     "cereals": 0,
     "meat_alternatives": 0,
