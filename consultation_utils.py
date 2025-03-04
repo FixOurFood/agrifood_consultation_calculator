@@ -40,13 +40,15 @@ keys=[
     "waste",
 
     "foresting_pasture",
+    "bdleaf_conif_ratio", 
     "land_BECCS",
-    "upland_peatland",
     "lowland_peatland",
+    "upland_peatland",
     "soil_carbon",
     "mixed_farming",
     
     "silvopasture",
+    "stock_density",
     "methane_inhibitor",
     "manure_management",
     "animal_breeding",
@@ -54,6 +56,7 @@ keys=[
     
     "agroforestry",
     "fossil_arable",
+    "nitrogen",
     "vertical_farming",
     
     "waste_BECCS",
@@ -120,13 +123,15 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
             st.session_state["waste"],
             
             st.session_state["foresting_pasture"],
+            st.session_state["bdleaf_conif_ratio"],
             st.session_state["land_BECCS"],
-            st.session_state["upland_peatland"],
             st.session_state["lowland_peatland"],
+            st.session_state["upland_peatland"],
             st.session_state["soil_carbon"],
             st.session_state["mixed_farming"],
 
             st.session_state["silvopasture"],
+            st.session_state["stock_density"],
             st.session_state["methane_inhibitor"],
             st.session_state["manure_management"],
             st.session_state["animal_breeding"],
@@ -134,15 +139,13 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
 
             st.session_state["agroforestry"],
             st.session_state["fossil_arable"],
+            st.session_state["nitrogen"],
             st.session_state["vertical_farming"],
 
             st.session_state["waste_BECCS"],
             st.session_state["overseas_BECCS"],
             st.session_state["DACCS"],
             
-            # '{0:.2f}'.format(SSR),
-            # '{0:.2f}'.format(total_emissions),
-
             st.session_state.elasticity,
             st.session_state.bdleaf_seq_ha_yr,
             st.session_state.conif_seq_ha_yr,

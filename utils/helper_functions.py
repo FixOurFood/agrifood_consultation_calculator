@@ -19,7 +19,6 @@ default_widget_values = {
     "scenario": "Baseline",
 
     # Consumer demand sliders and widgets
-    "consumer_bar": 0,
     "ruminant": 0,
     "dairy": 0,
     "pig_poultry_eggs": 0,
@@ -31,7 +30,6 @@ default_widget_values = {
     "waste": 0,
 
     # Land use sliders and widgets
-    "land_bar": 0,
     "foresting_pasture": 0,
     "land_BECCS": 0,
     "lowland_peatland": 0,
@@ -41,13 +39,12 @@ default_widget_values = {
     "bdleaf_conif_ratio":75,
 
     # Technology and innovation sliders and widgets
-    "innovation_bar": 0,
     "waste_BECCS": 0,
     "overseas_BECCS": 0,
     "DACCS": 0,
 
     # Livestock farming sliders and widgets
-    "livestock_bar": 0,
+    "stock_density": 0,
     "silvopasture": 0,
     "methane_inhibitor": 0,
     "manure_management": 0,
@@ -55,7 +52,7 @@ default_widget_values = {
     "fossil_livestock": 0,
 
     # Arable farming sliders and widgets
-    "arable_bar": 0,
+    "nitrogen": 0,
     "agroforestry": 0,
     "fossil_arable": 0,
     "vertical_farming": 0,
@@ -186,3 +183,11 @@ def read_slider_ranges():
         elif row["type"] == "bool":
             st.session_state[row["key"]] = row["value"] == "TRUE"
 
+def format_elasticity(x):
+    """Formats the elasticity values to a string """
+    if x == 0:
+        return "Imports"
+    elif x == 0.5:
+        return "Mixed"
+    elif x == 1:
+        return "Production"

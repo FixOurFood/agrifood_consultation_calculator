@@ -43,7 +43,6 @@ st.set_page_config(layout='wide',
                    page_title="Agrifood Calculator",
                    page_icon="images/fof_icon.png")
 
-help = read_help()
 set_advanced_settings()
 
 with open('utils/style.css') as f:
@@ -65,9 +64,11 @@ with st.sidebar:
         scenario = st.query_params["scenario"]
         call_scenarios(scenario)
     
-        st.selectbox("Scenario", get_pathways(), index=None, placeholder=scenario,
-                        help=help_str(help, "sidebar_consumer", 8),
-                        on_change=call_scenarios, key="scenario")
+        st.selectbox("Scenario",
+                     get_pathways(),
+                     index=None,
+                     placeholder=scenario,
+                     on_change=call_scenarios, key="scenario")
     
         st.query_params.clear()
         
@@ -76,16 +77,27 @@ with st.sidebar:
             values = [int(x) for x in st.query_params.values()]
             update_slider(list(st.query_params.keys()), values)
             st.query_params.clear()
-        st.selectbox("Scenario", get_pathways(), index=None, placeholder="Select a scenario",
-                        help=help_str(help, "sidebar_consumer", 8),
-                        on_change=call_scenarios, key="scenario")
+
+        st.selectbox("Scenario",
+                     get_pathways(),
+                     index=None,
+                     placeholder="Select a scenario",
+                     on_change=call_scenarios, key="scenario")
         
 
     # Consumer demand interventions
 
     with st.expander("**:spaghetti: Consumer demand**", expanded=False):
 
-        consumer_slider_keys = ["ruminant", "dairy", "pig_poultry_eggs", "pulses", "fruit_veg", "cereals", "waste", "meat_alternatives", "dairy_alternatives"]
+        consumer_slider_keys = ["ruminant",
+                                "dairy",
+                                "pig_poultry_eggs",
+                                "pulses",
+                                "fruit_veg",
+                                "cereals",
+                                "waste",
+                                "meat_alternatives",
+                                "dairy_alternatives"]
 
         text_plus_slider("Reduce ruminant meat consumption",
                          key="ruminant", help_dialog=ruminant_help)
@@ -96,10 +108,10 @@ with st.sidebar:
         text_plus_slider("Reduce pig, poultry and eggs consumption",
                          key="pig_poultry_eggs", help_dialog=pig_pultry_eggs_help)
         
-        text_plus_slider("Increase pulses consumption",
+        text_plus_slider("Increase pulses consumption", max_value=500,
                          key="pulses", help_dialog=pulses_help)
         
-        text_plus_slider("Increase fruit and vegetable consumption",
+        text_plus_slider("Increase fruit and vegetable consumption", max_value=500,
                          key="fruit_veg", help_dialog=fruits_veg_help)
         
         text_plus_slider("Increase meat alternatives consumption", min_value=0,
@@ -112,13 +124,19 @@ with st.sidebar:
                          key="waste", help_dialog=waste_help)
 
         st.button("Reset", on_click=reset_sliders, key='reset_consumer',
-                  kwargs={"keys": [consumer_slider_keys, "consumer_bar"]})
+                  kwargs={"keys": consumer_slider_keys})
 
     # Land use change
 
     with st.expander("**:earth_africa: Land use change**"):
 
-        land_slider_keys = ["foresting_pasture", "land_BECCS", "lowland_peatland", "upland_peatland", "soil_carbon", "mixed_farming", "bdleaf_conif_ratio"]
+        land_slider_keys = ["foresting_pasture",
+                            "land_BECCS",
+                            "lowland_peatland",
+                            "upland_peatland",
+                            "soil_carbon",
+                            "mixed_farming",
+                            "bdleaf_conif_ratio"]
 
         text_plus_slider("Additional forested UK land area percentage", min_value=-25, max_value=25,
                          key="foresting_pasture", help_dialog=afforestation_help)
@@ -142,13 +160,14 @@ with st.sidebar:
                          key="mixed_farming", help_dialog=mixed_farming_help)
 
         st.button("Reset", on_click=reset_sliders, key='reset_land',
-                  kwargs={"keys":[land_slider_keys, "land_bar"]})
+                  kwargs={"keys":land_slider_keys})
         
     # Livestock farming practices
 
     with st.expander("**:cow: Livestock farming practices**"):
 
         livestock_slider_keys = ["silvopasture",
+                                 "stock_density",
                                  "methane_inhibitor",
                                  "manure_management",
                                  "animal_breeding",
@@ -156,6 +175,9 @@ with st.sidebar:
         
         text_plus_slider('Pasture land % converted to silvopasture', min_value=0,
                          key="silvopasture", help_dialog=silvopasture_help)
+        
+        text_plus_slider('Reduce stocking density',
+                         key="stock_density")
         
         text_plus_slider('Methane inhibitor use in livestock feed', min_value=0,
                          key="methane_inhibitor", help_dialog=methane_inhibitor_help)
@@ -170,13 +192,16 @@ with st.sidebar:
                          key="fossil_livestock", help_dialog=fossil_livestock_help)
 
         st.button("Reset", on_click=reset_sliders, key='reset_livestock',
-            kwargs={"keys": [livestock_slider_keys, "livestock_bar"]})
+            kwargs={"keys": livestock_slider_keys})
 
     # Arable farming practices
 
     with st.expander("**:ear_of_rice: Arable farming practices**"):
 
-        arable_slider_keys = ["agroforestry", "fossil_arable", "vertical_farming"]
+        arable_slider_keys = ["agroforestry",
+                              "fossil_arable",
+                              "nitrogen",
+                              "vertical_farming"]
         
         text_plus_slider('Arable land % converted to agroforestry', min_value=0,
                          key="agroforestry", help_dialog=agroforestry_help)
@@ -184,17 +209,22 @@ with st.sidebar:
         text_plus_slider('Fossil fuel use for machinery in arable farms', min_value=0,
                          key="fossil_arable", help_dialog=fossil_arable_help)
         
+        text_plus_slider('Increase Nitrogen efficiency', min_value=0,
+                         key="nitrogen")
+        
         text_plus_slider('Vertical and urban farming', min_value=0,
                          key="vertical_farming", help_dialog=urban_help)
         
         st.button("Reset", on_click=reset_sliders, key='reset_arable',
-            kwargs={"keys": [arable_slider_keys, "arable_bar"]})        
+            kwargs={"keys": arable_slider_keys})        
 
     # Technology and innovation
 
     with st.expander("**:gear: Technology and innovation**"):
         
-        technology_slider_keys = ["waste_BECCS", "overseas_BECCS", "DACCS"]
+        technology_slider_keys = ["waste_BECCS",
+                                  "overseas_BECCS",
+                                  "DACCS"]
 
         text_plus_slider('BECCS sequestration from waste', min_value=0,
                          key="waste_BECCS", help_dialog=beccs_waste_help)
@@ -206,7 +236,7 @@ with st.sidebar:
                          key="DACCS", help_dialog=daccs_help)
 
         st.button("Reset", on_click=reset_sliders, key='reset_technology',
-                  kwargs={"keys": [technology_slider_keys, "innovation_bar"]})
+                  kwargs={"keys": technology_slider_keys})
         
     with st.expander("**📈 Scenario settings**"):
 
@@ -222,14 +252,6 @@ with st.sidebar:
                             key="yield_proj",
                             help_dialog=crop_yields_help)
         
-
-        def format_elasticity(x):
-            if x == 0:
-                return "Imports"
-            elif x == 0.5:
-                return "Mixed"
-            elif x == 1:
-                return "Production"
 
         text_plus_segment("International trade projection",
                             [0, 0.5, 1],
