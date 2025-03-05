@@ -2,6 +2,11 @@ import numpy as np
 import xarray as xr
 import streamlit as st
 import copy
+import base64
+from io import BytesIO
+import base64
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
 
 from agrifoodpy.impact.model import fbs_impacts, fair_co2_only
 from agrifoodpy.pipeline import Pipeline
@@ -23,7 +28,7 @@ def datablock_setup(population_projection="Medium"):
     from agrifoodpy_data.impact import PN18_FAOSTAT, UKNDC_FAOSTAT
     from agrifoodpy_data.population import UN
     from agrifoodpy_data.land import NaturalEngland_ALC_1000 as ALC
-    from agrifoodpy_data.land import UKCEH_LC_1000
+
     datablock = {}
     datablock["food"] = {}
     datablock["land"] = {}
@@ -167,7 +172,19 @@ def datablock_setup(population_projection="Medium"):
     # -------------------------------
 
     # Make sure the land use data and ALC data have the same coordinate base
-    LC = UKCEH_LC_1000["percentage_aggregate"]
+    # LC = UKCEH_LC_1000["percentage_aggregate"]
+
+    # Get AES key & IV from secrets
+    AES_KEY = base64.b64decode(st.secrets["AES_KEY"])
+    AES_IV = base64.b64decode(st.secrets["AES_IV"])
+    with open("dataset_encrypted.bin", "rb") as f:
+        encrypted_data = f.read()
+
+    # Decrypt the dataset
+    cipher = AES.new(AES_KEY, AES.MODE_CBC, AES_IV)
+    decrypted_data = unpad(cipher.decrypt(encrypted_data), AES.block_size)
+
+    LC = xr.open_dataarray(BytesIO(decrypted_data))
 
     ALC, LC = xr.align(ALC, LC, join="outer")
 
