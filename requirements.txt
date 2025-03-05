@@ -9,5 +9,6 @@ millify
 fair
 streamlit-extras==0.4.3
 gspread
+pycryptodome
 git+https://github.com/Jucordero/AgriFoodPy.git@pipeline
 git+https://github.com/FixOurFood/agrifoodpy-data.git@importable
