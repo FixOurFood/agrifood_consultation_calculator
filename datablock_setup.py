@@ -171,23 +171,19 @@ def datablock_setup(population_projection="Medium"):
     # Land use data
     # -------------------------------
 
-    # Make sure the land use data and ALC data have the same coordinate base
-    # LC = UKCEH_LC_1000["percentage_aggregate"]
-
     # Get AES key & IV from secrets
     AES_KEY = base64.b64decode(st.secrets["AES_KEY"])
     AES_IV = base64.b64decode(st.secrets["AES_IV"])
-    with open("dataset_encrypted.bin", "rb") as f:
+    with open("UKCEH_LC_target_percentage.bin", "rb") as f:
         encrypted_data = f.read()
 
     # Decrypt the dataset
     cipher = AES.new(AES_KEY, AES.MODE_CBC, AES_IV)
     decrypted_data = unpad(cipher.decrypt(encrypted_data), AES.block_size)
-
     LC = xr.open_dataarray(BytesIO(decrypted_data))
 
+    # Make sure the land use data and ALC data have the same coordinate base
     ALC, LC = xr.align(ALC, LC, join="outer")
-
     peatland = xr.open_dataarray("images/peatland_binary_mask.nc")
 
     # datablock["land"]["percentage_land_use"] = LC.where(np.isfinite(ALC.grade))

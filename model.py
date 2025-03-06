@@ -48,17 +48,22 @@ def project_future(datablock, yield_change=None):
     scale_past = xr.DataArray(np.ones(len(years_past)), dims=["Year"], coords={"Year": years_past})
     scale_tot = xr.concat([scale_past, scale], dim="Year")
 
+    vegetal_items = g_cap_day.sel(Item=g_cap_day.Item_origin=="Vegetal Products").Item.values
+
+    # If yield_change is not None, add a scaling factor to account for yield increase, only to vegetal items
     if yield_change is not None:
-        # Apply 1% decline per year after 2020
+        scale_tot = scale_tot.expand_dims({"Item": g_cap_day.Item.values})
         decline_mask = scale_tot.Year >= 2020
         decline_years = scale_tot.Year.where(decline_mask, drop=False) - 2020
-        scale_tot = scale_tot.where(~decline_mask, scale_tot / (1+decline_years/29*yield_change))
+        scale_tot = scale_tot.where(~decline_mask | scale_tot.Item.isin(vegetal_items), scale_tot / (1+decline_years/29*yield_change))
 
+    # Scale food production and balance using imports
     g_cap_day = g_cap_day.fbs.scale_add(element_in="production", element_out="imports", scale=1/scale_tot, add=False)
     g_prot_cap_day = g_prot_cap_day.fbs.scale_add(element_in="production", element_out="imports", scale=1/scale_tot, add=False)
     g_fat_cap_day = g_fat_cap_day.fbs.scale_add(element_in="production", element_out="imports", scale=1/scale_tot, add=False)
     kcal_cap_day = kcal_cap_day.fbs.scale_add(element_in="production", element_out="imports", scale=1/scale_tot, add=False)
 
+    # Do the same with exports, but this time add the change in exports to imports
     g_cap_day = g_cap_day.fbs.scale_add(element_in="exports", element_out="imports", scale=1/scale_tot)
     g_prot_cap_day = g_prot_cap_day.fbs.scale_add(element_in="exports", element_out="imports", scale=1/scale_tot)
     g_fat_cap_day = g_fat_cap_day.fbs.scale_add(element_in="exports", element_out="imports", scale=1/scale_tot)
