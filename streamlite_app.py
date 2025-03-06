@@ -210,7 +210,7 @@ with st.sidebar:
                          key="fossil_arable", help_dialog=fossil_arable_help)
         
         text_plus_slider('Increase Nitrogen efficiency', min_value=0,
-                         key="nitrogen")
+                         key="nitrogen", help_dialog=nitrogen_help)
         
         text_plus_slider('Vertical and urban farming', min_value=0,
                          key="vertical_farming", help_dialog=urban_help)
