@@ -13,7 +13,7 @@ def pipeline_setup(food_system):
                             {"yield_change":st.session_state.yield_proj})
     
     food_system.add_node(item_scaling,
-                            {"scale":1-st.session_state.ruminant/100,
+                            {"scale":1+st.session_state.ruminant/100,
                             "items":[2731, 2732],
                             "source":["production", "imports"],
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
@@ -22,7 +22,7 @@ def pipeline_setup(food_system):
                             "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
 
     food_system.add_node(item_scaling,
-                            {"scale":1-st.session_state.pig_poultry_eggs/100,
+                            {"scale":1+st.session_state.pig_poultry_eggs/100,
                             "items":[2733, 2734, 2949],
                             "source":["production", "imports"],
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
@@ -31,7 +31,7 @@ def pipeline_setup(food_system):
                             "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
 
     food_system.add_node(item_scaling,
-                            {"scale":1-st.session_state.dairy/100,
+                            {"scale":1+st.session_state.dairy/100,
                             "items":[2740, 2743, 2948],
                             "source":["production", "imports"],
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
@@ -147,7 +147,7 @@ def pipeline_setup(food_system):
                             "scale_factor":st.session_state.methane_ghg_factor*st.session_state.methane_inhibitor/100})
     
     food_system.add_node(scale_production,
-                            {"scale_factor":1-st.session_state.stock_density/100,
+                            {"scale_factor":1+st.session_state.stock_density/100,
                              "items":[2731, 2732, 2733, 2735, 2948, 2740, 2743]})
 
     # food_system.add_node(scale_production,

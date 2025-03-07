@@ -7,7 +7,10 @@ def text_plus_slider(label,
                      min_value=-100,
                      max_value=100,
                      step=1,
-                     help_dialog=None):
+                     help_dialog=None,
+                     percentage=True,
+                     sign=True,
+                     suffix=""):
     """
     A custom widget that combines a label, a clickable help icon and a slider.
     """
@@ -37,13 +40,18 @@ def text_plus_slider(label,
                 if help_dialog is not None:
                     help_dialog()
 
+    str_format = "%+d" if sign else "%d"
+    if percentage:
+        str_format += "%%"
+
     slider_value = st.slider(label,
                              value=value,
                              min_value=min_value,
                              max_value=max_value,
                              step=step,
                              key=key,
-                             label_visibility='collapsed')
+                             label_visibility='collapsed',
+                             format=str_format + suffix)
 
     return slider_value
 
