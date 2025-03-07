@@ -35,6 +35,38 @@ def plots(datablock):
     metric_yr = 2050
     plot_key = st.session_state["plot_key"]
 
+    seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
+    emissions = datablock["impact"]["g_co2e/year"]["production"].sel(Year=metric_yr)/1e6
+    total_emissions = emissions.sum(dim="Item").values/1e6
+    total_seq = seq_da.sel(Item=["Broadleaf woodland",
+                                    "Coniferous woodland",
+                                    "Managed pasture",
+                                    "Managed arable",
+                                    "Mixed farming",
+                                    "Silvopasture",
+                                    "Agroforestry"]).sum(dim="Item").values/1e6
+    
+    total_removals = seq_da.sel(Item=["BECCS from waste", "BECCS from overseas biomass", "BECCS from land", "DACCS"]).sum(dim="Item").values/1e6
+
+    emissions_balance = xr.DataArray(data = list(sector_emissions_dict.values()),
+                            name="Sectoral emissions",
+                            coords={"Sector": list(sector_emissions_dict.keys())})
+    
+    emissions_balance.loc[{"Sector": "Agriculture"}] = total_emissions
+    emissions_balance.loc[{"Sector": "LU sinks"}] = -total_seq
+    emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
+
+    emissions_balance.loc[{"Sector": "LU sources"}] -= seq_da.sel(Item=["Restored upland peat", "Restored lowland peat"]).sum(dim="Item").values/1e6
+
+    ssr_metric = st.session_state["ssr_metric"]
+    gcapday = datablock["food"][ssr_metric].sel(Year=metric_yr).fillna(0)
+    gcapday = gcapday.fbs.group_sum(coordinate="Item_origin", new_name="Item")
+    gcapday_ref = datablock["food"][ssr_metric].sel(Year=2020).fillna(0)
+    gcapday_ref = gcapday_ref.fbs.group_sum(coordinate="Item_origin", new_name="Item")
+
+    SSR_ref = gcapday_ref.fbs.SSR()
+    SSR_metric_yr = gcapday.fbs.SSR()
+
     if plot_key == "Summary":
 
         st.markdown("# Agrifood Calculator - The UK in 2050")
@@ -59,52 +91,15 @@ def plots(datablock):
             with st.container(height=800, border=True):
                 
                 st.markdown('''**UK Emissions balance**''')
-                if st.session_state.emission_factors == "NDC 2020":
                     
-                    seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
-                    emissions = datablock["impact"]["g_co2e/year"]["production"].sel(Year=metric_yr)/1e6
-                    total_emissions = emissions.sum(dim="Item").values/1e6
-                    total_seq = seq_da.sel(Item=["Broadleaf woodland",
-                                                 "Coniferous woodland",
-                                                 "Managed pasture",
-                                                 "Managed arable",
-                                                 "Mixed farming",
-                                                 "Silvopasture",
-                                                 "Agroforestry"]).sum(dim="Item").values/1e6
-                    
-                    total_removals = seq_da.sel(Item=["BECCS from waste", "BECCS from overseas biomass", "BECCS from land", "DACCS"]).sum(dim="Item").values/1e6
+                if st.session_state["show_afolu_only"]:
+                    reference_emissions_baseline = 31.61
+                    emissions_balance = emissions_balance.sel(Sector=["Agriculture", "LU sinks", "Removals"])
 
-                    emissions_balance = xr.DataArray(data = list(sector_emissions_dict.values()),
-                                          name="Sectoral emissions",
-                                          coords={"Sector": list(sector_emissions_dict.keys())})
-                    
-                    emissions_balance.loc[{"Sector": "Agriculture"}] = total_emissions
-                    emissions_balance.loc[{"Sector": "LU sinks"}] = -total_seq
-                    emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
-
-                    emissions_balance.loc[{"Sector": "LU sources"}] -= seq_da.sel(Item=["Restored upland peat", "Restored lowland peat"]).sum(dim="Item").values/1e6
-                    
-                    if st.session_state["show_afolu_only"]:
-                        reference_emissions_baseline = 31.61
-                        emissions_balance = emissions_balance.sel(Sector=["Agriculture", "LU sinks", "Removals"])
-
-                    c = plot_single_bar_altair(emissions_balance, show="Sector", color=sector_emissions_colors,
-                        axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,
-                        mark_total=True, show_zero=True, ax_ticks=True, legend=True,
-                        ax_min=-90, ax_max=120, reference=reference_emissions_baseline)
-                    
-                elif st.session_state.emission_factors == "PN18":
-
-                    emissions = datablock["impact"]["g_co2e/year"]["production"].sel(Year=metric_yr)/1e6
-                    emissions = emissions.fbs.group_sum(coordinate="Item_origin", new_name="Item")
-                    seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
-
-                    emissions_balance = xr.concat([emissions/1e6, -seq_da/1e6], dim="Item")
-                    
-                    c = plot_single_bar_altair(emissions_balance, show="Item",
-                                                    axis_title="Sequestration / Production emissions [M tCO2e]",
-                                                    ax_min=-3e2, ax_max=3e2, unit="M tCO2e", vertical=True,
-                                                    mark_total=True, show_zero=True, ax_ticks=True)
+                c = plot_single_bar_altair(emissions_balance, show="Sector", color=sector_emissions_colors,
+                    axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,
+                    mark_total=True, show_zero=True, ax_ticks=True, legend=True,
+                    ax_min=-90, ax_max=120, reference=reference_emissions_baseline)
                     
                 c = c.properties(height=500)
                 st.altair_chart(c, use_container_width=True)
@@ -130,21 +125,12 @@ def plots(datablock):
 
                 st.markdown('''**Self-sufficiency**''')
 
-                ssr_metric = st.session_state["ssr_metric"]
-                gcapday = datablock["food"][ssr_metric].sel(Year=metric_yr).fillna(0)
-                gcapday = gcapday.fbs.group_sum(coordinate="Item_origin", new_name="Item")
-                gcapday_ref = datablock["food"][ssr_metric].sel(Year=2020).fillna(0)
-                gcapday_ref = gcapday_ref.fbs.group_sum(coordinate="Item_origin", new_name="Item")
-
-                SSR_ref = gcapday_ref.fbs.SSR()
-                SSR_metric_yr = gcapday.fbs.SSR()
-
                 st.metric(label="SSR", value="{:.2f} %".format(100*SSR_metric_yr),
                     delta="{:.2f} %".format(100*(SSR_metric_yr-SSR_ref)), label_visibility="collapsed")
-                
+    
                 origin_color={"Animal Products": "red",
-                              "Plant Products": "green",
-                              "Alternative Food": "blue"}
+                                "Plant Products": "green",
+                                "Alternative Food": "blue"}
                 
                 domestic_use = gcapday["imports"]+gcapday["production"]-gcapday["exports"]
                 domestic_use.name="domestic"

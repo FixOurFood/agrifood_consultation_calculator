@@ -393,7 +393,7 @@ def cultured_meat_model(datablock, cultured_scale, labmeat_co2e, items, copy_fro
     # If production is negative, set to zero and add the negative delta to
     # imports
     out = check_negative_source(out, "production")
-    out = check_negative_source(out, "imports")
+    out = check_negative_source(out, "imports", "exports", add=False)
 
     # Reduce feed and seed
     out = feed_scale(out, food_orig)
