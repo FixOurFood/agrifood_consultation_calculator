@@ -212,7 +212,7 @@ with st.sidebar:
         text_plus_slider('Increase Nitrogen efficiency', min_value=0,
                          key="nitrogen", help_dialog=nitrogen_help, sign=False)
         
-        text_plus_slider('Vertical and urban farming', min_value=0,
+        text_plus_slider('Urban and controlled environment agriculture', min_value=0,
                          key="vertical_farming", help_dialog=urban_help, sign=False)
         
         st.button("Reset", on_click=reset_sliders, key='reset_arable',
@@ -270,6 +270,12 @@ food_system = pipeline_setup(food_system)
 food_system.run()
 datablock_result = food_system.datablock
 
+# -------------------
+# Execute plots block
+# -------------------
+from plots import plots
+extra_values = plots(datablock_result)
+
 with st.sidebar:
     with st.expander("**:arrow_right: Submit slider positions**"):
         st.markdown("""<div style="text-align: justify;">
@@ -285,7 +291,7 @@ with st.sidebar:
         st.caption("""By clicking ‘Submit’ you are agreeing to our Data Protection Policy [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
         submit_state = st.button("Submit")
         if submit_state:
-            submit_scenario(" ", ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name)
+            submit_scenario(" ", ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name, extra_values=extra_values)
 
     st.button("Reset all sliders", on_click=reset_sliders, key='reset_all')
     
@@ -300,8 +306,3 @@ with st.sidebar:
     if st.button("Help"):
         first_run_dialog()
 
-# -------------------
-# Execute plots block
-# -------------------
-from plots import plots
-metric_yr = plots(datablock_result)

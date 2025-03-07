@@ -164,14 +164,14 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
         st.write("""If you want to modify your submission, please use the same
                  scenario name as before.""")
 
-@st.cache_data(ttl=60*60*24)
+# @st.cache_data(ttl=60*60*24)
 def get_pathways():
     """Get the pathways names from the Google Sheet"""
 
     values = pathways_worksheet.col_values(1)
     return values[2:]
 
-@st.cache_data(ttl=60*60*24)
+# @st.cache_data(ttl=60*60*24)
 def get_pathway_data(pathway_name):
     """Get the scenario data from the Google Sheet"""
 

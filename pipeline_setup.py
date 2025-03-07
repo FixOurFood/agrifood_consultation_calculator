@@ -194,7 +194,7 @@ def pipeline_setup(food_system):
                           "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100})
 
     food_system.add_node(scale_impact,
-                            {"items":("Item_origin","Vegetal Products"),
+                            {"items":("Item_origin", "Vegetal Products"),
                             "scale_factor":st.session_state.fossil_arable_ghg_factor*st.session_state.fossil_arable/100})
 
     food_system.add_node(scale_production,
