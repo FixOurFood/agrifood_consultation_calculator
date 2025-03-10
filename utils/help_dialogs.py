@@ -470,9 +470,14 @@ def crop_yields_help():
 @st.dialog("Trade elasticity", width="small")
 def trade_help():
     st.markdown("""
-                The trade model projection describes how changes in the level of
-                agricultural food commodities used in the UK are supplied by
-                production and imports. The changes can be met by either
-                increasing UK production, increasing imports or an equal
-                mixture of both.
+                When the amount of food used in the UK changes, it must either
+                come from domestic production or from imports. This setting lets
+                you decide whether changes to UK food use are met through
+                changes to imports, changes to production or an equal mixture of
+                both. If one of the two gets to zero for a particular commodity
+                any further changes will affect the other.
+
+                In reality, trade adjustment will vary for each commodity and
+                change over time with economic conditions. For further
+                discussion, click [here](https://docs.google.com/document/d/1A2J4BYIuXMgrj9tuLtIon8oJTuR1puK91bbUYCI8kHY/edit?tab=t.0#heading=h.5wokskh532mj).
                 """)
