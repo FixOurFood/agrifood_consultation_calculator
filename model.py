@@ -80,6 +80,8 @@ def project_future(datablock, yield_change=None):
     datablock["impact"]["gco2e/gfood"] = g_co2e_g
     datablock["impact"]["baseline"] = copy.deepcopy(datablock["impact"]["gco2e/gfood"])
 
+    datablock["food"]["baseline_projected"] = copy.deepcopy(datablock["food"]["g/cap/day"])
+
     return datablock
 
 def item_scaling(datablock, scale, source, scaling_nutrient,
@@ -1208,6 +1210,38 @@ def zero_land_farming_model(datablock, fraction, items, land_type="Arable",
     pctg.loc[{"aggregate_class":"Coniferous woodland"}] += delta_arable * (1-bdleaf_conif_ratio)
 
     datablock["land"]["percentage_land_use"] = pctg
+
+    return datablock
+
+def extra_urban_farming(datablock, fraction, items):
+    """Increases production of certain items relative to the baseline production
+    while keeping land utilization constant"""
+
+    # Read datasets
+    food_orig = datablock["food"]["g/cap/day"].copy(deep=True)
+    food_base = datablock["food"]["baseline_projected"]
+    
+    # Read item lists
+    items = get_items(food_orig, items)
+
+    timescale = datablock["global_parameters"]["timescale"]
+
+    # Create scaling array
+    scale = logistic_food_supply(food_orig, timescale, 0, fraction)
+
+    # Compute quantity of products now being produced in urban/vertical farms
+    delta = food_base["production"].sel(Item=items) * scale
+    delta = delta.fillna(0)
+
+    # Add delta to productions and remove from imports
+    food_orig["production"].loc[{"Item":items}] = food_orig["production"].loc[{"Item":items}] + delta
+    food_orig["imports"].loc[{"Item":items}] = food_orig["imports"].loc[{"Item":items}] - delta
+
+    # Check for negative sources and correct
+    out = check_negative_source(food_orig, "imports", "exports", add=False)
+
+    # Rewrite food data to datablock and return
+    datablock["food"]["g/cap/day"] = out
 
     return datablock
 

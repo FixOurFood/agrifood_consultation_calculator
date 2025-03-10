@@ -188,10 +188,15 @@ def pipeline_setup(food_system):
                             "replaced_items":2511,
                             "seq_ha_yr":st.session_state.agroecology_tree_coverage*st.session_state.bdleaf_seq_ha_yr})
     
-    food_system.add_node(zero_land_farming_model,
+    # food_system.add_node(zero_land_farming_model,
+    #                      {"fraction":st.session_state.vertical_farming/100,
+    #                       "items":("Item_group", ["Vegetables", "Fruits - Excluding Wine"]),
+    #                       "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100})
+    
+    food_system.add_node(extra_urban_farming,
                          {"fraction":st.session_state.vertical_farming/100,
-                          "items":("Item_group", ["Vegetables", "Fruits - Excluding Wine"]),
-                          "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100})
+                          "items":("Item_group", ["Vegetables", "Fruits - Excluding Wine"])
+                          })
 
     food_system.add_node(scale_impact,
                             {"items":("Item_origin", "Vegetal Products"),
