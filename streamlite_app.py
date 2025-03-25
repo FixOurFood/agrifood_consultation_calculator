@@ -5,7 +5,6 @@ from utils.altair_plots import *
 from utils.helper_functions import *
 from utils.custom_widgets import text_plus_slider, text_plus_segment, nested_sliders
 from utils.help_dialogs import *
-from streamlit_extras.floating_button import floating_button
 
 from agrifoodpy.pipeline import Pipeline
 from datablock_setup import datablock_setup
