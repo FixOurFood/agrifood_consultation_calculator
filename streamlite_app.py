@@ -87,7 +87,7 @@ with st.sidebar:
 
     # Consumer demand interventions
 
-    with st.expander("**:spaghetti: Consumer demand**", expanded=False):
+    with st.expander("**:spaghetti: Consumption**", expanded=False):
 
         consumer_slider_keys = ["ruminant",
                                 "pig_poultry",
@@ -107,17 +107,17 @@ with st.sidebar:
                                 "alternative",
                                 ]
         
-        nested_sliders(["Meat consumption",
-                        "Ruminant meat",
-                        "pig and poultry",
-                        "Fish and seafood"],
+        nested_sliders(["Meat",
+                        "Ruminant",
+                        "pig, poultry",
+                        "Fish, seafood"],
                        ["meat", "ruminant", "pig_poultry", "fish_seafood"],
                        help_dialog=ruminant_help,
                        min_value=-100,
                        max_value=100,
                        format="%+d%%")
 
-        nested_sliders(["Dairy and eggs consumption",
+        nested_sliders(["Dairy, eggs",
                         "Dairy",
                         "Eggs"],
                        ["dairy_eggs", "dairy", "eggs"],
@@ -125,8 +125,8 @@ with st.sidebar:
                        min_value=-100,
                        format="%+d%%")
 
-        nested_sliders(["Fruit, veg and pulse consumption",
-                        "Fruits and vegetables",
+        nested_sliders(["Fruit, veg, pulse",
+                        "Fruits, vegetables",
                         "Pulses"],
                        ["fruit_veg_pulses","fruit_veg", "pulses"],
                        help_dialog=fruits_veg_help,
@@ -134,14 +134,14 @@ with st.sidebar:
                        max_value=500,
                        format="%+d%%")
 
-        nested_sliders(["Meat and dairy alternatives consumption",
+        nested_sliders(["Alt meat, dairy",
                         "Alternative meat",
                         "Alternative dairy"],
                        ["alternative", "meat_alternatives", "dairy_alternatives"],
                        help_dialog=alternative_products_help,
                        format="%+d%%")
         
-        nested_sliders(["Reduce food waste and overeating"],
+        nested_sliders(["Food waste"],
                        keys="waste",
                        format="%+d%%",
                        help_dialog=waste_help)
@@ -151,7 +151,7 @@ with st.sidebar:
 
     # Land use change
 
-    with st.expander("**:earth_africa: Land use change**"):
+    with st.expander("**:earth_africa: Land use**"):
 
         land_slider_keys = ["foresting_pasture",
                             "land_BECCS",
@@ -162,31 +162,35 @@ with st.sidebar:
                             
                             "peatland"]
 
-        nested_sliders("Additional forested UK land area percentage",
+        nested_sliders("Forest",
                        keys="foresting_pasture",
                        format="%+d%%",
                        min_value=-25,
                        max_value=25,
                        help_dialog=afforestation_help)
         
-        nested_sliders("Percentage of new forested land that is broadleaf",
+        nested_sliders("Broadleaf %",
                        keys="bdleaf_conif_ratio",
                        value=75,
                        format="%+d%%")
         
-        nested_sliders("Percentage of farmland used for BECCS crops",
+        nested_sliders("BECCS crops",
                        keys="land_BECCS",
                        format="%+d%%",
                        help_dialog=beccs_help)
 
-        nested_sliders(["Percentage of peatland restored",
-                        "Lowland peatland",
-                        "Upland peatland"],
+        nested_sliders(["Peatland restoration",
+                        "Lowland peat",
+                        "Upland peat"],
                        keys=["peatland", "lowland_peatland","upland_peatland"],
                        format="%+d%%",
                        help_dialog=peatland_restoration_help)
         
-        nested_sliders("Percentage of arable land converted to mixed farming",
+        nested_sliders("Horticulture",
+                       keys="horticulture",
+                       format="%+d%%")
+        
+        nested_sliders("Mixed farming",
                        keys="mixed_farming",
                        format="%+d%%",
                        help_dialog=mixed_farming_help)
@@ -196,7 +200,7 @@ with st.sidebar:
         
     # Livestock farming practices
 
-    with st.expander("**:cow: Livestock farming practices**"):
+    with st.expander("**:cow: Livestock**"):
 
         livestock_slider_keys = ["silvopasture",
                                  "stock_density",
@@ -208,7 +212,7 @@ with st.sidebar:
                                  
                                  "livestock_farming_practices"]
         
-        nested_sliders("Pasture land % converted to silvopasture",
+        nested_sliders("Silvopasture",
                        keys="silvopasture",
                        format="%+d%%",
                        help_dialog=silvopasture_help)
@@ -218,16 +222,16 @@ with st.sidebar:
                        min_value=-100,
                        format="%+d%%")
         
-        nested_sliders("Percentage of pasture land managed for soil carbon management",
+        nested_sliders("Soil carbon management",
                        keys="pasture_soil_carbon",
                        format="%+d%%",
                        help_dialog=soil_management_help)
         
-        nested_sliders(["Livestock farming practices",
-                        "Methane inhibitor use in livestock feed",
-                        "Manure management in livestock farming",
-                        "Animal breeding practices",
-                        "Fossil fuel use in livestock farming"],
+        nested_sliders(["Farming practices",
+                        "Methane inhibitors",
+                        "Manure management",
+                        "Animal breeding",
+                        "Fossil fuel use"],
                        keys=["livestock_farming_practices",
                              "methane_inhibitor",
                              "manure_management",
@@ -241,7 +245,7 @@ with st.sidebar:
 
     # Arable farming practices
 
-    with st.expander("**:ear_of_rice: Arable farming practices**"):
+    with st.expander("**:ear_of_rice: Arable**"):
 
         arable_slider_keys = ["agroforestry",
                               "fossil_arable",
@@ -251,24 +255,24 @@ with st.sidebar:
                               
                               "arable_farming_practices"]
         
-        nested_sliders("Arable land % converted to agroforestry",
+        nested_sliders("Agroforestry",
                        keys="agroforestry",
                        format="%+d%%",
                        help_dialog=agroforestry_help)
         
-        nested_sliders("Percentage of arable land managed for soil carbon management",
+        nested_sliders("Soil carbon management",
                        keys="arable_soil_carbon",
                        format="%+d%%",
                        help_dialog=soil_management_help)
         
-        nested_sliders("Urban and controlled environment agriculture",
+        nested_sliders("Urban and CEA",
                        keys="vertical_farming",
                        format="%+d%%",
                        help_dialog=urban_help)
         
-        nested_sliders(["Arable farming practices",
-                        "Fossil fuel use for machinery in arable farms",
-                        "Increase Nitrogen efficiency"],
+        nested_sliders(["Farming practices",
+                        "Fossil fuel use",
+                        "Nitrogen efficiency"],
                        keys=["arable_farming_practices",
                              "fossil_arable",
                              "nitrogen"],
@@ -285,17 +289,17 @@ with st.sidebar:
                                   "overseas_BECCS",
                                   "DACCS"]
         
-        nested_sliders("BECCS sequestration from waste",
+        nested_sliders("Waste BECCS",
                        keys="waste_BECCS",
                        format="%d Mt CO2e/yr",
                        help_dialog=beccs_waste_help)
                         
-        nested_sliders("BECCS sequestration from overseas biomass",
+        nested_sliders("Overseas BECCS",
                        keys="overseas_BECCS",
                        format="%d Mt CO2e/yr",
                        help_dialog=beccs_overseas_help)
         
-        nested_sliders("DACCS sequestration",
+        nested_sliders("DACCS",
                        keys="DACCS",
                        format="%d Mt CO2e/yr",
                        help_dialog=daccs_help)

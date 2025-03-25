@@ -212,7 +212,7 @@ def nested_sliders(labels,
         icon = "➕"
 
 
-    col_ratio = (0.5,6,4)
+    col_ratio = (0.5,5,4)
     with st.container(border=border):
         with stylable_container(key=keys[0]+"_container", css_styles=style):
             cols = st.columns(col_ratio, vertical_alignment="center")
