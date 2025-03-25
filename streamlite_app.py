@@ -222,7 +222,7 @@ with st.sidebar:
                        min_value=-100,
                        format="%+d%%")
         
-        nested_sliders("Soil carbon management",
+        nested_sliders("Soil carbon",
                        keys="pasture_soil_carbon",
                        format="%+d%%",
                        help_dialog=soil_management_help)
@@ -260,7 +260,7 @@ with st.sidebar:
                        format="%+d%%",
                        help_dialog=agroforestry_help)
         
-        nested_sliders("Soil carbon management",
+        nested_sliders("Soil carbon",
                        keys="arable_soil_carbon",
                        format="%+d%%",
                        help_dialog=soil_management_help)
