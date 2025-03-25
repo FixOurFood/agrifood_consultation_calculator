@@ -22,8 +22,17 @@ def pipeline_setup(food_system):
                             "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
 
     food_system.add_node(item_scaling,
-                            {"scale":1+st.session_state.pig_poultry_eggs/100,
-                            "items":[2733, 2734, 2949],
+                            {"scale":1+st.session_state.pig_poultry/100,
+                            "items":[2733, 2734],
+                            "source":["production", "imports"],
+                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
+                            "scaling_nutrient":st.session_state.scaling_nutrient,
+                            "constant":st.session_state.cereal_scaling,
+                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
+
+    food_system.add_node(item_scaling,
+                            {"scale":1+st.session_state.fish_seafood/100,
+                            "items":("Item_group", "Fish, Seafood"),
                             "source":["production", "imports"],
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
                             "scaling_nutrient":st.session_state.scaling_nutrient,
@@ -33,6 +42,15 @@ def pipeline_setup(food_system):
     food_system.add_node(item_scaling,
                             {"scale":1+st.session_state.dairy/100,
                             "items":[2740, 2743, 2948],
+                            "source":["production", "imports"],
+                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
+                            "scaling_nutrient":st.session_state.scaling_nutrient,
+                            "constant":st.session_state.cereal_scaling,
+                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
+
+    food_system.add_node(item_scaling,
+                            {"scale":1+st.session_state.eggs/100,
+                            "items":[2949],
                             "source":["production", "imports"],
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
                             "scaling_nutrient":st.session_state.scaling_nutrient,
@@ -116,9 +134,17 @@ def pipeline_setup(food_system):
                          "old_land_type":["Improved grassland", "Semi-natural grassland"],
                          "items":"Animal Products",
                          })
-
+    
     food_system.add_node(managed_agricultural_land_carbon_model,
-                        {"fraction":st.session_state.soil_carbon/100})
+                        {"fraction":st.session_state.pasture_soil_carbon/100,
+                         "managed_class":"Managed pasture",
+                         "old_class":["Improved grassland", "Semi-natural grassland"]})
+    
+    food_system.add_node(managed_agricultural_land_carbon_model,
+                        {"fraction":st.session_state.arable_soil_carbon/100,
+                         "managed_class":"Managed arable",
+                         "old_class":"Arable"})
+
 
     food_system.add_node(mixed_farming_model,
                         {"fraction":st.session_state.mixed_farming/100,
@@ -128,6 +154,7 @@ def pipeline_setup(food_system):
                          "secondary_items":("Item_origin","Animal Products")})
 
     # Livestock farming practices        
+    
     food_system.add_node(agroecology_model,
                             {"land_percentage":st.session_state.silvopasture/100.,
                             "agroecology_class":"Silvopasture",
@@ -194,6 +221,7 @@ def pipeline_setup(food_system):
     #                       "items":("Item_group", ["Vegetables", "Fruits - Excluding Wine"]),
     #                       "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100})
     
+
     food_system.add_node(extra_urban_farming,
                          {"fraction":st.session_state.vertical_farming/100,
                           "items":("Item_group", ["Vegetables", "Fruits - Excluding Wine"])

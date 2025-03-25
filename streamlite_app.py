@@ -3,8 +3,9 @@ import pandas as pd
 
 from utils.altair_plots import *
 from utils.helper_functions import *
-from utils.custom_widgets import text_plus_slider, text_plus_segment
+from utils.custom_widgets import text_plus_slider, text_plus_segment, nested_sliders
 from utils.help_dialogs import *
+from streamlit_extras.floating_button import floating_button
 
 from agrifoodpy.pipeline import Pipeline
 from datablock_setup import datablock_setup
@@ -90,38 +91,64 @@ with st.sidebar:
     with st.expander("**:spaghetti: Consumer demand**", expanded=False):
 
         consumer_slider_keys = ["ruminant",
+                                "pig_poultry",
+                                "fish_seafood",
                                 "dairy",
-                                "pig_poultry_eggs",
+                                "eggs",
                                 "pulses",
                                 "fruit_veg",
                                 "cereals",
                                 "waste",
                                 "meat_alternatives",
-                                "dairy_alternatives"]
+                                "dairy_alternatives",
+                                
+                                "meat",
+                                "dairy_eggs",
+                                "fruit_veg_pulses",
+                                "alternative",
+                                ]
+        
+        nested_sliders(["Meat consumption",
+                        "Ruminant meat",
+                        "pig and poultry",
+                        "Fish and seafood"],
+                       ["meat", "ruminant", "pig_poultry", "fish_seafood"],
+                       help_dialog=ruminant_help,
+                       min_value=-100,
+                       max_value=100,
+                       format="%+d%%")
 
-        text_plus_slider("Ruminant meat consumption",
-                         key="ruminant", help_dialog=ruminant_help)
+        nested_sliders(["Dairy and eggs consumption",
+                        "Dairy",
+                        "Eggs"],
+                       ["dairy_eggs", "dairy", "eggs"],
+                       help_dialog=dairy_help,
+                       min_value=-100,
+                       format="%+d%%")
+
+        nested_sliders(["Fruit, veg and pulse consumption",
+                        "Fruits and vegetables",
+                        "Pulses"],
+                       ["fruit_veg_pulses","fruit_veg", "pulses"],
+                       help_dialog=fruits_veg_help,
+                       min_value=-100,
+                       max_value=500,
+                       format="%+d%%")
+
+        nested_sliders(["Meat and dairy alternatives consumption",
+                        "Alternative meat",
+                        "Alternative dairy"],
+                       ["alternative", "meat_alternatives", "dairy_alternatives"],
+                       help_dialog=alternative_products_help,
+                       format="%+d%%")
         
-        text_plus_slider("Dairy consumption",
-                         key="dairy", help_dialog=dairy_help)
-        
-        text_plus_slider("Pig, poultry and eggs consumption",
-                         key="pig_poultry_eggs", help_dialog=pig_pultry_eggs_help)
-        
-        text_plus_slider("Pulses consumption", max_value=500,
-                         key="pulses", help_dialog=pulses_help)
-        
-        text_plus_slider("Fruit and vegetable consumption", max_value=500,
-                         key="fruit_veg", help_dialog=fruits_veg_help)
-        
-        text_plus_slider("Increase meat alternatives consumption", min_value=0,
-                         key="meat_alternatives", help_dialog=alternative_products_help)
-        
-        text_plus_slider("Increase dairy alternatives consumption", min_value=0,
-                         key="dairy_alternatives", help_dialog=alternative_products_help)
-        
-        text_plus_slider("Reduce food waste and overeating", min_value=0,
-                         key="waste", help_dialog=waste_help, sign=False)
+        nested_sliders(["Reduce food waste and overeating"],
+                       keys="waste",
+                       format="%+d%%",
+                       help_dialog=waste_help)
+
+        # text_plus_slider("Reduce food waste and overeating", min_value=0,
+        #                  key="waste", help_dialog=waste_help, sign=False)
 
         st.button("Reset", on_click=reset_sliders, key='reset_consumer',
                   kwargs={"keys": consumer_slider_keys})
@@ -134,30 +161,39 @@ with st.sidebar:
                             "land_BECCS",
                             "lowland_peatland",
                             "upland_peatland",
-                            "soil_carbon",
                             "mixed_farming",
-                            "bdleaf_conif_ratio"]
+                            "bdleaf_conif_ratio",
+                            
+                            "peatland"]
 
-        text_plus_slider("Additional forested UK land area percentage", min_value=-25, max_value=25,
-                         key="foresting_pasture", help_dialog=afforestation_help)
+        nested_sliders("Additional forested UK land area percentage",
+                       keys="foresting_pasture",
+                       format="%+d%%",
+                       min_value=-25,
+                       max_value=25,
+                       help_dialog=afforestation_help)
         
-        text_plus_slider("Percentage of new forested land that is broadleaf", min_value=0, max_value=100,
-                         key="bdleaf_conif_ratio", sign=False)
+        nested_sliders("Percentage of new forested land that is broadleaf",
+                       keys="bdleaf_conif_ratio",
+                       value=75,
+                       format="%+d%%")
+        
+        nested_sliders("Percentage of farmland used for BECCS crops",
+                       keys="land_BECCS",
+                       format="%+d%%",
+                       help_dialog=beccs_help)
 
-        text_plus_slider("Percentage of farmland used for BECCS crops", min_value=0, max_value=20,
-                         key="land_BECCS", help_dialog=beccs_help, sign=False)
+        nested_sliders(["Percentage of peatland restored",
+                        "Lowland peatland",
+                        "Upland peatland"],
+                       keys=["peatland", "lowland_peatland","upland_peatland"],
+                       format="%+d%%",
+                       help_dialog=peatland_restoration_help)
         
-        text_plus_slider("Percentage of lowland peatland restored", min_value=0, max_value=100,
-                         key="lowland_peatland", help_dialog=peatland_restoration_help, sign=False)
-        
-        text_plus_slider("Percentage of upland peatland restored", min_value=0, max_value=100,
-                         key="upland_peatland", help_dialog=peatland_restoration_help, sign=False)
-        
-        text_plus_slider("Percentage of land managed for soil carbon management", min_value=0, max_value=100,
-                         key="soil_carbon", help_dialog=soil_management_help, sign=False)
-        
-        text_plus_slider("Percentage of arable land converted to mixed farming", min_value=0, max_value=100,
-                         key="mixed_farming", help_dialog=mixed_farming_help, sign=False)
+        nested_sliders("Percentage of arable land converted to mixed farming",
+                       keys="mixed_farming",
+                       format="%+d%%",
+                       help_dialog=mixed_farming_help)
 
         st.button("Reset", on_click=reset_sliders, key='reset_land',
                   kwargs={"keys":land_slider_keys})
@@ -168,28 +204,41 @@ with st.sidebar:
 
         livestock_slider_keys = ["silvopasture",
                                  "stock_density",
+                                 "pasture_soil_carbon",
                                  "methane_inhibitor",
                                  "manure_management",
                                  "animal_breeding",
-                                 "fossil_livestock"]
+                                 "fossil_livestock",
+                                 
+                                 "livestock_farming_practices"]
         
-        text_plus_slider('Pasture land % converted to silvopasture', min_value=0,
-                         key="silvopasture", help_dialog=silvopasture_help, sign=False)
+        nested_sliders("Pasture land % converted to silvopasture",
+                       keys="silvopasture",
+                       format="%+d%%",
+                       help_dialog=silvopasture_help)
+
+        nested_sliders("Stocking density",
+                       keys="stock_density",
+                       min_value=-100,
+                       format="%+d%%")
         
-        text_plus_slider('Stocking density',
-                         key="stock_density")
+        nested_sliders("Percentage of pasture land managed for soil carbon management",
+                       keys="pasture_soil_carbon",
+                       format="%+d%%",
+                       help_dialog=soil_management_help)
         
-        text_plus_slider('Methane inhibitor use in livestock feed', min_value=0,
-                         key="methane_inhibitor", help_dialog=methane_inhibitor_help, sign=False)
-        
-        text_plus_slider('Manure management in livestock farming', min_value=0,
-                         key="manure_management", help_dialog=manure_management_help, sign=False)
-        
-        text_plus_slider('Animal breeding practices', min_value=0,
-                         key="animal_breeding", help_dialog=breeding_help, sign=False)
-        
-        text_plus_slider('Fossil fuel use in livestock farming', min_value=0,
-                         key="fossil_livestock", help_dialog=fossil_livestock_help, sign=False)
+        nested_sliders(["Livestock farming practices",
+                        "Methane inhibitor use in livestock feed",
+                        "Manure management in livestock farming",
+                        "Animal breeding practices",
+                        "Fossil fuel use in livestock farming"],
+                       keys=["livestock_farming_practices",
+                             "methane_inhibitor",
+                             "manure_management",
+                             "animal_breeding",
+                             "fossil_livestock"],
+                       format="%d%%",
+                       help_dialog=methane_inhibitor_help)
 
         st.button("Reset", on_click=reset_sliders, key='reset_livestock',
             kwargs={"keys": livestock_slider_keys})
@@ -201,20 +250,34 @@ with st.sidebar:
         arable_slider_keys = ["agroforestry",
                               "fossil_arable",
                               "nitrogen",
-                              "vertical_farming"]
+                              "vertical_farming",
+                              "arable_soil_carbon",
+                              
+                              "arable_farming_practices"]
         
-        text_plus_slider('Arable land % converted to agroforestry', min_value=0,
-                         key="agroforestry", help_dialog=agroforestry_help, sign=False)
+        nested_sliders("Arable land % converted to agroforestry",
+                       keys="agroforestry",
+                       format="%+d%%",
+                       help_dialog=agroforestry_help)
         
-        text_plus_slider('Fossil fuel use for machinery in arable farms', min_value=0,
-                         key="fossil_arable", help_dialog=fossil_arable_help, sign=False)
+        nested_sliders("Percentage of arable land managed for soil carbon management",
+                       keys="arable_soil_carbon",
+                       format="%+d%%",
+                       help_dialog=soil_management_help)
         
-        text_plus_slider('Increase Nitrogen efficiency', min_value=0,
-                         key="nitrogen", help_dialog=nitrogen_help, sign=False)
+        nested_sliders("Urban and controlled environment agriculture",
+                       keys="vertical_farming",
+                       format="%+d%%",
+                       help_dialog=urban_help)
         
-        text_plus_slider('Urban and controlled environment agriculture', min_value=0,
-                         key="vertical_farming", help_dialog=urban_help, sign=False)
-        
+        nested_sliders(["Arable farming practices",
+                        "Fossil fuel use for machinery in arable farms",
+                        "Increase Nitrogen efficiency"],
+                       keys=["arable_farming_practices",
+                             "fossil_arable",
+                             "nitrogen"],
+                       format="%d%%")
+
         st.button("Reset", on_click=reset_sliders, key='reset_arable',
             kwargs={"keys": arable_slider_keys})        
 
@@ -225,15 +288,21 @@ with st.sidebar:
         technology_slider_keys = ["waste_BECCS",
                                   "overseas_BECCS",
                                   "DACCS"]
-
-        text_plus_slider('BECCS sequestration from waste', min_value=0, suffix=' Mt CO2e/yr',
-                         key="waste_BECCS", help_dialog=beccs_waste_help, percentage=False, sign=False)
-
-        text_plus_slider('BECCS sequestration from overseas biomass', min_value=0, suffix=' Mt CO2e/yr',
-                         key="overseas_BECCS", help_dialog=beccs_overseas_help, percentage=False, sign=False)
         
-        text_plus_slider('DACCS sequestration', min_value=0, max_value=20, suffix=' Mt CO2e/yr',
-                         key="DACCS", help_dialog=daccs_help, percentage=False, sign=False)
+        nested_sliders("BECCS sequestration from waste",
+                       keys="waste_BECCS",
+                       format="%d Mt CO2e/yr",
+                       help_dialog=beccs_waste_help)
+                        
+        nested_sliders("BECCS sequestration from overseas biomass",
+                       keys="overseas_BECCS",
+                       format="%d Mt CO2e/yr",
+                       help_dialog=beccs_overseas_help)
+        
+        nested_sliders("DACCS sequestration",
+                       keys="DACCS",
+                       format="%d Mt CO2e/yr",
+                       help_dialog=daccs_help)
 
         st.button("Reset", on_click=reset_sliders, key='reset_technology',
                   kwargs={"keys": technology_slider_keys})

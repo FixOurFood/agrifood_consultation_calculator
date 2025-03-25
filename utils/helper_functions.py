@@ -20,23 +20,32 @@ default_widget_values = {
 
     # Consumer demand sliders and widgets
     "ruminant": 0,
+    "fish_seafood": 0,
     "dairy": 0,
-    "pig_poultry_eggs": 0,
+    "eggs": 0,
+    "pig_poultry": 0,
     "pulses": 0,
     "fruit_veg": 0,
     "cereals": 0,
     "meat_alternatives": 0,
     "dairy_alternatives":0,
     "waste": 0,
+    
+    "meat":0,
+    "dairy_eggs":0,
+    "fruit_veg_pulses":0,
+    "alternative":0,
+    "food_waste":0,
 
     # Land use sliders and widgets
     "foresting_pasture": 0,
     "land_BECCS": 0,
     "lowland_peatland": 0,
     "upland_peatland": 0,
-    "soil_carbon": 0,
     "mixed_farming": 0,
     "bdleaf_conif_ratio":75,
+
+    "peatland":0,
 
     # Technology and innovation sliders and widgets
     "waste_BECCS": 0,
@@ -50,12 +59,18 @@ default_widget_values = {
     "manure_management": 0,
     "animal_breeding": 0,
     "fossil_livestock": 0,
+    "pasture_soil_carbon": 0,
+
+    "livestock_farming_practices":0,
 
     # Arable farming sliders and widgets
+    "arable_soil_carbon": 0,
     "nitrogen": 0,
     "agroforestry": 0,
     "fossil_arable": 0,
     "vertical_farming": 0,
+
+    "arable_farming_practices":0,
 
 }
 

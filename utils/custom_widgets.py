@@ -1,4 +1,5 @@
 import streamlit as st
+import numpy as np
 from streamlit_extras.stylable_container import stylable_container
 
 def text_plus_slider(label,
@@ -99,4 +100,185 @@ def text_plus_segment(label,
                                          label_visibility='collapsed')
 
     return control_value
+
+@st.fragment
+def nested_sliders(labels,
+                   keys,
+                   value=0,
+                   min_value=0,
+                   max_value=100,
+                   help_dialog=None,
+                   format=None,
+                   border=False
+                   ):
+    
+    """Creates a slider with nested sliders inside. The main slider controls theç
+    values of the nested sliders. 
+    
+    Parameters
+        ----------
+        labels : str or list of str
+            Labels for the sliders. First label is for the main slider,
+            subsequent labels are for nested sliders shown when checkbox is
+            checked
+        output_keys : str or list of str
+            Keys for the output values of the nested sliders
+        key : str
+            Key for the widget and prefix for widget components
+        value : int or float, optional
+            Initial value for all sliders, by default 0
+        min_value : int or float, optional
+            Minimum value for all sliders, by default 0
+        max_value : int or float, optional
+            Maximum value for all sliders, by default 100
+        help_dialog : function, optional
+            Function that displays a help dialog, by default None
+        format : str, optional
+            Format string for the slider values, by default None
+        border : bool, optional
+            Whether to show a border around the widget, by default False
+
+        Returns
+        -------
+        list
+            Returns list of values for all sliders, repeating the value of the
+            first slider for all other sliders if checkbox is not checked.
+    
+    """
+
+    # Function to update parent slider from child sliders changes
+    def update_from_child():
+        vals = [st.session_state[keys[0]+"_slider_"+str(i+1)] for i in range(len(labels[1:]))]
+        for k, val in zip(keys[1:], vals):
+            st.session_state[k] = val
+        st.session_state[keys[0]+"_slider_0"] = int(np.average(vals))
+        st.session_state[keys[0]] = int(np.average(vals))
+        st.session_state[keys[0]+"_last_interact"] = "child"
+        st.session_state[keys[0]+"_rerun"] = True
+
+    # Function to update child sliders from parent slider changes
+    def update_from_parent():
+        st.session_state[keys[0]+"_last_interact"] = "parent"
+        for k in keys[1:]:
+            st.session_state[k] = st.session_state[keys[0]+"_slider_0"]
+        st.session_state[keys[0]] = st.session_state[keys[0]+"_slider_0"]
+        st.session_state[keys[0]+"_rerun"] = True
+
+    style = """
+        div[data-testid="stSliderTickBarMin"] {
+            display: none;
+        }
+        div[data-testid="stSliderTickBarMax"] {
+            display: none;
+        }
+        [data-testid=stVerticalBlock]{
+            gap: 0.5rem;
+        }
+    """
+
+    # Convert labels to list if it is a string
+    if np.isscalar(labels):
+        labels = [labels]
+
+    if np.isscalar(keys):
+        keys = [keys]
+
+    # Initialize values
+    if keys[0]+"_is_open" not in st.session_state:
+        st.session_state[keys[0]+"_is_open"] = False
+
+    if keys[0]+"_last_interact" not in st.session_state:
+        st.session_state[keys[0]+"_last_interact"] = "parent"
+
+    for k in keys[1:]:
+        if k not in st.session_state:
+            st.session_state[k] = value
+
+    if keys[0] not in st.session_state:
+        st.session_state[keys[0]] = value
+
+    if keys[0]+"_rerun" not in st.session_state:
+        st.session_state[keys[0]+"_rerun"] = False
+
+    if st.session_state[keys[0]+"_rerun"]:
+        st.session_state[keys[0]+"_rerun"] = False
+        st.rerun(scope="app")
+
+    value_main = st.session_state[keys[0]]
+
+    if st.session_state[keys[0]+"_is_open"]:
+        icon = "➖"
+    else:
+        icon = "➕"
+
+
+    col_ratio = (1,6,4,1)
+    with st.container(border=border):
+        with stylable_container(key=keys[0]+"_container", css_styles=style):
+            cols = st.columns(col_ratio, vertical_alignment="center")
+
+            # Main slider
+            with cols[2]:
+                st.slider(labels[0],
+                    min_value=min_value,
+                    max_value=max_value,
+                    value=value_main,
+                    # disabled=st.session_state[key+"_is_open"],
+                    label_visibility='collapsed',
+                    key=keys[0]+"_slider_0",
+                    on_change=update_from_parent,
+                    format=format,
+                    step=1
+                    )
+                
+            # Expand/Collapse icon button
+            with cols[0]:
+                if len(labels) > 1:
+                    if st.button(
+                        label=icon,
+                        type="tertiary",
+                        key=keys[0]+"_opener_button"):
+                        
+                        st.session_state[keys[0]+"_is_open"] = not st.session_state[keys[0]+"_is_open"]
+                        st.rerun(scope="fragment")
+
+            # Slider label
+            with cols[1]:
+                st.text(labels[0])            
+
+            # Help dialog icon button
+            with cols[3]:
+                if st.button(":information_source:",
+                            key=keys[0]+"_help_button",
+                            type="tertiary"):
+                    if help_dialog is not None:
+                        help_dialog()
+        
+            # Nested sliders
+            if st.session_state[keys[0]+"_is_open"]:
+                for i, label in enumerate(labels[1:]):
+
+                    cols_nested = st.columns(col_ratio, vertical_alignment="bottom")
+
+                    with cols_nested[1]:
+                        st.caption(labels[i+1])
+                    
+                    with cols_nested[2]:
+                        if st.session_state[keys[0]+"_last_interact"] == "parent":
+                            init_val = st.session_state[keys[0]+"_slider_0"]
+                        else:
+                            init_val = st.session_state[keys[i+1]]
+
+                        st.slider(
+                            label,
+                            min_value=min_value,
+                            max_value=max_value,
+                            value=init_val,
+                            label_visibility='collapsed',
+                            key=keys[0]+"_slider_"+str(i+1),
+                            on_change=update_from_child,
+                            format=format,
+                            step=1
+                            )
+           
     
