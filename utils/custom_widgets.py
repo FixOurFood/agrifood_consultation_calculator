@@ -212,7 +212,7 @@ def nested_sliders(labels,
         icon = "➕"
 
 
-    col_ratio = (1,6,4,1)
+    col_ratio = (0.5,6,4)
     with st.container(border=border):
         with stylable_container(key=keys[0]+"_container", css_styles=style):
             cols = st.columns(col_ratio, vertical_alignment="center")
@@ -244,15 +244,19 @@ def nested_sliders(labels,
 
             # Slider label
             with cols[1]:
-                st.text(labels[0])            
-
-            # Help dialog icon button
-            with cols[3]:
-                if st.button(":information_source:",
-                            key=keys[0]+"_help_button",
-                            type="tertiary"):
+                if st.button(label=labels[0],
+                             key=keys[0]+"_help_button",
+                             type="tertiary"):
                     if help_dialog is not None:
                         help_dialog()
+
+            # # Help dialog icon button
+            # with cols[3]:
+            #     if st.button(":information_source:",
+            #                 key=keys[0]+"_help_button",
+            #                 type="tertiary"):
+            #         if help_dialog is not None:
+            #             help_dialog()
         
             # Nested sliders
             if st.session_state[keys[0]+"_is_open"]:

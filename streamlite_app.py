@@ -146,11 +146,8 @@ with st.sidebar:
                        format="%+d%%",
                        help_dialog=waste_help)
 
-        # text_plus_slider("Reduce food waste and overeating", min_value=0,
-        #                  key="waste", help_dialog=waste_help, sign=False)
-
-        st.button("Reset", on_click=reset_sliders, key='reset_consumer',
-                  kwargs={"keys": consumer_slider_keys})
+        # st.button("Reset", on_click=reset_sliders, key='reset_consumer',
+        #           kwargs={"keys": consumer_slider_keys})
 
     # Land use change
 
@@ -194,8 +191,8 @@ with st.sidebar:
                        format="%+d%%",
                        help_dialog=mixed_farming_help)
 
-        st.button("Reset", on_click=reset_sliders, key='reset_land',
-                  kwargs={"keys":land_slider_keys})
+        # st.button("Reset", on_click=reset_sliders, key='reset_land',
+        #           kwargs={"keys":land_slider_keys})
         
     # Livestock farming practices
 
@@ -239,8 +236,8 @@ with st.sidebar:
                        format="%d%%",
                        help_dialog=methane_inhibitor_help)
 
-        st.button("Reset", on_click=reset_sliders, key='reset_livestock',
-            kwargs={"keys": livestock_slider_keys})
+        # st.button("Reset", on_click=reset_sliders, key='reset_livestock',
+        #     kwargs={"keys": livestock_slider_keys})
 
     # Arable farming practices
 
@@ -277,8 +274,8 @@ with st.sidebar:
                              "nitrogen"],
                        format="%d%%")
 
-        st.button("Reset", on_click=reset_sliders, key='reset_arable',
-            kwargs={"keys": arable_slider_keys})        
+        # st.button("Reset", on_click=reset_sliders, key='reset_arable',
+        #     kwargs={"keys": arable_slider_keys})        
 
     # Technology and innovation
 
@@ -303,8 +300,8 @@ with st.sidebar:
                        format="%d Mt CO2e/yr",
                        help_dialog=daccs_help)
 
-        st.button("Reset", on_click=reset_sliders, key='reset_technology',
-                  kwargs={"keys": technology_slider_keys})
+        # st.button("Reset", on_click=reset_sliders, key='reset_technology',
+        #           kwargs={"keys": technology_slider_keys})
         
     with st.expander("**📈 Scenario settings**"):
 
