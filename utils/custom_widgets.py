@@ -207,9 +207,10 @@ def nested_sliders(labels,
     value_main = st.session_state[keys[0]]
 
     if st.session_state[keys[0]+"_is_open"]:
-        icon = "➖"
+        # icon = "➖"
+        icon = ":material/chevron_right:"
     else:
-        icon = "➕"
+        icon = ":material/keyboard_arrow_down:"
 
 
     col_ratio = (0.5,5,6)
