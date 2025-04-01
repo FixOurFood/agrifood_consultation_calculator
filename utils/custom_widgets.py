@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 from streamlit_extras.stylable_container import stylable_container
 
+# @st.fragment
 def text_plus_slider(label,
                      key,
                      value=0,
@@ -16,43 +17,45 @@ def text_plus_slider(label,
     A custom widget that combines a label, a clickable help icon and a slider.
     """
 
-    st.markdown("""
-        <style>
-        .small-font {
-            font-size:14px !important;
+    style = """
+        div[data-testid="stSliderTickBarMin"] {
+            display: none;
         }
-        </style>
-        """, unsafe_allow_html=True)
+        div[data-testid="stSliderTickBarMax"] {
+            display: none;
+        }
+        [data-testid=stVerticalBlock]{
+            gap: 0rem;
+        }
+    """
 
-    col1, col2 = st.columns([4, 1], vertical_alignment="top")
-    with col1:
-        st.markdown(f'<p class="small-font">{label}</p>', unsafe_allow_html=True)
+    with stylable_container(key=key+"_container", css_styles=style):
+        col1, col2, col3 = st.columns((5, 6, 1), vertical_alignment="bottom")
 
-    with col2:
-        with stylable_container(
-            key="stylable_container_"+key,
-            css_styles="""
-            button{
-                float: right;
-            }
-            """
-        ):
-            if st.button(":information_source:", key="help_icon_"+key, type="tertiary"):
+        with col1:
+            st.write(label)
+            # if st.button(label, key="help_icon_"+key, type="tertiary"):
+            #     if help_dialog is not None:
+            #         help_dialog()
+
+        str_format = "%+d" if sign else "%d"
+        if percentage:
+            str_format += "%%"
+
+        with col2:
+            slider_value = st.slider(label,
+                                    value=value,
+                                    min_value=min_value,
+                                    max_value=max_value,
+                                    step=step,
+                                    key=key,
+                                    label_visibility='collapsed',
+                                    format=str_format + suffix)
+            
+        with col3:
+            if st.button(":material/help:", key="help_icon_"+key, type="tertiary"):
                 if help_dialog is not None:
                     help_dialog()
-
-    str_format = "%+d" if sign else "%d"
-    if percentage:
-        str_format += "%%"
-
-    slider_value = st.slider(label,
-                             value=value,
-                             min_value=min_value,
-                             max_value=max_value,
-                             step=step,
-                             key=key,
-                             label_visibility='collapsed',
-                             format=str_format + suffix)
 
     return slider_value
 
@@ -207,7 +210,6 @@ def nested_sliders(labels,
     value_main = st.session_state[keys[0]]
 
     if st.session_state[keys[0]+"_is_open"]:
-        # icon = "➖"
         icon = ":material/chevron_right:"
     else:
         icon = ":material/keyboard_arrow_down:"
@@ -223,7 +225,7 @@ def nested_sliders(labels,
                 st.slider(labels[0],
                     min_value=min_value,
                     max_value=max_value,
-                    value=value_main,
+                    value=int(value_main),
                     # disabled=st.session_state[key+"_is_open"],
                     label_visibility='collapsed',
                     key=keys[0]+"_slider_0",
@@ -260,30 +262,67 @@ def nested_sliders(labels,
             #             help_dialog()
         
             # Nested sliders
-            if st.session_state[keys[0]+"_is_open"]:
-                for i, label in enumerate(labels[1:]):
+            with st.empty():
+                with st.container():
+                    for i, label in enumerate(labels[1:]):
 
-                    cols_nested = st.columns(col_ratio, vertical_alignment="bottom")
+                        cols_nested = st.columns(col_ratio, vertical_alignment="bottom")
 
-                    with cols_nested[1]:
-                        st.caption(labels[i+1])
-                    
-                    with cols_nested[2]:
-                        if st.session_state[keys[0]+"_last_interact"] == "parent":
-                            init_val = st.session_state[keys[0]+"_slider_0"]
-                        else:
-                            init_val = st.session_state[keys[i+1]]
+                        with cols_nested[1]:
+                            st.caption(labels[i+1])
+                        
+                        with cols_nested[2]:
+                            if st.session_state[keys[0]+"_last_interact"] == "parent":
+                                init_val = st.session_state[keys[0]+"_slider_0"]
+                            else:
+                                init_val = st.session_state[keys[i+1]]
 
-                        st.slider(
-                            label,
-                            min_value=min_value,
-                            max_value=max_value,
-                            value=init_val,
-                            label_visibility='collapsed',
-                            key=keys[0]+"_slider_"+str(i+1),
-                            on_change=update_from_child,
-                            format=format,
-                            step=1
-                            )
+                            st.slider(
+                                label,
+                                min_value=min_value,
+                                max_value=max_value,
+                                value=int(init_val),
+                                label_visibility='collapsed',
+                                key=keys[0]+"_slider_"+str(i+1),
+                                on_change=update_from_child,
+                                format=format,
+                                step=1
+                                )
+                        
+                if not st.session_state[keys[0]+"_is_open"]:
+                    st.empty()
            
+def selectbox_plus_icon(label,
+                        options,
+                        default,
+                        key,
+                        format_func=None,
+                        help_dialog=None):
     
+    """A custom widget that combines a selectbox and a clickable help icon"""
+
+    col1, col2 = st.columns([6, 1], vertical_alignment="bottom")
+    with col1:
+        if format_func is not None:
+            value = st.selectbox(
+                label,
+                options,
+                index=options.index(default),
+                format_func=format_func,
+                key=key
+            )
+        else:
+            value = st.selectbox(
+                label,
+                options,
+                index=options.index(default),
+                key=key
+        )
+
+    with col2:
+        if st.button(":material/help:", key="help_icon_"+key, type="tertiary", use_container_width=True):
+            if help_dialog is not None:
+                help_dialog()
+
+
+    return value

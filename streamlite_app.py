@@ -3,7 +3,7 @@ import pandas as pd
 
 from utils.altair_plots import *
 from utils.helper_functions import *
-from utils.custom_widgets import text_plus_slider, text_plus_segment, nested_sliders
+from utils.custom_widgets import text_plus_slider, text_plus_segment, selectbox_plus_icon
 from utils.help_dialogs import *
 
 from agrifoodpy.pipeline import Pipeline
@@ -33,6 +33,9 @@ if "plot_key" not in st.session_state:
 
 if "check_ID" not in st.session_state:
     st.session_state["check_ID"] = False
+
+if "testing" not in st.session_state:
+    st.session_state["testing"] = False
 
 # ------------------------
 # Help and tooltip strings
@@ -68,7 +71,9 @@ with st.sidebar:
                      get_pathways(),
                      index=None,
                      placeholder=scenario,
-                     on_change=call_scenarios, key="scenario")
+                     on_change=call_scenarios,
+                     key="scenario",
+                     label_visibility="collapsed")
     
         st.query_params.clear()
         
@@ -82,248 +87,150 @@ with st.sidebar:
                      get_pathways(),
                      index=None,
                      placeholder="Select a scenario",
-                     on_change=call_scenarios, key="scenario")
+                     on_change=call_scenarios,
+                     key="scenario",
+                     label_visibility="collapsed")
         
 
     # Consumer demand interventions
 
     with st.expander("**:spaghetti: Consumption**", expanded=False):
 
-        consumer_slider_keys = ["ruminant",
-                                "pig_poultry",
-                                "fish_seafood",
-                                "dairy",
-                                "eggs",
-                                "pulses",
-                                "fruit_veg",
-                                "cereals",
-                                "waste",
-                                "meat_alternatives",
-                                "dairy_alternatives",
-                                
-                                "meat",
-                                "dairy_eggs",
-                                "fruit_veg_pulses",
-                                "alternative",
-                                ]
+        text_plus_slider("Ruminant", "ruminant",
+                         help_dialog=ruminant_help)
         
-        nested_sliders(["Meat",
-                        "Ruminant",
-                        "pig, poultry",
-                        "Fish, seafood"],
-                       ["meat", "ruminant", "pig_poultry", "fish_seafood"],
-                       help_dialog=ruminant_help,
-                       min_value=-100,
-                       max_value=100,
-                       format="%+d%%")
-
-        nested_sliders(["Dairy, eggs",
-                        "Dairy",
-                        "Eggs"],
-                       ["dairy_eggs", "dairy", "eggs"],
-                       help_dialog=dairy_help,
-                       min_value=-100,
-                       format="%+d%%")
-
-        nested_sliders(["Fruit, veg, pulse",
-                        "Fruits, vegetables",
-                        "Pulses"],
-                       ["fruit_veg_pulses","fruit_veg", "pulses"],
-                       help_dialog=fruits_veg_help,
-                       min_value=-100,
-                       max_value=500,
-                       format="%+d%%")
-
-        nested_sliders(["Alt meat, dairy",
-                        "Alternative meat",
-                        "Alternative dairy"],
-                       ["alternative", "meat_alternatives", "dairy_alternatives"],
-                       help_dialog=alternative_products_help,
-                       format="%+d%%")
+        text_plus_slider("Pig, poultry", "pig_poultry",
+                         help_dialog=ruminant_help)
         
-        nested_sliders(["Food waste"],
-                       keys="waste",
-                       format="%+d%%",
-                       help_dialog=waste_help)
+        text_plus_slider("Fish, seafood", "fish_seafood",
+                         help_dialog=ruminant_help)
 
-        # st.button("Reset", on_click=reset_sliders, key='reset_consumer',
-        #           kwargs={"keys": consumer_slider_keys})
+        text_plus_slider("Dairy", "dairy",
+                         help_dialog=ruminant_help)
+        
+        text_plus_slider("Eggs", "eggs",
+                         help_dialog=ruminant_help)
+
+        text_plus_slider("Fruits, vegetables", "fruit_veg",max_value=500,
+                         help_dialog=ruminant_help)
+        
+        text_plus_slider("Pulses", "pulses", max_value=500,
+                         help_dialog=ruminant_help)
+
+        text_plus_slider("Alternative meat", "meat_alternatives", min_value=0,
+                         help_dialog=alternative_products_help)
+
+        text_plus_slider("Alternative dairy", "dairy_alternatives", min_value=0,
+                         help_dialog=alternative_products_help)
+        
+        text_plus_slider("Food waste", "waste", min_value=0,
+                         help_dialog=waste_help)
+
 
     # Land use change
 
     with st.expander("**:earth_africa: Land use**"):
 
-        land_slider_keys = ["foresting_pasture",
-                            "land_BECCS",
-                            "lowland_peatland",
-                            "upland_peatland",
-                            "mixed_farming",
-                            "bdleaf_conif_ratio",
-                            
-                            "peatland"]
+        text_plus_slider("Forest", "foresting_pasture", value=13.17, min_value=0., max_value=50., step=0.1,
+                         help_dialog=afforestation_help, sign=False)
 
-        nested_sliders("Forest",
-                       keys="foresting_pasture",
-                       format="%+d%%",
-                       min_value=-25,
-                       max_value=25,
-                       help_dialog=afforestation_help)
-        
-        nested_sliders("Broadleaf %",
-                       keys="bdleaf_conif_ratio",
-                       value=75,
-                       format="%+d%%")
-        
-        nested_sliders("BECCS crops",
-                       keys="land_BECCS",
-                       format="%+d%%",
-                       help_dialog=beccs_help)
+        text_plus_slider("Broadleaf %", "bdleaf_conif_ratio", min_value=0)
 
-        nested_sliders(["Peatland restoration",
-                        "Lowland peat",
-                        "Upland peat"],
-                       keys=["peatland", "lowland_peatland","upland_peatland"],
-                       format="%+d%%",
-                       help_dialog=peatland_restoration_help)
-        
-        nested_sliders("Horticulture",
-                       keys="horticulture",
-                       format="%+d%%")
-        
-        nested_sliders("Mixed farming",
-                       keys="mixed_farming",
-                       format="%+d%%",
-                       help_dialog=mixed_farming_help)
+        text_plus_slider("BECCS crops", "land_BECCS", min_value=0,
+                         help_dialog=beccs_help)
 
-        # st.button("Reset", on_click=reset_sliders, key='reset_land',
-        #           kwargs={"keys":land_slider_keys})
+        text_plus_slider("Lowland peat", "lowland_peatland",
+                         help_dialog=waste_help)
         
+        text_plus_slider("Upland peat", "upland_peatland", min_value=-100,
+                         help_dialog=peatland_restoration_help)
+
+        text_plus_slider("Horticulture", "horticulture", min_value=-100, max_value=500,
+                         help_dialog=waste_help)
+        
+        text_plus_slider("Pulse production", "pulse_production", min_value=-100, max_value=500,
+                         help_dialog=peatland_restoration_help)
+
+        text_plus_slider("Mixed farming", "mixed_farming", min_value=0,
+                         help_dialog=mixed_farming_help)
+
+      
     # Livestock farming practices
 
     with st.expander("**:cow: Livestock**"):
 
-        livestock_slider_keys = ["silvopasture",
-                                 "stock_density",
-                                 "pasture_soil_carbon",
-                                 "methane_inhibitor",
-                                 "manure_management",
-                                 "animal_breeding",
-                                 "fossil_livestock",
-                                 
-                                 "livestock_farming_practices"]
-        
-        nested_sliders("Silvopasture",
-                       keys="silvopasture",
-                       format="%+d%%",
+        text_plus_slider("Silvopasture", "silvopasture", min_value=-100,
                        help_dialog=silvopasture_help)
-
-        nested_sliders("Stocking density",
-                       keys="stock_density",
-                       min_value=-100,
-                       format="%+d%%")
         
-        nested_sliders("Soil carbon",
-                       keys="pasture_soil_carbon",
-                       format="%+d%%",
-                       help_dialog=soil_management_help)
-        
-        nested_sliders(["Farming practices",
-                        "Methane inhibitors",
-                        "Manure management",
-                        "Animal breeding",
-                        "Fossil fuel use"],
-                       keys=["livestock_farming_practices",
-                             "methane_inhibitor",
-                             "manure_management",
-                             "animal_breeding",
-                             "fossil_livestock"],
-                       format="%d%%",
-                       help_dialog=methane_inhibitor_help)
+        text_plus_slider("Stocking density", "stock_density")
 
-        # st.button("Reset", on_click=reset_sliders, key='reset_livestock',
-        #     kwargs={"keys": livestock_slider_keys})
+        text_plus_slider("Soil carbon", "pasture_soil_carbon", min_value=0,
+                          help_dialog=soil_management_help)
+
+        text_plus_slider("Methane inhibitors", "methane_inhibitor", min_value=-100, max_value=100,
+                         help_dialog=peatland_restoration_help)
+        
+        text_plus_slider("Manure management", "manure_management", min_value=-100, max_value=100,
+                        help_dialog=peatland_restoration_help)
+        
+        text_plus_slider("Animal breeding", "animal_breeding", min_value=-100, max_value=100,
+                        help_dialog=peatland_restoration_help)
+        
+        text_plus_slider("Fossil fuel use", "fossil_livestock", min_value=-100, max_value=100,
+                     help_dialog=peatland_restoration_help)
 
     # Arable farming practices
 
     with st.expander("**:ear_of_rice: Arable**"):
 
-        arable_slider_keys = ["agroforestry",
-                              "fossil_arable",
-                              "nitrogen",
-                              "vertical_farming",
-                              "arable_soil_carbon",
-                              
-                              "arable_farming_practices"]
+        text_plus_slider("Agroforestry", "agroforestry", min_value=0,
+                            help_dialog=agroforestry_help)
         
-        nested_sliders("Agroforestry",
-                       keys="agroforestry",
-                       format="%+d%%",
-                       help_dialog=agroforestry_help)
+        text_plus_slider("Soil carbon", "arable_soil_carbon", min_value=0,
+                            help_dialog=soil_management_help)
         
-        nested_sliders("Soil carbon",
-                       keys="arable_soil_carbon",
-                       format="%+d%%",
-                       help_dialog=soil_management_help)
-        
-        nested_sliders("Urban and CEA",
-                       keys="vertical_farming",
-                       format="%+d%%",
-                       help_dialog=urban_help)
-        
-        nested_sliders(["Farming practices",
-                        "Fossil fuel use",
-                        "Nitrogen efficiency"],
-                       keys=["arable_farming_practices",
-                             "fossil_arable",
-                             "nitrogen"],
-                       format="%d%%")
+        text_plus_slider("Urban and CEA", "vertical_farming", min_value=0,
+                            help_dialog=urban_help)
 
-        # st.button("Reset", on_click=reset_sliders, key='reset_arable',
-        #     kwargs={"keys": arable_slider_keys})        
+        text_plus_slider("Fossil fuel use", "fossil_arable", min_value=-100, max_value=100,
+                        help_dialog=peatland_restoration_help)
+        
+        text_plus_slider("Nitrogen efficiency", "nitrogen", min_value=-100, max_value=100,
+                     help_dialog=peatland_restoration_help)
 
     # Technology and innovation
 
     with st.expander("**:gear: Technology and innovation**"):
         
-        technology_slider_keys = ["waste_BECCS",
-                                  "overseas_BECCS",
-                                  "DACCS"]
+        text_plus_slider("Waste BECCS", "waste_BECCS", min_value=0,
+                         help_dialog=waste_help, sign=False, percentage=False, 
+                         suffix=" Mt CO2e/yr")
         
-        nested_sliders("Waste BECCS",
-                       keys="waste_BECCS",
-                       format="%d Mt CO2e/yr",
-                       help_dialog=beccs_waste_help)
                         
-        nested_sliders("Overseas BECCS",
-                       keys="overseas_BECCS",
-                       format="%d Mt CO2e/yr",
-                       help_dialog=beccs_overseas_help)
+        text_plus_slider("Overseas BECCS", "overseas_BECCS", min_value=0,
+                         help_dialog=beccs_overseas_help, sign=False, percentage=False,
+                         suffix=" Mt CO2e/yr")
         
-        nested_sliders("DACCS",
-                       keys="DACCS",
-                       format="%d Mt CO2e/yr",
-                       help_dialog=daccs_help)
+        text_plus_slider("DACCS", "DACCS", min_value=0,
+                         help_dialog=daccs_help, sign=False, percentage=False,
+                         suffix=" Mt CO2e/yr")
 
-        # st.button("Reset", on_click=reset_sliders, key='reset_technology',
-        #           kwargs={"keys": technology_slider_keys})
         
     with st.expander("**📈 Scenario settings**"):
 
-        pop_projection = text_plus_segment("Population projection",
-                                           ["Low", "Medium", "High", "Zero migration"],
-                                           default="Medium",
-                                           key="pop_proj",
-                                           help_dialog=population_help)
-        
-        text_plus_segment("Crops yield projection",
+        pop_projection = selectbox_plus_icon("Population projection",
+                                        ["Low", "Medium", "High", "Zero migration"],
+                                        default="Medium",
+                                        key="pop_proj")
+
+        selectbox_plus_icon("Crops yield projection",
                             [-0.27, 0.0, 0.34, 0.58],
                             default=0.0,
                             format_func=format_yield_proj,
                             key="yield_proj",
                             help_dialog=crop_yields_help)
         
-
-        text_plus_segment("International trade projection",
+        selectbox_plus_icon("International trade model",
                             [0, 0.5, 1],
                             default=0.5,
                             format_func=format_elasticity,
@@ -375,3 +282,11 @@ with st.sidebar:
     if st.button("Help"):
         first_run_dialog()
 
+# -----------------------------
+#  Testing
+# -----------------------------
+
+if st.session_state["testing"]:
+    
+    st.session_state["ssr"] = float(extra_values[0])
+    st.session_state["emissions_balance"] = float(extra_values[1])

@@ -38,14 +38,16 @@ default_widget_values = {
     "food_waste":0,
 
     # Land use sliders and widgets
-    "foresting_pasture": 0,
+    "foresting_pasture": 13.17,
     "land_BECCS": 0,
     "lowland_peatland": 0,
     "upland_peatland": 0,
     "mixed_farming": 0,
     "bdleaf_conif_ratio":75,
-
     "peatland":0,
+    "shift_production":0,
+    "horticulture":0,
+    "pulse_production":0,
 
     # Technology and innovation sliders and widgets
     "waste_BECCS": 0,

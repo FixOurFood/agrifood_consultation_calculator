@@ -59,7 +59,7 @@ def pipeline_setup(food_system):
 
     food_system.add_node(item_scaling,
                             {"scale":1+st.session_state.fruit_veg/100,
-                            "items":("Item_group", ["Vegetables", "Fruits - Excluding Wine", "Vegetables, other"]),
+                            "items":("Item_group", ["Vegetables", "Fruits - Excluding Wine"]),
                             "source":["production", "imports"],
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
                             "scaling_nutrient":st.session_state.scaling_nutrient,
@@ -112,14 +112,47 @@ def pipeline_setup(food_system):
 
 
     # Land management
-    food_system.add_node(forest_land_model,
+    food_system.add_node(forest_land_model_new,
                             {"forest_fraction":st.session_state.foresting_pasture/100,
                             "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100,
                             })
 
     food_system.add_node(BECCS_farm_land,
-                            {"farm_percentage":st.session_state.land_BECCS/100,
-                            })
+                        {"farm_percentage":st.session_state.land_BECCS/100,
+                        })
+
+    food_system.add_node(shift_production,
+                         {"scale":st.session_state.horticulture/100,
+                          "items":("Item_group", ["Vegetables",
+                                                  "Fruits - Excluding Wine",
+                                                  "Vegetables Oils",
+                                                  "Spices",
+                                                  "Starchy Roots",
+                                                  "Sugar Crops",
+                                                  "Oilcrops",
+                                                  "Treenuts",
+                                                  ]),
+                          "items_target":("Item_group", ["Cereals - Excluding Beer",
+                                                         "Pulses",
+                                                         ]),
+                          "land_area_ratio":0.08650301817
+                          })
+    
+    food_system.add_node(shift_production,
+                         {"scale":st.session_state.pulse_production/100,
+                          "items":("Item_group", "Pulses"),
+                          "items_target":("Item_group", ["Cereals - Excluding Beer",
+                                                         "Vegetables",
+                                                         "Fruits - Excluding Wine",
+                                                         "Vegetables Oils",
+                                                         "Spices",
+                                                         "Starchy Roots",
+                                                         "Sugar Crops",
+                                                         "Oilcrops",
+                                                         "Treenuts",                                                      
+                                                         ]),
+                          "land_area_ratio":0.03327492402
+                          })
 
     food_system.add_node(peatland_restoration,
                         {"restore_fraction":0.0475*st.session_state.lowland_peatland/100,
@@ -231,9 +264,9 @@ def pipeline_setup(food_system):
                             {"items":("Item_origin", "Vegetal Products"),
                             "scale_factor":st.session_state.fossil_arable_ghg_factor*st.session_state.fossil_arable/100})
 
-    food_system.add_node(scale_production,
-                            {"scale_factor":1 - st.session_state.fossil_arable_prod_factor*st.session_state.fossil_arable/100,
-                            "items":("Item_origin", "Vegetal Products")})
+    # food_system.add_node(scale_production,
+    #                         {"scale_factor":1 - st.session_state.fossil_arable_prod_factor*st.session_state.fossil_arable/100,
+    #                         "items":("Item_origin", "Vegetal Products")})
 
     # Technology & Innovation    
     food_system.add_node(ccs_model,

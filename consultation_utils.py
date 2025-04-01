@@ -18,7 +18,7 @@ SUBMISSION_WORKSHEET = "Stakeholder submissions - roadmap workshop Jan 23"
 gc = gspread.authorize(credentials)
 sh = gc.open_by_key("1ZEb7PzEi6aKv303t7ypFriIt89FPzXTySGt_vmY60_Y")
 stage_I_worksheet = sh.worksheet(SUBMISSION_WORKSHEET)
-pathways_worksheet = sh.worksheet("AFN Scenarios pass 1")
+pathways_worksheet = sh.worksheet("Sensitivity Analysis")
 enrolments_worksheet = sh.worksheet("Form responses 2")
 
 stage_I_deadline = 'December 31, 2024'
@@ -164,45 +164,51 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
         st.write("""If you want to modify your submission, please use the same
                  scenario name as before.""")
 
-# @st.cache_data(ttl=60*60*24)
+@st.cache_data(ttl=60*60*24)
 def get_pathways():
     """Get the pathways names from the Google Sheet"""
 
     values = pathways_worksheet.col_values(1)
-    return values[2:]
+    return values[3:]
 
-# @st.cache_data(ttl=60*60*24)
+@st.cache_data(ttl=60*60*24)
 def get_pathway_data(pathway_name):
     """Get the scenario data from the Google Sheet"""
 
-    values = pathways_worksheet.col_values(1)
-    idx = values.index(pathway_name)
+    # pathways_names
+    pathway_names = pathways_worksheet.col_values(1)
 
+    # Index of row with the corresponding pathway name
+    idx = pathway_names.index(pathway_name)
+
+    # Get values
     pathway_values = pathways_worksheet.row_values(idx + 1)
     pathway_values = pathway_values[1:]
-
+    
     # Convert string values to numbers, replacing empty strings with 0
     pathway_values = [str(x) if any(c.isalpha() for c in str(x)) else float(x) if x != "" else 0 for x in pathway_values]
-    
 
-    # Convert string values to numbers, replacing "no value" with 0
-    # pathway_values = [float(x) if x != "Float" and x != "" else 0 for x in pathway_values]
+    # Get keys
+    keys = pathways_worksheet.row_values(3)
+
+    # Create dictionary
+    pathway_dict = dict(zip(keys[1:], pathway_values))
     
-    return pathway_values
+    return pathway_dict
 
 def call_scenarios(scenario=None):
     """Call the scenarios from the Google Sheet"""
-    # reset all states
-    # reset_sliders()
-    # get scenario state
 
     if scenario is None:
         scenario = st.session_state["scenario"]
         if scenario is None:
             return
+    
+    # Get the scenario data
     pathway_data = get_pathway_data(scenario)
 
-    update_slider(keys, pathway_data)
+    # Update the session state
+    update_slider(list(pathway_data.keys()), list(pathway_data.values()))
 
 def get_latest_commit_hash():
     """Returns the hash of the latest commit in the repository.

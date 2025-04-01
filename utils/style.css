@@ -41,3 +41,7 @@ button[title="View fullscreen"] {
  .stVerticalBlock{
      gap: 0.5rem;
  }
+
+div[data-testid="stExpander"] div[role="button"] p {
+    font-size: 20px;
+}
