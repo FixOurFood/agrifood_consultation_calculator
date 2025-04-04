@@ -139,10 +139,10 @@ with st.sidebar:
         text_plus_slider("BECCS crops", "land_BECCS", min_value=0,
                          help_dialog=beccs_help)
 
-        text_plus_slider("Lowland peat", "lowland_peatland",
+        text_plus_slider("Lowland peat", "lowland_peatland", min_value=0,
                          help_dialog=waste_help)
         
-        text_plus_slider("Upland peat", "upland_peatland", min_value=-100,
+        text_plus_slider("Upland peat", "upland_peatland", min_value=0,
                          help_dialog=peatland_restoration_help)
 
         text_plus_slider("Horticulture", "horticulture", min_value=-100, max_value=500,
@@ -159,7 +159,7 @@ with st.sidebar:
 
     with st.expander("**:cow: Livestock**"):
 
-        text_plus_slider("Silvopasture", "silvopasture", min_value=-100,
+        text_plus_slider("Silvopasture", "silvopasture", min_value=0,
                        help_dialog=silvopasture_help)
         
         text_plus_slider("Stocking density", "stock_density")
@@ -167,16 +167,16 @@ with st.sidebar:
         text_plus_slider("Soil carbon", "pasture_soil_carbon", min_value=0,
                           help_dialog=soil_management_help)
 
-        text_plus_slider("Methane inhibitors", "methane_inhibitor", min_value=-100, max_value=100,
+        text_plus_slider("Methane inhibitors", "methane_inhibitor", min_value=0, max_value=100,
                          help_dialog=peatland_restoration_help)
         
-        text_plus_slider("Manure management", "manure_management", min_value=-100, max_value=100,
+        text_plus_slider("Manure management", "manure_management", min_value=0, max_value=100,
                         help_dialog=peatland_restoration_help)
         
-        text_plus_slider("Animal breeding", "animal_breeding", min_value=-100, max_value=100,
+        text_plus_slider("Animal breeding", "animal_breeding", min_value=0, max_value=100,
                         help_dialog=peatland_restoration_help)
         
-        text_plus_slider("Fossil fuel use", "fossil_livestock", min_value=-100, max_value=100,
+        text_plus_slider("Fossil fuel use", "fossil_livestock", min_value=0, max_value=100,
                      help_dialog=peatland_restoration_help)
 
     # Arable farming practices
@@ -192,10 +192,10 @@ with st.sidebar:
         text_plus_slider("Urban and CEA", "vertical_farming", min_value=0,
                             help_dialog=urban_help)
 
-        text_plus_slider("Fossil fuel use", "fossil_arable", min_value=-100, max_value=100,
+        text_plus_slider("Fossil fuel use", "fossil_arable", min_value=0, max_value=100,
                         help_dialog=peatland_restoration_help)
         
-        text_plus_slider("Nitrogen efficiency", "nitrogen", min_value=-100, max_value=100,
+        text_plus_slider("Nitrogen efficiency", "nitrogen", min_value=0, max_value=100,
                      help_dialog=peatland_restoration_help)
 
     # Technology and innovation

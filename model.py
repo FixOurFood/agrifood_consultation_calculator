@@ -335,8 +335,9 @@ def food_waste_model(datablock, waste_scale, kcal_rda, source, elasticity=None):
     out = feed_scale(out, food_orig)
 
     # If supply element is negative, set to zero and add the negative delta to imports
-    out = check_negative_source(out, "production")
-    out = check_negative_source(out, "imports")
+    # out = check_negative_source(out, "production")
+    # out = check_negative_source(out, "imports")
+    out = check_negative_source(out, "imports", "exports", add=False)
 
     # Scale all per capita qantities proportionally
     ratio = out / food_orig
@@ -523,8 +524,6 @@ def forest_land_model_new(datablock, forest_fraction, bdleaf_conif_ratio):
         pctg.loc[{"aggregate_class": "Broadleaf woodland"}] += difference.where(~np.isnan(pctg.sel(aggregate_class="Broadleaf woodland")), 0) * bdleaf_conif_ratio
         pctg.loc[{"aggregate_class": "Coniferous woodland"}] += difference.where(~np.isnan(pctg.sel(aggregate_class="Coniferous woodland")), 0) * (1 - bdleaf_conif_ratio)
         
-        
-
     else:
         # We change forest to a mix of arable and forest
         agricultural_xy = datablock["land"]["percentage_land_use"].sel({"aggregate_class":["Improved grassland", "Semi-natural grassland", "Arable"]})
@@ -572,13 +571,13 @@ def forest_land_model_new(datablock, forest_fraction, bdleaf_conif_ratio):
     ratio = out / food_orig
     ratio = ratio.where(~np.isnan(ratio), 1)
 
-    # Update per cap/day values and per year values using the same ratio, which
-    # is independent of population growth
-    qty_key = ["g/cap/day", "g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
-    for key in qty_key:
-        datablock["food"][key] *= ratio
+    # # Update per cap/day values and per year values using the same ratio, which
+    # # is independent of population growth
+    # qty_key = ["g/cap/day", "g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
+    # for key in qty_key:
+    #     datablock["food"][key] *= ratio
 
-    # datablock["food"]["g/cap/day"] = out
+    datablock["food"]["g/cap/day"] = out
 
     return datablock
 
@@ -732,13 +731,13 @@ def peatland_restoration(datablock, restore_fraction, new_land_type, old_land_ty
     ratio = out / food_orig
     ratio = ratio.where(~np.isnan(ratio), 1)
 
-    # Update per cap/day values and per year values using the same ratio, which
-    # is independent of population growth
-    qty_key = ["g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
-    for key in qty_key:
-        datablock["food"][key] *= ratio
+    # # Update per cap/day values and per year values using the same ratio, which
+    # # is independent of population growth
+    # qty_key = ["g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
+    # for key in qty_key:
+    #     datablock["food"][key] *= ratio
 
-    # datablock["food"]["g/cap/day"] = out
+    datablock["food"]["g/cap/day"] = out
 
     return datablock
 
@@ -1448,8 +1447,6 @@ def mixed_farming_model(datablock, fraction, prod_scale_factor, items,
 
     # Rewrite food data datablock
     datablock["food"]["g/cap/day"] = out
-
-    # TO-DO: update the rest of the nutrient data
 
     return datablock
 
