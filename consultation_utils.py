@@ -12,8 +12,9 @@ APP_BASE_URL = "https://sarahjp-hack.streamlit.app/"
 credentials = service_account.Credentials.from_service_account_info(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
-SUBMISSION_WORKSHEET = "Stakeholder submissions - roadmap workshop Jan 23"
+# SUBMISSION_WORKSHEET = "Stakeholder submissions - roadmap workshop Jan 23"
 # SUBMISSION_WORKSHEET = "Stage I submissions"
+SUBMISSION_WORKSHEET = "submissions_8apr25"
 
 gc = gspread.authorize(credentials)
 sh = gc.open_by_key("1ZEb7PzEi6aKv303t7ypFriIt89FPzXTySGt_vmY60_Y")
@@ -105,8 +106,7 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
         name = " "
     
     else:
-        row = [user_id,
-               name,
+        row = [name,
 
             st.session_state["pop_proj"],
             st.session_state["yield_proj"],
@@ -114,7 +114,8 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
 
             st.session_state["ruminant"],
             st.session_state["dairy"],
-            st.session_state["pig_poultry_eggs"],
+            st.session_state["pig_poultry"],
+            st.session_state["eggs"],            
             st.session_state["pulses"],
             st.session_state["fruit_veg"],
             st.session_state["cereals"],
@@ -127,17 +128,20 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
             st.session_state["land_BECCS"],
             st.session_state["lowland_peatland"],
             st.session_state["upland_peatland"],
-            st.session_state["soil_carbon"],
+            st.session_state["horticulture"],
+            st.session_state["pulse_production"],
             st.session_state["mixed_farming"],
 
             st.session_state["silvopasture"],
             st.session_state["stock_density"],
+            st.session_state["pasture_soil_carbon"],
             st.session_state["methane_inhibitor"],
             st.session_state["manure_management"],
             st.session_state["animal_breeding"],
             st.session_state["fossil_livestock"],
 
             st.session_state["agroforestry"],
+            st.session_state["arable_soil_carbon"],
             st.session_state["fossil_arable"],
             st.session_state["nitrogen"],
             st.session_state["vertical_farming"],
@@ -146,10 +150,6 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
             st.session_state["overseas_BECCS"],
             st.session_state["DACCS"],
             
-            st.session_state.elasticity,
-            st.session_state.bdleaf_seq_ha_yr,
-            st.session_state.conif_seq_ha_yr,
-            st.session_state.emission_factors,
             hash
         ]
 
