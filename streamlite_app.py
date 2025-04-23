@@ -134,7 +134,7 @@ with st.sidebar:
         text_plus_slider("Forest", "foresting_pasture", value=13.17, min_value=0., max_value=50., step=0.1,
                          help_dialog=afforestation_help, sign=False)
 
-        text_plus_slider("Broadleaf %", "bdleaf_conif_ratio", min_value=0)
+        text_plus_slider("Broadleaf %", "bdleaf_conif_ratio", min_value=0, value=75)
 
         text_plus_slider("BECCS crops", "land_BECCS", min_value=0,
                          help_dialog=beccs_help)
@@ -261,11 +261,11 @@ with st.sidebar:
             times as you want before the expert submission deadline on 26th
             March 2025.</div>""", unsafe_allow_html=True)
         
-        submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden")
+        submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden", key="submission_name")
         
         allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
         st.caption("""By clicking ‘Submit’ you are agreeing to our Data Protection Policy [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
-        submit_state = st.button("Submit")
+        submit_state = st.button("Submit", key="submit_scenario")
         if submit_state:
             submit_scenario(" ", ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name, extra_values=extra_values)
 

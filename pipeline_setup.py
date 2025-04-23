@@ -196,7 +196,10 @@ def pipeline_setup(food_system):
                                          "Managed pasture"],
                             "tree_coverage":st.session_state.agroecology_tree_coverage,
                             "replaced_items":[2731, 2732],
-                            "seq_ha_yr":st.session_state.agroecology_tree_coverage*st.session_state.bdleaf_seq_ha_yr})
+                            "seq_ha_yr":st.session_state.agroecology_tree_coverage*(st.session_state.bdleaf_conif_ratio/100 * st.session_state.bdleaf_seq_ha_yr \
+                                        + (1 - st.session_state.bdleaf_conif_ratio/100) * st.session_state.conif_seq_ha_yr) \
+                                        + (1 - st.session_state.agroecology_tree_coverage) * st.session_state.managed_pasture_seq_ha_yr,
+                            })
     
     food_system.add_node(scale_impact,
                          {"items":("Item_origin","Vegetal Products"),
@@ -247,7 +250,11 @@ def pipeline_setup(food_system):
                                          "Managed arable"],
                             "tree_coverage":st.session_state.agroecology_tree_coverage,
                             "replaced_items":2511,
-                            "seq_ha_yr":st.session_state.agroecology_tree_coverage*st.session_state.bdleaf_seq_ha_yr})
+                            "seq_ha_yr":st.session_state.agroecology_tree_coverage*(st.session_state.bdleaf_conif_ratio/100 * st.session_state.bdleaf_seq_ha_yr \
+                                        + (1 - st.session_state.bdleaf_conif_ratio/100) * st.session_state.conif_seq_ha_yr) \
+                                        + (1 - st.session_state.agroecology_tree_coverage) * st.session_state.managed_pasture_seq_ha_yr,
+                            
+                            })
     
     # food_system.add_node(zero_land_farming_model,
     #                      {"fraction":st.session_state.vertical_farming/100,
