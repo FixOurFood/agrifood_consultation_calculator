@@ -70,7 +70,7 @@ def plots(datablock):
     if plot_key == "Summary":
         if not st.session_state["embedding"]:
 
-            st.markdown("# Agrifood Calculator - The UK in 2050")
+            st.markdown("# Future Food Calculator - The UK in 2050")
             st.write("""Click on an aspect of the food system you would like to change - on
                     the left side of the page. Move the sliders to explore how different
                     interventions in the food system impact the UK emissions balance,

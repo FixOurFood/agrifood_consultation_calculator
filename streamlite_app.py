@@ -49,7 +49,7 @@ if "embedding" in st.query_params:
 # GUI
 st.set_page_config(layout='wide',
                    initial_sidebar_state='expanded',
-                   page_title="Agrifood Calculator",
+                   page_title="Future Food Calculator",
                    page_icon="images/fof_icon.png")
 
 set_advanced_settings()
