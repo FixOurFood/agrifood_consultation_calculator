@@ -68,7 +68,7 @@ def plots(datablock):
     SSR_metric_yr = gcapday.fbs.SSR()
 
     if plot_key == "Summary":
-        if st.session_state["embedding"]:
+        if not st.session_state["embedding"]:
 
             st.markdown("# Agrifood Calculator - The UK in 2050")
             st.write("""Click on an aspect of the food system you would like to change - on
