@@ -37,6 +37,12 @@ if "check_ID" not in st.session_state:
 if "testing" not in st.session_state:
     st.session_state["testing"] = False
 
+if "embedding" not in st.session_state:
+    st.session_state["embedding"] = False
+
+if "embedding" in st.query_params:
+    st.session_state["embedding"] = True
+
 # ------------------------
 # Help and tooltip strings
 # ------------------------

@@ -68,27 +68,28 @@ def plots(datablock):
     SSR_metric_yr = gcapday.fbs.SSR()
 
     if plot_key == "Summary":
+        if st.session_state["embedding"]:
 
-        st.markdown("# Agrifood Calculator - The UK in 2050")
-        st.write("""Click on an aspect of the food system you would like to change - on
-                the left side of the page. Move the sliders to explore how different
-                interventions in the food system impact the UK emissions balance,
-                self-sufficiency, and land use. Alternatively, select a scenario
-                from the dropdown menu on the top of the sidebar to automatically
-                position sliders to pre-set values. Detailed charts describing the
-                effects of interventions on different aspects of the food system
-                can be found in the dropdown menu at the bottom of the page.""")
-        st.write("""Challenge: can you move the sliders to get the UK to net zero
-                (diamond is at zero)? Are you happy with this solution? If so, submit
-                your proposed solution at the bottom of this page!
-                """)
+            st.markdown("# Agrifood Calculator - The UK in 2050")
+            st.write("""Click on an aspect of the food system you would like to change - on
+                    the left side of the page. Move the sliders to explore how different
+                    interventions in the food system impact the UK emissions balance,
+                    self-sufficiency, and land use. Alternatively, select a scenario
+                    from the dropdown menu on the top of the sidebar to automatically
+                    position sliders to pre-set values. Detailed charts describing the
+                    effects of interventions on different aspects of the food system
+                    can be found in the dropdown menu at the bottom of the page.""")
+            st.write("""Challenge: can you move the sliders to get the UK to net zero
+                    (diamond is at zero)? Are you happy with this solution? If so, submit
+                    your proposed solution at the bottom of this page!
+                    """)
                 
         col_comp_1, col_comp_2, col_comp_3 = st.columns([1,1,1])
 
         # Emissions and removals balance
         with col_comp_1:
 
-            with st.container(height=800, border=True):
+            with st.container(height=850, border=True):
                 
                 st.markdown('''**UK Emissions balance**''')
                     
@@ -121,7 +122,7 @@ def plots(datablock):
 
         # Self-sufficiency ratio
         with col_comp_2:
-            with st.container(height=800, border=True):
+            with st.container(height=850, border=True):
 
                 st.markdown('''**Self-sufficiency**''')
 
@@ -207,7 +208,7 @@ def plots(datablock):
                
         # Land use
         with col_comp_3:
-            with st.container(height=800, border=True):
+            with st.container(height=850, border=True):
 
                 st.markdown('''**Land use**''')
 
