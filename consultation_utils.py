@@ -15,11 +15,12 @@ credentials = service_account.Credentials.from_service_account_info(
 # SUBMISSION_WORKSHEET = "Stakeholder submissions - roadmap workshop Jan 23"
 # SUBMISSION_WORKSHEET = "Stage I submissions"
 SUBMISSION_WORKSHEET = "submissions_8apr25"
+SCENARIOS_WORKSHEET = "Scenarios"
 
 gc = gspread.authorize(credentials)
 sh = gc.open_by_key("1ZEb7PzEi6aKv303t7ypFriIt89FPzXTySGt_vmY60_Y")
 stage_I_worksheet = sh.worksheet(SUBMISSION_WORKSHEET)
-pathways_worksheet = sh.worksheet("Sensitivity Analysis")
+pathways_worksheet = sh.worksheet(SCENARIOS_WORKSHEET)
 enrolments_worksheet = sh.worksheet("Form responses 2")
 
 stage_I_deadline = 'December 31, 2024'

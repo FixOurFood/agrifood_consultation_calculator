@@ -102,7 +102,8 @@ def plots(datablock):
                     mark_total=True, show_zero=True, ax_ticks=True, legend=True,
                     ax_min=-90, ax_max=120, reference=reference_emissions_baseline)
                     
-                c = c.properties(height=500)
+                c = c.properties(height=500).configure(background='white').configure_axisLeft(labelColor='black', titleColor='black').configure_legend(labelColor='black', titleColor='black')
+
                 st.altair_chart(c, use_container_width=True)
                 st.checkbox("Show agriculture and land use only", value=False, on_change=change_to_afolu_only, key="show_afolu_only_checkbox")
                 st.markdown(f"Total emissions: **{emissions_balance.sum().to_numpy():.2f} Mt CO2e / year**")
