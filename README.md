@@ -1,6 +1,6 @@
 ## The FixOurFood agrifood Calculator
 
-The FixOurFood agrifood Calculator is an interactive graphical user interface
+The FixOurFood Future Food Calculator is an interactive graphical user interface
 (GUI) that allows users to estimate the impacts of a range food system
 interventions in several categories, including farming practices, consumption
 patterns, land use and innovation.

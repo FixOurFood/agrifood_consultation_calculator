@@ -111,13 +111,13 @@ def help_str(help, sidebar_key, row_index, heading_key=None):
 
     return help_string
 
-@st.dialog("Agrifood Calculator", width="large")
+@st.dialog("Future Food Calculator", width="large")
 def first_run_dialog():
     """Dialog that appears when the app is first run. If the 'Get started'
     button is pressed, the app is run again and the dialog is closed, while the
     'X' button closes the dialog without a rerun"""
 
-    st.write("""The Agrifood Calculator provides a model of the UK agrifood
+    st.write("""The Future Food Calculator provides a model of the UK agrifood
             system that allows you to explore pathways for how we might reduce
             the UK’s greenhouse gas emissions to net zero by 2050 through
             agriculture and food.""")
@@ -138,7 +138,7 @@ def first_run_dialog():
     with col2:
         st.image("images/slider_gif_intro.gif")
                  
-    st.write("""The Agrifood Calculator was developed with funding from [FixOurFood](https://fixourfood.org/).
+    st.write("""The Future Food Calculator was developed with funding from [FixOurFood](https://fixourfood.org/).
             It was conceived as a tool to support evidence based policy making
             and to engage food system stakeholders in a conversation about
             pathways to net zero.""")

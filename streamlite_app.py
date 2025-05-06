@@ -57,7 +57,7 @@ set_advanced_settings()
 with open('utils/style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-if st.session_state.first_run:
+if st.session_state.first_run and not st.session_state["embedding"]:
     st.session_state.first_run = False
     first_run_dialog()
 
