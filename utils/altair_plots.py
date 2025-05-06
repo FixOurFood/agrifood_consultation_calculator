@@ -266,7 +266,7 @@ def plot_single_bar_altair(da, show="Item", axis_title=None,
 
     df_pos = df_pos.melt(id_vars=show, value_vars=da.name)
     df_neg = df_neg.melt(id_vars=show, value_vars=da.name)
-    
+       
     # Create a new column for the tooltip with units
     df_pos['value_with_unit'] = df_pos['value'].apply(lambda x: f"{x:.2f} {unit}")
     df_pos['order'] = np.arange(len(da[show].values))
@@ -275,13 +275,18 @@ def plot_single_bar_altair(da, show="Item", axis_title=None,
 
     for df in [df_pos, df_neg]:
         df[show] = df[show].replace("Vegetal Products", "Plant Products")
-        df[show] = df[show].replace("Cukltured Product", "Alternative Products")
+        df[show] = df[show].replace("Cultured Product", "Alternative Products")
 
     # Set yaxis limits
     if ax_max is None:
         ax_max = da.where(da>0).sum(dim=show).max().item()
+    else:
+        ax_max = np.max([ax_max, da.where(da>0).sum(dim=show).max().item()])
+
     if ax_min is None:
         ax_min = np.min([da.where(da<0).sum(dim=show).min().item(), 0])
+    else:
+        ax_min = np.min([ax_min, da.where(da<0).sum(dim=show).min().item(), 0])
 
     if vertical:
         chart_params = {"y":alt.Y('sum(value):Q',

@@ -69,7 +69,6 @@ def plots(datablock):
 
     if plot_key == "Summary":
         if not st.session_state["embedding"]:
-
             st.markdown("# Future Food Calculator - The UK in 2050")
             st.write("""Click on an aspect of the food system you would like to change - on
                     the left side of the page. Move the sliders to explore how different
@@ -86,9 +85,9 @@ def plots(datablock):
                 
         col_comp_1, col_comp_2, col_comp_3 = st.columns([1,1,1])
 
-        # Emissions and removals balance
         with col_comp_1:
 
+            # Emissions and removals balance
             with st.container(height=850, border=True):
                 
                 st.markdown('''**UK Emissions balance**''')
@@ -121,9 +120,10 @@ def plots(datablock):
                            agrifood system stays the same as it is today. 
                            </div>''', unsafe_allow_html=True)
 
-        # Self-sufficiency ratio
         with col_comp_2:
-            with st.container(height=850, border=True):
+    
+            # Self-sufficiency ratio
+            with st.container(height=450, border=True):
 
                 st.markdown('''**Self-sufficiency**''')
 
@@ -161,18 +161,6 @@ def plots(datablock):
                                                      unit=ssr_metric.replace("_"," "),
                                                      color=origin_color)
 
-
-                st.altair_chart(production_bar, use_container_width=True)
-                st.altair_chart(imports_bar, use_container_width=True)
-
-                st.selectbox("Select metric", ["g/cap/day",
-                                               "g_prot/cap/day",
-                                               "g_fat/cap/day",
-                                               "g_co2e/cap/day",
-                                               "kCal/cap/day",],
-                                               key="update_ssr_metric",
-                                               on_change=update_SSR_metric)
-
                 if SSR_metric_yr < SSR_ref:
                     st.markdown(f'''
                     <span style="color:red">
@@ -195,20 +183,49 @@ def plots(datablock):
                     ''', unsafe_allow_html=True)
 
                 st.write("")
-                st.caption('''<div style="text-align: justify;">
-                This panel calculates how much the UK relies on food imports, by
-                comparing the amount we produce in the UK to the amount we use.
-                The UK currently produces 73% of what it uses, and a lower value
-                would mean we depend more on imports.</div>''', unsafe_allow_html=True)
-                st.write("\n")
-                st.caption('''<div style="text-align: justify;">
-                This percentage can be calculated by weight (tonnes produced /
-                tonnes used) or other metrics e.g. kcal produced / kcal used or
-                nutrients such as protein.
-                </div>''', unsafe_allow_html=True)
+
+                st.altair_chart(production_bar, use_container_width=True)
+                st.altair_chart(imports_bar, use_container_width=True)
+                st.selectbox("Select metric",
+                             
+                             ["g/cap/day",
+                             "g_prot/cap/day",
+                             "g_fat/cap/day",
+                             "g_co2e/cap/day",
+                             "kCal/cap/day",],
+
+                             key="update_ssr_metric",
+                             on_change=update_SSR_metric,
+                             label_visibility="collapsed",
+                             placeholder="Select metric")
+                
+                # st.caption('''<div style="text-align: justify;">
+                # This panel calculates how much the UK relies on food imports, by
+                # comparing the amount we produce in the UK to the amount we use.
+                # The UK currently produces 73% of what it uses, and a lower value
+                # would mean we depend more on imports.</div>''', unsafe_allow_html=True)
+                # st.write("\n")
+                # st.caption('''<div style="text-align: justify;">
+                # This percentage can be calculated by weight (tonnes produced /
+                # tonnes used) or other metrics e.g. kcal produced / kcal used or
+                # nutrients such as protein.
+                # </div>''', unsafe_allow_html=True)
+
+            
+            # Production
+            with st.container(height=392, border=True):
+                st.markdown('''**Food production**''')
+
+                st.metric(label="Herd size", value="2.2 Million",
+                          delta="-0.5 Million")
+                
+                st.metric(label="Total horiculture production", value="280,000 tonnes",
+                          delta="+20,000 tonnes")
+
                
-        # Land use
         with col_comp_3:
+            
+            # Land use
             with st.container(height=850, border=True):
 
                 st.markdown('''**Land use**''')
