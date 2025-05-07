@@ -11,6 +11,7 @@ from glossary import *
 from utils.helper_functions import *
 from consultation_utils import submit_scenario, get_user_list, stage_I_deadline
 from streamlit_theme import st_theme
+from millify import millify
 
 @st.fragment()
 def plots(datablock):
@@ -216,8 +217,28 @@ def plots(datablock):
             with st.container(height=392, border=True):
                 st.markdown('''**Food production**''')
 
-                st.metric(label="Herd size", value="2.2 Million",
-                          delta="-0.5 Million")
+                baseline_beef_herd = st.session_state["baseline_beef_herd"]
+                baseline_dairy_herd = st.session_state["baseline_dairy_herd"]
+                dairy_herd_beef = st.session_state["dairy_herd_beef"]
+
+                pop_baseline = datablock["population"]["population"].sel(Region = 826, Year=2020).values
+                pop_new = datablock["population"]["population"].sel(Region = 826, Year=metric_yr).values
+
+                baseline_dairy_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=[2743, 2740, 2948]).fillna(0).sum().values
+                new_dairy_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=[2743, 2740, 2948]).fillna(0).sum().values
+
+                baseline_beef_production = pop_baseline *datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2731).fillna(0).sum().values
+                new_beef_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=2731).fillna(0).sum().values
+
+                print(baseline_beef_herd, baseline_dairy_herd)
+                print(baseline_dairy_production, new_dairy_production)
+                print(baseline_beef_production, new_beef_production)
+
+                new_dairy_herd = baseline_dairy_herd * new_dairy_production / baseline_dairy_production
+                new_beef_herd = baseline_beef_herd * (new_beef_production - dairy_herd_beef * baseline_beef_production * new_dairy_herd / baseline_dairy_herd) / ((1 - dairy_herd_beef)*baseline_beef_production)
+
+                st.metric(label="Herd size", value=f"{millify(new_dairy_herd+new_beef_herd, precision=2)} cattle",
+                          delta=f"{millify(new_dairy_herd+new_beef_herd - baseline_dairy_herd - baseline_beef_herd, precision=2)} cattle")
                 
                 st.metric(label="Total horiculture production", value="280,000 tonnes",
                           delta="+20,000 tonnes")
