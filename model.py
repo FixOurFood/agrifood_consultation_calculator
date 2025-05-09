@@ -5,6 +5,7 @@ from agrifoodpy.utils.scaling import logistic_scale, linear_scale
 import warnings
 import copy
 import streamlit as st
+from glossary import *
 
 def project_future(datablock, yield_change=None):
     """Project future food consumption based on scale
@@ -1514,5 +1515,46 @@ def shift_production(datablock, scale, items, items_target, land_area_ratio):
 
     # Rewrite food data to datablock and return
     datablock["food"]["g/cap/day"] = out
+
+    return datablock
+
+def post_process(datablock):
+    """Computes a series of metrics from the resulting datablock"""
+    # Emissions balance
+    metric_yr = 2050
+    seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
+    emissions = datablock["impact"]["g_co2e/year"]["production"].sel(Year=metric_yr)/1e6
+    total_emissions = emissions.sum(dim="Item").values/1e6
+    total_seq = seq_da.sel(Item=["Broadleaf woodland",
+                                    "Coniferous woodland",
+                                    "Managed pasture",
+                                    "Managed arable",
+                                    "Mixed farming",
+                                    "Silvopasture",
+                                    "Agroforestry"]).sum(dim="Item").values/1e6
+    
+    total_removals = seq_da.sel(Item=["BECCS from waste",
+                                      "BECCS from overseas biomass",
+                                      "BECCS from land",
+                                      "DACCS"]).sum(dim="Item").values/1e6
+    
+    emissions_balance = xr.DataArray(data = list(sector_emissions_dict.values()),
+                            name="Sectoral emissions",
+                            coords={"Sector": list(sector_emissions_dict.keys())})
+    
+    emissions_balance.loc[{"Sector": "Agriculture"}] = total_emissions
+    emissions_balance.loc[{"Sector": "LU sinks"}] = -total_seq
+    emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
+
+    emissions_balance.loc[{"Sector": "LU sources"}] -= seq_da.sel(Item=["Restored upland peat", "Restored lowland peat"]).sum(dim="Item").values/1e6
+
+    ssr_metric = st.session_state["ssr_metric"]
+    gcapday = datablock["food"][ssr_metric].sel(Year=metric_yr).fillna(0)
+    gcapday = gcapday.fbs.group_sum(coordinate="Item_origin", new_name="Item")
+    gcapday_ref = datablock["food"][ssr_metric].sel(Year=2020).fillna(0)
+    gcapday_ref = gcapday_ref.fbs.group_sum(coordinate="Item_origin", new_name="Item")
+
+    SSR_ref = gcapday_ref.fbs.SSR()
+    SSR_metric_yr = gcapday.fbs.SSR()
 
     return datablock

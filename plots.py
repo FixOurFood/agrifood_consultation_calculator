@@ -24,8 +24,26 @@ def plots(datablock):
 
     plt.rcParams['axes.facecolor'] = background_color
 
+    metric_yr = 2050
     reference_emissions_baseline = 94.24
     reference_emissions_baseline_agriculture = 53.69
+
+    baseline_beef_herd = st.session_state["baseline_beef_herd"]
+    baseline_dairy_herd = st.session_state["baseline_dairy_herd"]
+    dairy_herd_beef = st.session_state["dairy_herd_beef"]
+
+    pop_baseline = datablock["population"]["population"].sel(Region = 826, Year=2020).values
+    pop_new = datablock["population"]["population"].sel(Region = 826, Year=metric_yr).values
+
+    baseline_dairy_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=[2743, 2740, 2948]).fillna(0).sum().values
+    new_dairy_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=[2743, 2740, 2948]).fillna(0).sum().values
+
+    baseline_beef_production = pop_baseline *datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2731).fillna(0).sum().values
+    new_beef_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=2731).fillna(0).sum().values
+
+    new_dairy_herd = baseline_dairy_herd * new_dairy_production / baseline_dairy_production
+    new_beef_herd = baseline_beef_herd * (new_beef_production - dairy_herd_beef * baseline_beef_production * new_dairy_herd / baseline_dairy_herd) / ((1 - dairy_herd_beef)*baseline_beef_production)
+
 
     # ----------------------------------------    
     #                  Plots
@@ -33,7 +51,6 @@ def plots(datablock):
 
     # Summary
     # -------
-    metric_yr = 2050
     plot_key = st.session_state["plot_key"]
 
     seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
@@ -100,26 +117,34 @@ def plots(datablock):
                 c = plot_single_bar_altair(emissions_balance, show="Sector", color=sector_emissions_colors,
                     axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,
                     mark_total=True, show_zero=True, ax_ticks=True, legend=True,
-                    ax_min=-90, ax_max=120, reference=reference_emissions_baseline)
+                    ax_min=-80, ax_max=120, reference=reference_emissions_baseline)
                     
-                c = c.properties(height=500).configure(background='white').configure_axisLeft(labelColor='black', titleColor='black').configure_legend(labelColor='black', titleColor='black')
+                c = c.properties(height=450)
+                # c = c.configure(background='white').configure_axisLeft(labelColor='black', titleColor='black').configure_legend(labelColor='black', titleColor='black')
 
                 st.altair_chart(c, use_container_width=True)
                 st.checkbox("Show agriculture and land use only", value=False, on_change=change_to_afolu_only, key="show_afolu_only_checkbox")
-                st.markdown(f"Total emissions: **{emissions_balance.sum().to_numpy():.2f} Mt CO2e / year**")
-                st.caption('''<div style="text-align: justify;">
-                           The diagram above visualises the balance between total
-                           emissions produced in the UK, and carbon storage.
-                           The red diamond shows the net balance, the red dot is
-                           at zero and your goal is to move the sliders to get
-                           them to line up.</div>''', unsafe_allow_html=True)
-                st.write("\n")
-                st.caption('''<div style="text-align: justify;">
-                           It assumes other (non agrifood) sectors reduce their
-                           emissions according to the CCC balanced pathway.
-                           The black line shows the situation in 2050 if the
-                           agrifood system stays the same as it is today. 
-                           </div>''', unsafe_allow_html=True)
+                st.metric(label="Total emissions", value="{:.2f} Mt CO2e / year".format(emissions_balance.sum().values),
+                    delta="{:.2f} Mt CO2e / year".format(emissions_balance.sum().values - reference_emissions_baseline),
+                    delta_color="inverse")
+                
+                st.metric(label="Sequestration and removals", value="{:.2f} Mt CO2e / year".format(total_seq + total_removals))
+                st.metric(label="Agricultural emissions", value="{:.2f} Mt CO2e / year".format(total_emissions))
+
+                # st.markdown(f"Total emissions: **{emissions_balance.sum().to_numpy():.2f} Mt CO2e / year**")
+                # st.caption('''<div style="text-align: justify;">
+                #            The diagram above visualises the balance between total
+                #            emissions produced in the UK, and carbon storage.
+                #            The red diamond shows the net balance, the red dot is
+                #            at zero and your goal is to move the sliders to get
+                #            them to line up.</div>''', unsafe_allow_html=True)
+                # st.write("\n")
+                # st.caption('''<div style="text-align: justify;">
+                #            It assumes other (non agrifood) sectors reduce their
+                #            emissions according to the CCC balanced pathway.
+                #            The black line shows the situation in 2050 if the
+                #            agrifood system stays the same as it is today. 
+                #            </div>''', unsafe_allow_html=True)
 
         with col_comp_2:
     
@@ -215,35 +240,11 @@ def plots(datablock):
             
             # Production
             with st.container(height=392, border=True):
-                st.markdown('''**Food production**''')
+                st.markdown('''**Production and consumption**''')
 
-                baseline_beef_herd = st.session_state["baseline_beef_herd"]
-                baseline_dairy_herd = st.session_state["baseline_dairy_herd"]
-                dairy_herd_beef = st.session_state["dairy_herd_beef"]
-
-                pop_baseline = datablock["population"]["population"].sel(Region = 826, Year=2020).values
-                pop_new = datablock["population"]["population"].sel(Region = 826, Year=metric_yr).values
-
-                baseline_dairy_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=[2743, 2740, 2948]).fillna(0).sum().values
-                new_dairy_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=[2743, 2740, 2948]).fillna(0).sum().values
-
-                baseline_beef_production = pop_baseline *datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2731).fillna(0).sum().values
-                new_beef_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=2731).fillna(0).sum().values
-
-                print(baseline_beef_herd, baseline_dairy_herd)
-                print(baseline_dairy_production, new_dairy_production)
-                print(baseline_beef_production, new_beef_production)
-
-                new_dairy_herd = baseline_dairy_herd * new_dairy_production / baseline_dairy_production
-                new_beef_herd = baseline_beef_herd * (new_beef_production - dairy_herd_beef * baseline_beef_production * new_dairy_herd / baseline_dairy_herd) / ((1 - dairy_herd_beef)*baseline_beef_production)
-
-                st.metric(label="Herd size", value=f"{millify(new_dairy_herd+new_beef_herd, precision=2)} cattle",
-                          delta=f"{millify(new_dairy_herd+new_beef_herd - baseline_dairy_herd - baseline_beef_herd, precision=2)} cattle")
+                st.metric(label="Herd size", value=f"{millify(new_dairy_herd+new_beef_herd, precision=2)}",
+                          delta=millify(new_dairy_herd+new_beef_herd - baseline_dairy_herd - baseline_beef_herd, precision=2))
                 
-                st.metric(label="Total horiculture production", value="280,000 tonnes",
-                          delta="+20,000 tonnes")
-
-               
         with col_comp_3:
             
             # Land use
@@ -284,13 +285,41 @@ def plots(datablock):
                 st.pyplot(f)
                 st.altair_chart(bar_land_use, use_container_width=True)
 
-                st.caption('''<div style="text-align: justify;">
-                The map above shows the distribution of land use types in the UK.
-                Land use types are associated with different processes,
-                including food production, forests and hybrid productive systems
-                such as silvoarable (trees mixed with crops) and silvopasture
-                (animals mixed with crops).
-                </div>''', unsafe_allow_html=True)
+                cols_metrics_land = st.columns(3)
+                with cols_metrics_land[0]:
+
+                    total_pasture = totals.sel(aggregate_class=["Improved grassland",
+                                                                "Semi-natural grassland",
+                                                                "Managed pasture",
+                                                                "Silvopasture"]).sum().values
+                    baseline_pasture = datablock["land"]["baseline"].sel(aggregate_class=["Improved grassland",
+                                                                                    "Semi-natural grassland"]).sum().values
+
+                    st.metric(label="Pasture area", value=f"{millify(total_pasture, precision=2)} ha",
+                            delta=f"{millify(total_pasture-baseline_pasture, precision=2)} ha")
+                   
+                with cols_metrics_land[1]:
+
+                    total_forest = totals.sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values
+                    baseline_forest = datablock["land"]["baseline"].sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values
+
+                    st.metric(label="Forested area", value=f"{millify(total_forest, precision=2)} ha",
+                            delta=f"{millify(total_forest-baseline_forest, precision=2)} ha")
+
+                with cols_metrics_land[2]:
+                    total_arable = totals.sel(aggregate_class=["Arable", "Managed arable", "Mixed farming", "Agroforestry"]).sum().values
+                    baseline_arable = datablock["land"]["baseline"].sel(aggregate_class=["Arable"]).sum().values
+
+                    st.metric(label="Arable area", value=f"{millify(total_arable, precision=2)} ha",
+                            delta=f"{millify(total_arable-baseline_arable, precision=2)} ha")                    
+
+                # st.caption('''<div style="text-align: justify;">
+                # The map above shows the distribution of land use types in the UK.
+                # Land use types are associated with different processes,
+                # including food production, forests and hybrid productive systems
+                # such as silvoarable (trees mixed with crops) and silvopasture
+                # (animals mixed with crops).
+                # </div>''', unsafe_allow_html=True)
 
     # Emissions per food group or origin
     # ----------------------------------
@@ -534,6 +563,7 @@ def plots(datablock):
 
     extra_values = [SSR_metric_yr,
                     total_emissions,
+                    new_dairy_herd+new_beef_herd,
                     reducion_emissions_pctg,
                     new_forest_land_Mha,
                     forest_sequestration_MtCO2,

@@ -168,5 +168,5 @@ sector_emissions_colors = {
     "Buildings":"#ffac00",
     "Transport":"#7142ff",
     "LU sinks":"#1a5f31",
-    "Removals":"#000000",
+    "Removals":"#1a73e8",
 }
