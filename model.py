@@ -1589,6 +1589,10 @@ def compute_metrics(datablock):
     baseline_beef_herd = st.session_state["baseline_beef_herd"]
     baseline_dairy_herd = st.session_state["baseline_dairy_herd"]
     dairy_herd_beef = st.session_state["dairy_herd_beef"]
+    baseline_poultry_heads = st.session_state["baseline_poultry_heads"]
+    baseline_pig_heads = st.session_state["baseline_pig_heads"]
+    baseline_sheep_flock = st.session_state["baseline_sheep_flock"]
+    baseline_dairy_herd_2y = st.session_state["baseline_dairy_herd_breeding_aged_2_years_"]
 
     pop_baseline = datablock["population"]["population"].sel(Region = 826, Year=2020).values
     pop_new = datablock["population"]["population"].sel(Region = 826, Year=metric_yr).values
@@ -1601,12 +1605,36 @@ def compute_metrics(datablock):
 
     new_dairy_herd = baseline_dairy_herd * new_dairy_production / baseline_dairy_production
     new_beef_herd = baseline_beef_herd * (new_beef_production - dairy_herd_beef * baseline_beef_production * new_dairy_herd / baseline_dairy_herd) / ((1 - dairy_herd_beef)*baseline_beef_production)
+    new_dairy_herd_2y = baseline_dairy_herd_2y * new_dairy_production / baseline_dairy_production
+
+    baseline_poultry_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2734).fillna(0).sum().values
+    new_poultry_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=2734).fillna(0).sum().values
+    new_poultry_heads = baseline_poultry_heads * new_poultry_production / baseline_poultry_production
+
+    baseline_pig_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2733).fillna(0).sum().values
+    new_pig_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=2733).fillna(0).sum().values
+    new_pig_heads = baseline_pig_heads * new_pig_production / baseline_pig_production
+
+    baseline_sheep_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2732).fillna(0).sum().values
+    new_sheep_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=2732).fillna(0).sum().values
+    new_sheep_flock = baseline_sheep_flock * new_sheep_production / baseline_sheep_production
+
 
     datablock["metrics"]["new_dairy_herd"] = new_dairy_herd
     datablock["metrics"]["new_beef_herd"] = new_beef_herd
+    datablock["metrics"]["new_dairy_herd_2y"] = new_dairy_herd_2y
     datablock["metrics"]["baseline_dairy_herd"] = baseline_dairy_herd
     datablock["metrics"]["baseline_beef_herd"] = baseline_beef_herd
-    datablock["metrics"]["new_herd"] = new_dairy_herd + new_beef_herd 
+    datablock["metrics"]["new_herd"] = new_dairy_herd + new_beef_herd
+
+    datablock["metrics"]["baseline_poultry_heads"] = baseline_poultry_heads
+    datablock["metrics"]["new_poultry_heads"] = new_poultry_heads
+
+    datablock["metrics"]["baseline_pig_heads"] = baseline_pig_heads
+    datablock["metrics"]["new_pig_heads"] = new_pig_heads
+
+    datablock["metrics"]["baseline_sheep_flock"] = baseline_sheep_flock
+    datablock["metrics"]["new_sheep_flock"] = new_sheep_flock
 
     # Land use
     pctg = datablock["land"]["percentage_land_use"]
@@ -1648,5 +1676,35 @@ def compute_metrics(datablock):
     datablock["metrics"]["new_arable_land_pctg"] = new_arable_land_pctg
     datablock["metrics"]["new_pasture_land_pctg"] = new_pasture_land_pctg
 
+    # Crop sizes
+
+    gcapday = datablock["food"]["g/cap/day"]["production"]
+
+    baseline_potatoes_area_mha = 0.012
+    baseline_potato_production = pop_baseline * gcapday.sel(Year=2020, Item=2531).fillna(0).sum().values
+    new_potato_production = pop_new * gcapday.sel(Year=metric_yr, Item=2531).fillna(0).sum().values
+    new_potato_area = baseline_potatoes_area_mha * new_potato_production / baseline_potato_production
+    datablock["metrics"]["new_potato_area"] = new_potato_area
+    
+
+    baseline_oilseed_area_mha = 0.418
+    baseline_oilseed_production = pop_baseline * gcapday.sel(Year=2020, Item=[2570, 2572, 2573, 2575, 2576, 2577, 2578, 2579, 2581, 2582, 2586 ]).fillna(0).sum().values
+    new_oilseed_production = pop_new * gcapday.sel(Year=metric_yr, Item=[2570, 2572, 2573, 2575, 2576, 2577, 2578, 2579, 2581, 2582, 2586 ]).fillna(0).sum().values
+    new_oilseed_area = baseline_oilseed_area_mha * new_oilseed_production / baseline_oilseed_production
+    datablock["metrics"]["new_oilseed_area"] = new_oilseed_area
+
+    baseline_cereal_area_mha = 3.1
+    baseline_cereal_production = pop_baseline * gcapday.sel(Year=2020, Item=gcapday.Item_group=="Cereals - Excluding Beer").fillna(0).sum().values
+    new_cereal_production = pop_new * gcapday.sel(Year=metric_yr, Item=gcapday.Item_group=="Cereals - Excluding Beer").fillna(0).sum().values
+    
+    new_cereal_area = baseline_cereal_area_mha * new_cereal_production / baseline_cereal_production
+    datablock["metrics"]["new_cereal_area"] = new_cereal_area
+    
+    baseline_horticulture_area_mha = 0.145
+    new_horiticulture_area = baseline_horticulture_area_mha * total_arable / baseline_arable * (1-st.session_state["horticulture"]/100)
+    datablock["metrics"]["new_horticulture_area"] = new_horiticulture_area
+
+    other_crops_area_mha = total_arable/1e6 - new_potato_area - new_oilseed_area - new_cereal_area - new_horiticulture_area
+    datablock["metrics"]["other_crops_area_mha"] = other_crops_area_mha
 
     return datablock

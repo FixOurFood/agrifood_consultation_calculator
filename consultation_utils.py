@@ -15,8 +15,10 @@ credentials = service_account.Credentials.from_service_account_info(
 # SUBMISSION_WORKSHEET = "Stakeholder submissions - roadmap workshop Jan 23"
 # SUBMISSION_WORKSHEET = "Stage I submissions"
 # SUBMISSION_WORKSHEET = "submissions_8apr25"
-SUBMISSION_WORKSHEET = "sens_analysis_8may25"
+# SUBMISSION_WORKSHEET = "sens_analysis_8may25"
+SUBMISSION_WORKSHEET = "CB7 figures AFN scenarios"
 SCENARIOS_WORKSHEET = "Scenarios"
+
 
 gc = gspread.authorize(credentials)
 sh = gc.open_by_key("1ZEb7PzEi6aKv303t7ypFriIt89FPzXTySGt_vmY60_Y")
@@ -159,6 +161,20 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
             extra_values = [datablock["metrics"]["SSR_metric_yr"],
                             datablock["metrics"]["total_emissions"],
                             datablock["metrics"]["new_herd"],
+                            datablock["metrics"]["new_dairy_herd"],
+                            datablock["metrics"]["new_dairy_herd_2y"],
+
+                            datablock["metrics"]["new_beef_herd"],
+                            datablock["metrics"]["new_pig_heads"],
+                            datablock["metrics"]["new_poultry_heads"],
+                            datablock["metrics"]["new_sheep_flock"],
+
+                            datablock["metrics"]["new_potato_area"],
+                            datablock["metrics"]["new_oilseed_area"],
+                            datablock["metrics"]["new_cereal_area"],
+                            datablock["metrics"]["new_horticulture_area"],
+                            datablock["metrics"]["other_crops_area_mha"],
+
                             datablock["metrics"]["reduction_emissions_pctg"],
                             datablock["metrics"]["new_forest_land"]/1e6,
                             datablock["metrics"]["forest_sequestration_MtCO2"],
@@ -172,7 +188,7 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
 
             if np.isscalar(extra_values):
                 extra_values = [extra_values]
-            values_formatted = ['{0:.2f}'.format(val) for val in extra_values]
+            values_formatted = ['{0:.3f}'.format(val) for val in extra_values]
             row.extend(values_formatted)
 
         stage_I_worksheet.append_row(row)
