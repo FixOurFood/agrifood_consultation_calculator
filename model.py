@@ -1518,13 +1518,19 @@ def shift_production(datablock, scale, items, items_target, land_area_ratio):
 
     return datablock
 
-def post_process(datablock):
+def compute_metrics(datablock):
     """Computes a series of metrics from the resulting datablock"""
+
+    datablock["metrics"] = {}
+
     # Emissions balance
     metric_yr = 2050
+    reference_emissions_baseline = 94.24
+    reference_emissions_baseline_agriculture = 53.69
+
     seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
     emissions = datablock["impact"]["g_co2e/year"]["production"].sel(Year=metric_yr)/1e6
-    total_emissions = emissions.sum(dim="Item").values/1e6
+    total_agriculture_emissions = emissions.sum(dim="Item").values/1e6
     total_seq = seq_da.sel(Item=["Broadleaf woodland",
                                     "Coniferous woodland",
                                     "Managed pasture",
@@ -1542,12 +1548,29 @@ def post_process(datablock):
                             name="Sectoral emissions",
                             coords={"Sector": list(sector_emissions_dict.keys())})
     
-    emissions_balance.loc[{"Sector": "Agriculture"}] = total_emissions
+    emissions_balance.loc[{"Sector": "Agriculture"}] = total_agriculture_emissions
     emissions_balance.loc[{"Sector": "LU sinks"}] = -total_seq
     emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
 
     emissions_balance.loc[{"Sector": "LU sources"}] -= seq_da.sel(Item=["Restored upland peat", "Restored lowland peat"]).sum(dim="Item").values/1e6
+    total_emissions = emissions_balance.sum().values
+    
+    reducion_emissions_pctg = (total_emissions - reference_emissions_baseline) / reference_emissions_baseline * 100
+    forest_sequestration_MtCO2 = seq_da.sel(Item=["Broadleaf woodland", "Coniferous woodland"]).sum(dim="Item").values/1e6
+    agricultural_emissions = emissions_balance.sel(Sector="Agriculture").sum().values
+    reduction_emissions_agricultural_pctg = (agricultural_emissions - reference_emissions_baseline_agriculture) / reference_emissions_baseline_agriculture * 100
 
+    datablock["metrics"]["emissions_balance"] = emissions_balance
+    datablock["metrics"]["total_sequestration"] = total_seq
+    datablock["metrics"]["total_removals"] = total_removals
+    datablock["metrics"]["total_emissions"] = total_emissions
+    datablock["metrics"]["reference_emissions_baseline"] = reference_emissions_baseline
+    datablock["metrics"]["reduction_emissions_pctg"] = reducion_emissions_pctg
+    datablock["metrics"]["forest_sequestration_MtCO2"] = forest_sequestration_MtCO2
+    datablock["metrics"]["agricultural_emissions"] = agricultural_emissions
+    datablock["metrics"]["reduction_emissions_agricultural_pctg"] = reduction_emissions_agricultural_pctg
+
+    # SSR
     ssr_metric = st.session_state["ssr_metric"]
     gcapday = datablock["food"][ssr_metric].sel(Year=metric_yr).fillna(0)
     gcapday = gcapday.fbs.group_sum(coordinate="Item_origin", new_name="Item")
@@ -1556,5 +1579,74 @@ def post_process(datablock):
 
     SSR_ref = gcapday_ref.fbs.SSR()
     SSR_metric_yr = gcapday.fbs.SSR()
+
+    datablock["metrics"]["SSR_ref"] = SSR_ref
+    datablock["metrics"]["SSR_metric_yr"] = SSR_metric_yr
+    datablock["metrics"]["gcapday_item_origin"] = gcapday
+    datablock["metrics"]["gcapday_ref_item_origin"] = gcapday_ref
+
+    # Herd size
+    baseline_beef_herd = st.session_state["baseline_beef_herd"]
+    baseline_dairy_herd = st.session_state["baseline_dairy_herd"]
+    dairy_herd_beef = st.session_state["dairy_herd_beef"]
+
+    pop_baseline = datablock["population"]["population"].sel(Region = 826, Year=2020).values
+    pop_new = datablock["population"]["population"].sel(Region = 826, Year=metric_yr).values
+
+    baseline_dairy_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=[2743, 2740, 2948]).fillna(0).sum().values
+    new_dairy_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=[2743, 2740, 2948]).fillna(0).sum().values
+
+    baseline_beef_production = pop_baseline *datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2731).fillna(0).sum().values
+    new_beef_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=2731).fillna(0).sum().values
+
+    new_dairy_herd = baseline_dairy_herd * new_dairy_production / baseline_dairy_production
+    new_beef_herd = baseline_beef_herd * (new_beef_production - dairy_herd_beef * baseline_beef_production * new_dairy_herd / baseline_dairy_herd) / ((1 - dairy_herd_beef)*baseline_beef_production)
+
+    datablock["metrics"]["new_dairy_herd"] = new_dairy_herd
+    datablock["metrics"]["new_beef_herd"] = new_beef_herd
+    datablock["metrics"]["baseline_dairy_herd"] = baseline_dairy_herd
+    datablock["metrics"]["baseline_beef_herd"] = baseline_beef_herd
+    datablock["metrics"]["new_herd"] = new_dairy_herd + new_beef_herd 
+
+    # Land use
+    pctg = datablock["land"]["percentage_land_use"]
+    totals = pctg.sum(dim=["x", "y"])
+
+    total_pasture = totals.sel(aggregate_class=["Improved grassland",
+                                                "Semi-natural grassland",
+                                                "Managed pasture",
+                                                "Silvopasture"]).sum().values
+    
+    baseline_pasture = datablock["land"]["baseline"].sel(aggregate_class=["Improved grassland",
+                                                                          "Semi-natural grassland"]).sum().values
+
+    total_forest = totals.sel(aggregate_class=["Broadleaf woodland",
+                                               "Coniferous woodland"]).sum().values
+    
+    new_forest_land = (total_forest - datablock["land"]["baseline"].sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values)
+    
+    baseline_forest = datablock["land"]["baseline"].sel(aggregate_class=["Broadleaf woodland",
+                                                                         "Coniferous woodland"]).sum().values
+
+    total_arable = totals.sel(aggregate_class=["Arable",
+                                               "Managed arable",
+                                               "Mixed farming",
+                                               "Agroforestry"]).sum().values
+    
+    baseline_arable = datablock["land"]["baseline"].sel(aggregate_class=["Arable"]).sum().values
+
+    new_arable_land_pctg = (total_arable - baseline_arable) / baseline_arable * 100
+    new_pasture_land_pctg = (total_pasture - baseline_pasture) / baseline_pasture * 100
+
+    datablock["metrics"]["total_pasture"] = total_pasture
+    datablock["metrics"]["total_forest"] = total_forest
+    datablock["metrics"]["total_arable"] = total_arable
+    datablock["metrics"]["baseline_pasture"] = baseline_pasture
+    datablock["metrics"]["baseline_forest"] = baseline_forest
+    datablock["metrics"]["baseline_arable"] = baseline_arable
+    datablock["metrics"]["new_forest_land"] = new_forest_land
+    datablock["metrics"]["new_arable_land_pctg"] = new_arable_land_pctg
+    datablock["metrics"]["new_pasture_land_pctg"] = new_pasture_land_pctg
+
 
     return datablock

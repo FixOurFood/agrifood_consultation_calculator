@@ -75,7 +75,7 @@ def get_user_list():
     return user_list
 
 @st.dialog("Submit scenario")
-def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None, extra_values=None):
+def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None, datablock=None):
     """Submit the pathway to the Google Sheet.
 
     Parameters:
@@ -155,7 +155,21 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
             hash
         ]
 
-        if extra_values is not None:
+        if datablock is not None:
+            extra_values = [datablock["metrics"]["SSR_metric_yr"],
+                            datablock["metrics"]["total_emissions"],
+                            datablock["metrics"]["new_herd"],
+                            datablock["metrics"]["reduction_emissions_pctg"],
+                            datablock["metrics"]["new_forest_land"]/1e6,
+                            datablock["metrics"]["forest_sequestration_MtCO2"],
+                            datablock["metrics"]["reduction_emissions_agricultural_pctg"],
+                            datablock["metrics"]["agricultural_emissions"],
+                            datablock["metrics"]["total_removals"],
+                            datablock["metrics"]["total_arable"]/1e6,
+                            datablock["metrics"]["new_arable_land_pctg"],
+                            datablock["metrics"]["total_pasture"]/1e6,                            
+                            datablock["metrics"]["new_pasture_land_pctg"]]
+
             if np.isscalar(extra_values):
                 extra_values = [extra_values]
             values_formatted = ['{0:.2f}'.format(val) for val in extra_values]

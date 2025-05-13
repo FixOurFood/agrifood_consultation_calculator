@@ -227,7 +227,8 @@ with st.sidebar:
         pop_projection = selectbox_plus_icon("Population projection",
                                         ["Low", "Medium", "High", "Zero migration"],
                                         default="Medium",
-                                        key="pop_proj")
+                                        key="pop_proj",
+                                        help_dialog=population_help)
 
         selectbox_plus_icon("Crops yield projection",
                             [-0.27, 0.0, 0.34, 0.58],
@@ -255,7 +256,7 @@ datablock_result = food_system.datablock
 # -------------------
 # Execute plots block
 # -------------------
-from plots import plots
+from plots.plots import plots
 extra_values = plots(datablock_result)
 
 with st.sidebar:
@@ -273,7 +274,7 @@ with st.sidebar:
         st.caption("""By clicking ‘Submit’ you are agreeing to our [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
         submit_state = st.button("Submit", key="submit_scenario")
         if submit_state:
-            submit_scenario(" ", ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name, extra_values=extra_values)
+            submit_scenario(" ", ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name, datablock=datablock_result)
 
     st.button("Reset all sliders", on_click=reset_sliders, key='reset_all')
     

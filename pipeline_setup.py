@@ -300,7 +300,10 @@ def pipeline_setup(food_system):
                                    st.session_state.managed_pasture_seq_ha_yr,
                                    st.session_state.mixed_farming_seq_ha_yr,
                                    ]})
-
+    # Compute emissions
     food_system.add_node(compute_emissions)
+
+    # Compute additional metrics 
+    food_system.add_node(compute_metrics)
 
     return food_system
