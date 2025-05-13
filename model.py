@@ -1701,7 +1701,7 @@ def compute_metrics(datablock):
     datablock["metrics"]["new_cereal_area"] = new_cereal_area
     
     baseline_horticulture_area_mha = 0.145
-    new_horiticulture_area = baseline_horticulture_area_mha * total_arable / baseline_arable * (1-st.session_state["horticulture"]/100)
+    new_horiticulture_area = baseline_horticulture_area_mha * total_arable / baseline_arable * (1+st.session_state["horticulture"]/100)
     datablock["metrics"]["new_horticulture_area"] = new_horiticulture_area
 
     other_crops_area_mha = total_arable/1e6 - new_potato_area - new_oilseed_area - new_cereal_area - new_horiticulture_area
