@@ -34,8 +34,7 @@ def dairy_help():
     st.markdown("""
                 Animal products, including dairy, produce significantly more
                 greenhouse gas emissions (GHG) than plant-based foods 
-                [(Poore & Nemecek 2018)]\
-                (https://www.science.org/doi/10.1126/science.aaq0216).
+                [(Poore & Nemecek 2018)](https://www.science.org/doi/10.1126/science.aaq0216).
 
                 This slider lets you reduce the amount of dairy (milk, butter
                 and cream) a person consumes each day. The dairy removed is
@@ -46,23 +45,55 @@ def dairy_help():
 
                 """ + more_details_link("z0gjphyzstcl"))
 
-
-@st.dialog("Reduce pig meat, poultry and eggs consumption", width="small")
-def pig_pultry_eggs_help():
+@st.dialog("Reduce fish and seafood", width="small")
+def fish_seafood_help():
     st.markdown("""
-                Animal products, including pork, poultry and eggs, produce
+                Fish and seafood, while generally having a lower greenhouse gas
+                footprint compared to other animal products, still contribute to
+                environmental impacts, compared to plant-based foods.
+
+                This slider lets you reduce the amount of fish and seafood a
+                person consumes each day. The fish and seafood removed are
+                replaced with alternative foods, keeping the total calorie
+                intake the same.
+
+                A value above 0 means some reduction in fish and seafood
+                consumption, with 100% meaning no consumption of these products
+                at all.
+
+                """ + more_details_link("o0o7i5cuukc6"))
+
+@st.dialog("Reduce eggs consumption", width="small")
+def eggs_help():
+    st.markdown("""
+                Eggs, like other animal products, produce significantly more
+                greenhouse gas emissions than plant-based foods.
+
+                This slider lets you reduce the amount of eggs a person consumes
+                each day. The eggs removed are replaced with alternative foods,
+                keeping the total calorie intake the same.
+
+                A value above 0 means some reduction in egg consumption, with
+                100% meaning no consumption of eggs at all.
+
+                """ + more_details_link("6u16n1fg1w03"))
+
+@st.dialog("Reduce pig meat and poultry", width="small")
+def pig_poultry_help():
+    st.markdown("""
+                Other animal meat products, including pork and poultry, produce
                 significantly more greenhouse gas emissions than plant-based
                 foods.
 
-                This slider lets you reduce the amount of pork, poultry and eggs
+                This slider lets you reduce the amount of pork and, poultry
                 a person consumes each day. The animal products removed are
                 replaced with alternative foods, keeping the total calorie
                 intake the same. 
 
-                A value above 0 means some reduction in pork, poultry and eggs,
+                A value above 0 means some reduction in pork and poultry,
                 with 100% meaning no consumption of these products at all.
 
-                """ + more_details_link("o0o7i5cuukc6"))
+                """ + more_details_link("6u16n1fg1w03"))
 
 @st.dialog("Increase fruit and vegetable consumption", width="small")
 def fruits_veg_help():

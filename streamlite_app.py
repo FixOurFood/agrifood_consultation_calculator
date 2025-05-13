@@ -106,22 +106,22 @@ with st.sidebar:
                          help_dialog=ruminant_help)
         
         text_plus_slider("Pig, poultry", "pig_poultry",
-                         help_dialog=ruminant_help)
+                         help_dialog=pig_poultry_help)
         
         text_plus_slider("Fish, seafood", "fish_seafood",
-                         help_dialog=ruminant_help)
+                         help_dialog=fish_seafood_help)
 
         text_plus_slider("Dairy", "dairy",
-                         help_dialog=ruminant_help)
+                         help_dialog=dairy_help)
         
         text_plus_slider("Eggs", "eggs",
-                         help_dialog=ruminant_help)
+                         help_dialog=eggs_help)
 
         text_plus_slider("Fruits, vegetables", "fruit_veg",max_value=500,
-                         help_dialog=ruminant_help)
+                         help_dialog=fruits_veg_help)
         
         text_plus_slider("Pulses", "pulses", max_value=500,
-                         help_dialog=ruminant_help)
+                         help_dialog=pulses_help)
 
         text_plus_slider("Alternative meat", "meat_alternatives", min_value=0,
                          help_dialog=alternative_products_help)
