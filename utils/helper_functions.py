@@ -167,7 +167,7 @@ def read_help():
     """Reads the tooltip text from tooltips URL"""
     return pd.read_csv(st.secrets["tooltips_url"], dtype='string')
 
-@st.cache_data(ttl=60*60*24)
+# @st.cache_data(ttl=60*60*24)
 def read_advanced_settings():
     """Reads the advanced settings from the spreadsheet URL"""
     advanced_settings  = pd.read_csv(st.secrets["advanced_settings_url"], dtype='string')
