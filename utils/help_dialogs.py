@@ -23,9 +23,9 @@ def ruminant_help():
 
                 This slider lets you reduce how much ruminant meat each person
                 consumes each day. The meat removed is replaced with cereals,
-                keeping the total calorie intake the same. A value above 0 means
-                some reduction in meat consumption, with 100% meaning no
-                ruminant meat at all.
+                keeping the total calorie intake the same. A value below 0 means
+                some reduction in ruminant meat consumption, with -100%
+                meaning no ruminant meat at all.
 
                 ''' + more_details_link("pjtbcox0lw1k"))
 
@@ -40,8 +40,8 @@ def dairy_help():
                 and cream) a person consumes each day. The dairy removed is
                 replaced with cereals, keeping the total calorie
                 intake the same. 
-                A value of 0 means some reduction in dairy consumption, with
-                100% meaning no dairy products at all.
+                A value below 0 means some reduction in dairy consumption, with
+                -100% meaning no dairy products  at all
 
                 """ + more_details_link("z0gjphyzstcl"))
 
@@ -57,8 +57,8 @@ def fish_seafood_help():
                 replaced with alternative foods, keeping the total calorie
                 intake the same.
 
-                A value above 0 means some reduction in fish and seafood
-                consumption, with 100% meaning no consumption of these products
+                A value below 0 means some reduction in fish and seafood
+                consumption, with -100% meaning no consumption of these products
                 at all.
 
                 """ + more_details_link("o0o7i5cuukc6"))
@@ -73,8 +73,8 @@ def eggs_help():
                 each day. The eggs removed are replaced with alternative foods,
                 keeping the total calorie intake the same.
 
-                A value above 0 means some reduction in egg consumption, with
-                100% meaning no consumption of eggs at all.
+                A value below 0 means some reduction in egg consumption, with
+                -100% meaning no consumption of eggs at all.
 
                 """ + more_details_link("6u16n1fg1w03"))
 
@@ -90,8 +90,8 @@ def pig_poultry_help():
                 replaced with alternative foods, keeping the total calorie
                 intake the same. 
 
-                A value above 0 means some reduction in pork and poultry,
-                with 100% meaning no consumption of these products at all.
+                A value below 0 means some reduction in pork and poultry,
+                with -100% meaning no consumption of these products at all.
 
                 """ + more_details_link("6u16n1fg1w03"))
 
