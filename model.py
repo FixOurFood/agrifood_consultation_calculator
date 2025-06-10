@@ -85,6 +85,73 @@ def project_future(datablock, yield_change=None):
 
     return datablock
 
+def item_scaling_multiple(datablock, scale, source, scaling_nutrient,
+                 elasticity=None, items=None, constant=True,
+                 non_sel_items=None):
+    """Reduces per capita intake quantities and replaces them by other items
+    keeping the overall consumption constant. Scales land use if production
+    changes
+    
+    Parameters
+    ----------
+    scale : float, arr, or xarray.DataArray
+        Scaling factor to apply to the selected items. If a DataArray, it must
+        have a "Year" dimension with the years to scale.
+        
+    items : arr, tuple
+        if an array, 
+    """
+
+    timescale = datablock["global_parameters"]["timescale"]
+    # We can use any quantity here, either per cap/day or per year. The ratio
+    # will cancel out the population growth
+    food_orig = datablock["food"][scaling_nutrient]
+
+    if np.isscalar(source):
+        source = [source]
+    
+    out = food_orig.copy(deep=True)
+
+    non_sel_items = get_items(food_orig, non_sel_items)
+    
+    # Balanced scaling. Reduce food, reduce imports, keep kCal constant
+    for sc, it in zip(scale, items):
+    
+        it_arr = get_items(out, it)
+        # if no items are specified, do nothing
+        if items is None:
+            return datablock
+        
+        out = balanced_scaling(fbs=out,
+                               items=it_arr,
+                               element="food",
+                               timescale=timescale,
+                               year=2021,
+                               scale=sc,
+                               adoption="logistic",
+                               origin=source,
+                               add=True,
+                               elasticity=elasticity,
+                               constant=constant,
+                               non_sel_items=non_sel_items)
+
+    # Scale feed, seed and processing
+    out = feed_scale(out, food_orig)
+
+    # out = check_negative_source(out, "production", "imports")
+    out = check_negative_source(out, "imports", "exports", add=False)
+
+    ratio = out / food_orig
+    ratio = ratio.where(~np.isnan(ratio), 1)
+
+    # Update per cap/day values and per year values using the same ratio, which
+    # is independent of population growth
+    qty_key = ["g/cap/day", "g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
+    for key in qty_key:
+        datablock["food"][key] *= ratio
+
+    return datablock
+
 def item_scaling(datablock, scale, source, scaling_nutrient,
                  elasticity=None, items=None, constant=True,
                  non_sel_items=None):
@@ -128,11 +195,6 @@ def item_scaling(datablock, scale, source, scaling_nutrient,
 
     ratio = out / food_orig
     ratio = ratio.where(~np.isnan(ratio), 1)
-
-    # Scale land use
-    pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
-    land_out = production_land_scale(pctg, out, food_orig, bdleaf_conif_ratio=st.session_state.bdleaf_conif_ratio/100)
-    datablock["land"]["percentage_land_use"] = land_out
 
     # Update per cap/day values and per year values using the same ratio, which
     # is independent of population growth
@@ -344,12 +406,6 @@ def food_waste_model(datablock, waste_scale, kcal_rda, source, elasticity=None):
     ratio = out / food_orig
     ratio = ratio.where(~np.isnan(ratio), 1)
 
-    # Scale land use
-    pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
-    land_out = production_land_scale(pctg, out, food_orig, bdleaf_conif_ratio=st.session_state.bdleaf_conif_ratio/100)
-
-    datablock["land"]["percentage_land_use"] = land_out
-
     qty_key = ["g/cap/day", "g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
     for key in qty_key:
         datablock["food"][key] *= ratio
@@ -428,12 +484,6 @@ def cultured_meat_model(datablock, cultured_scale, labmeat_co2e, items, copy_fro
 
     for key in qty_key:
         datablock["food"][key] *= ratio
-
-    # Scale land use
-    pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
-    land_out = production_land_scale(pctg, out, food_orig, bdleaf_conif_ratio=st.session_state.bdleaf_conif_ratio/100)
-
-    datablock["land"]["percentage_land_use"] = land_out
 
     return datablock
 
@@ -1217,9 +1267,13 @@ def scale_kcal_feed(obs, ref, items):
     
     return out
 
-def production_land_scale(land, obs, ref, bdleaf_conif_ratio):
+def production_land_scale(datablock, bdleaf_conif_ratio):
     """Scales land based on the relative production change of livestock and
     arable crops"""
+
+    land = datablock["land"]["percentage_land_use"].copy(deep=True)
+    obs = datablock["food"]["g/cap/day"].copy(deep=True)
+    ref = datablock["food"]["baseline_projected"].copy(deep=True)
 
     # Obtain reference and observed production values
     ref_livest = ref["production"].sel(Year=2050, Item=ref.Item_origin=="Animal Products").sum(dim="Item")
@@ -1261,7 +1315,9 @@ def production_land_scale(land, obs, ref, bdleaf_conif_ratio):
         # If Broadleaf woodland doesn't exist, create it
         land.loc[{"aggregate_class":"Coniferous woodland"}] = delta*(1-bdleaf_conif_ratio)
     
-    return land
+    datablock["land"]["percentage_land_use"] = land
+
+    return datablock
 
 def managed_agricultural_land_carbon_model(datablock, fraction, managed_class,
                                            old_class):

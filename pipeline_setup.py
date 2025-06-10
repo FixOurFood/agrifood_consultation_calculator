@@ -12,69 +12,29 @@ def pipeline_setup(food_system):
     food_system.add_node(project_future,
                             {"yield_change":st.session_state.yield_proj})
     
-    food_system.add_node(item_scaling,
-                            {"scale":1+st.session_state.ruminant/100,
-                            "items":[2731, 2732],
-                            "source":["production", "imports"],
-                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
-                            "scaling_nutrient":st.session_state.scaling_nutrient,
-                            "constant":st.session_state.cereal_scaling,
-                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
+    food_system.add_node(item_scaling_multiple,
+                         {"scale":[1+st.session_state.ruminant/100,
+                                   1+st.session_state.pig_poultry/100,
+                                   1+st.session_state.fish_seafood/100,
+                                   1+st.session_state.dairy/100,
+                                   1+st.session_state.eggs/100,
+                                   1+st.session_state.fruit_veg/100,
+                                   1+st.session_state.pulses/100],
 
-    food_system.add_node(item_scaling,
-                            {"scale":1+st.session_state.pig_poultry/100,
-                            "items":[2733, 2734],
-                            "source":["production", "imports"],
-                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
-                            "scaling_nutrient":st.session_state.scaling_nutrient,
-                            "constant":st.session_state.cereal_scaling,
-                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
+                          "items":[[2731, 2732],
+                                   [2733, 2734],
+                                   ("Item_group", "Fish, Seafood"),
+                                   [2740, 2743, 2948],
+                                   [2949],
+                                   ("Item_group", ["Vegetables", "Fruits - Excluding Wine"]),
+                                   ("Item_group", ["Pulses"])],
 
-    food_system.add_node(item_scaling,
-                            {"scale":1+st.session_state.fish_seafood/100,
-                            "items":("Item_group", "Fish, Seafood"),
-                            "source":["production", "imports"],
-                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
-                            "scaling_nutrient":st.session_state.scaling_nutrient,
-                            "constant":st.session_state.cereal_scaling,
-                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
-
-    food_system.add_node(item_scaling,
-                            {"scale":1+st.session_state.dairy/100,
-                            "items":[2740, 2743, 2948],
-                            "source":["production", "imports"],
-                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
-                            "scaling_nutrient":st.session_state.scaling_nutrient,
-                            "constant":st.session_state.cereal_scaling,
-                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
-
-    food_system.add_node(item_scaling,
-                            {"scale":1+st.session_state.eggs/100,
-                            "items":[2949],
-                            "source":["production", "imports"],
-                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
-                            "scaling_nutrient":st.session_state.scaling_nutrient,
-                            "constant":st.session_state.cereal_scaling,
-                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
-
-    food_system.add_node(item_scaling,
-                            {"scale":1+st.session_state.fruit_veg/100,
-                            "items":("Item_group", ["Vegetables", "Fruits - Excluding Wine"]),
-                            "source":["production", "imports"],
-                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
-                            "scaling_nutrient":st.session_state.scaling_nutrient,
-                            "constant":st.session_state.cereal_scaling,
-                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
-
-    food_system.add_node(item_scaling,
-                            {"scale":1+st.session_state.pulses/100,
-                            "items":("Item_group", ["Pulses"]),
-                            "source":["production", "imports"],
-                            "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
-                            "scaling_nutrient":st.session_state.scaling_nutrient,
-                            "constant":st.session_state.cereal_scaling,
-                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
-
+                          "source":["production", "imports"],
+                          "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
+                          "scaling_nutrient":st.session_state.scaling_nutrient,
+                          "constant":st.session_state.cereal_scaling,
+                          "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
+    
     food_system.add_node(cultured_meat_model,
                             {"cultured_scale":st.session_state.meat_alternatives/100,
                             "labmeat_co2e":st.session_state.labmeat_co2e,
@@ -110,6 +70,9 @@ def pipeline_setup(food_system):
                             "source":["production", "imports"],
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity]})
 
+    food_system.add_node(production_land_scale,
+                         {"bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100,}
+                        )
 
     # Land management
     food_system.add_node(forest_land_model_new,

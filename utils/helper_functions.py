@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import time
 
 # Helper Functions
 
@@ -167,7 +168,7 @@ def read_help():
     """Reads the tooltip text from tooltips URL"""
     return pd.read_csv(st.secrets["tooltips_url"], dtype='string')
 
-# @st.cache_data(ttl=60*60*24)
+@st.cache_data(ttl=60*60*24)
 def read_advanced_settings():
     """Reads the advanced settings from the spreadsheet URL"""
     advanced_settings  = pd.read_csv(st.secrets["advanced_settings_url"], dtype='string')
@@ -219,3 +220,18 @@ def format_yield_proj(x):
         return "Medium"
     elif x == 0.58:
         return "High"
+    
+class Timer:
+    def __init__(self):
+        self.start_time = time.time()
+        self.last_ping_time = self.start_time
+
+    def ping(self, message="Timer since last ping: "):
+        current_time = time.time()
+        elapsed_since_last_ping = current_time - self.last_ping_time
+        self.last_ping_time = current_time
+        print(f"{message} {elapsed_since_last_ping:.2f} seconds")
+
+    def total(self, message="Total time elapsed: "):
+        total_elapsed_time = time.time() - self.start_time
+        print(f"{message} {total_elapsed_time:.2f} seconds")

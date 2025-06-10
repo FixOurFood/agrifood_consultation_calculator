@@ -13,6 +13,8 @@ from pipeline_setup import pipeline_setup
 from glossary import *
 from consultation_utils import get_pathways, call_scenarios, submit_scenario
 
+timer = Timer()
+
 if "cereal_scaling" not in st.session_state:
     st.session_state["cereal_scaling"] = True
 
@@ -61,6 +63,8 @@ if st.session_state.first_run and not st.session_state["embedding"]:
     st.session_state.first_run = False
     first_run_dialog()
 
+timer.ping("Page setup")
+
 with st.sidebar:
 
 # ------------------------
@@ -97,7 +101,6 @@ with st.sidebar:
                      key="scenario",
                      label_visibility="collapsed")
         
-
     # Consumer demand interventions
 
     with st.expander("**:spaghetti: Consumption**", expanded=False):
@@ -243,6 +246,8 @@ with st.sidebar:
                             format_func=format_elasticity,
                             key="elasticity",
                             help_dialog=trade_help)
+        
+    timer.ping("Sidebar setup")
 
 # ----------------------------------------
 #                  Main
@@ -253,11 +258,15 @@ food_system = pipeline_setup(food_system)
 food_system.run()
 datablock_result = food_system.datablock
 
+timer.ping("Pipeline run")
+
 # -------------------
 # Execute plots block
 # -------------------
 from plots.plots import plots
 extra_values = plots(datablock_result)
+
+timer.ping("Plots executed")
 
 with st.sidebar:
     with st.expander("**:arrow_right: Submit slider positions**"):
@@ -276,7 +285,15 @@ with st.sidebar:
         if submit_state:
             submit_scenario(" ", ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name, datablock=datablock_result)
 
-    st.button("Reset all sliders", on_click=reset_sliders, key='reset_all')
+    cols_buttons = st.columns(2)
+
+    with cols_buttons[0]:
+        st.button("Reset all sliders", on_click=reset_sliders, key='reset_all')
+
+    with cols_buttons[1]:
+        if st.button("Clear cache", help="Clear the cache to read advanced settings and scenarios list"):
+            st.cache_data.clear()
+            st.rerun()
     
     st.caption('''--- Developed with funding from [FixOurFood](https://fixourfood.org/).''')
     
@@ -288,6 +305,8 @@ with st.sidebar:
     
     if st.button("Help"):
         first_run_dialog()
+
+timer.total("Total time taken")
 
 # -----------------------------
 #  Testing
