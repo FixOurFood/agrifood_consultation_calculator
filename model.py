@@ -146,9 +146,7 @@ def item_scaling_multiple(datablock, scale, source, scaling_nutrient,
 
     # Update per cap/day values and per year values using the same ratio, which
     # is independent of population growth
-    qty_key = ["g/cap/day", "g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
-    for key in qty_key:
-        datablock["food"][key] *= ratio
+    datablock["food"]["g/cap/day"] *= ratio
 
     return datablock
 
@@ -373,7 +371,9 @@ def food_waste_model(datablock, waste_scale, kcal_rda, source, elasticity=None):
     """
 
     timescale = datablock["global_parameters"]["timescale"]
-    food_orig = copy.deepcopy(datablock["food"]["kCal/cap/day"])
+    # food_orig = copy.deepcopy(datablock["food"]["kCal/cap/day"])
+    kcal_fact = datablock["food"]["kCal/g_food"]
+    food_orig = copy.deepcopy(datablock["food"]["g/cap/day"])*kcal_fact
     datablock["food"]["rda_kcal"] = kcal_rda
 
     # This is the maximum factor we can multiply food by to achieve consumption
@@ -398,17 +398,106 @@ def food_waste_model(datablock, waste_scale, kcal_rda, source, elasticity=None):
     out = feed_scale(out, food_orig)
 
     # If supply element is negative, set to zero and add the negative delta to imports
-    # out = check_negative_source(out, "production")
-    # out = check_negative_source(out, "imports")
     out = check_negative_source(out, "imports", "exports", add=False)
 
     # Scale all per capita qantities proportionally
     ratio = out / food_orig
     ratio = ratio.where(~np.isnan(ratio), 1)
 
-    qty_key = ["g/cap/day", "g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
-    for key in qty_key:
-        datablock["food"][key] *= ratio
+    datablock["food"]["g/cap/day"] *= ratio
+
+    return datablock
+
+def alternative_food_model(datablock, cultured_scale, labmeat_co2e, baseline_items, copy_from,
+                        new_items, new_item_name, replaced_items, source, elasticity=None):
+    """Replaces selected items by alternative products on a weight by weight
+    basis, compared to a baseline array.
+    A list of replaced items is adjusted to keep calories constant.
+    """
+
+    timescale = datablock["global_parameters"]["timescale"]
+    baseline_items = get_items(datablock["food"]["g/cap/day"], baseline_items)
+    items_to_replace = get_items(datablock["food"]["g/cap/day"], replaced_items)
+
+    nutrition_keys = ["g_prot/g_food", "g_fat/g_food", "kCal/g_food"]
+    # Add new items to the food dataset
+    datablock["food"]["g/cap/day"] = datablock["food"]["g/cap/day"].fbs.add_items(new_items)
+    datablock["food"]["g/cap/day"]["Item_name"].loc[{"Item":new_items}] = new_item_name
+    datablock["food"]["g/cap/day"]["Item_origin"].loc[{"Item":new_items}] = "Alternative Food"
+    datablock["food"]["g/cap/day"]["Item_group"].loc[{"Item":new_items}] = "Alternative Food"
+    # Set values to zero to avoid issues
+    datablock["food"]["g/cap/day"].loc[{"Item":new_items}] = 0
+
+    # Add nutrition values for new products to the food dataset
+    for key in nutrition_keys:
+        datablock["food"][key] = datablock["food"][key].fbs.add_items(new_items, copy_from=[copy_from])
+        datablock["food"][key]["Item_name"].loc[{"Item":new_items}] = new_item_name
+        datablock["food"][key]["Item_origin"].loc[{"Item":new_items}] = "Alternative Food"
+        datablock["food"][key]["Item_group"].loc[{"Item":new_items}] = "Alternative Food"
+
+    # Scale products by cultured_scale
+    food_orig = copy.deepcopy(datablock["food"]["g/cap/day"])
+    kcal_fact = datablock["food"]["kCal/g_food"]
+    kcal_orig = food_orig * kcal_fact
+    # kcal_orig = copy.deepcopy(datablock["food"]["kCal/cap/day"])
+    food_base = copy.deepcopy(datablock["food"]["baseline_projected"])
+
+    scale_alternative = logistic_food_supply(food_orig, timescale, 0, cultured_scale)
+    
+    # This is the new alternative food consumption
+    delta_alternative = (food_base["food"].sel(Item=baseline_items) * scale_alternative).sum(dim="Item")
+
+    out = food_orig.copy(deep=True)
+    out["food"].loc[{"Item":new_items}] += delta_alternative
+
+    # If no item elasticity is provided, divide elasticity equally
+    if elasticity is None:
+        elasticity = [1.0/len(source)] * len(source)
+    elif np.isscalar(elasticity):
+        elasticity = [elasticity] * len(source)
+
+    # Adjust source elements based on elasticity
+    for src, elst in zip(source, elasticity):
+        out[src].loc[{"Item":new_items}] += delta_alternative*elst
+
+    # Reduce cereals to compensate additional kCal from alternative food
+    delta_kcal_alternative = delta_alternative * kcal_fact.sel(Item=new_items)
+    orig_target_calories = kcal_orig["food"].sel(Item=items_to_replace).sum(dim="Item")
+    final_target_calories = kcal_orig["food"].sel(Item=items_to_replace).sum(dim="Item") - delta_kcal_alternative
+    scale_target_calories = final_target_calories / orig_target_calories
+
+    # out["food"].loc[{"Item":items_to_replace}] *= scale_target_calories
+    out = out.fbs.scale_add(element_in="food",
+                            element_out=source,
+                            items=items_to_replace,
+                            scale=scale_target_calories,
+                            elasticity=elasticity)
+    
+    kcal_cap_day = kcal_orig.fbs.scale_add(element_in="food",
+                            element_out=source,
+                            items=items_to_replace,
+                            scale=scale_target_calories,
+                            elasticity=elasticity)
+
+    # Check negative source elements
+    out = check_negative_source(out, "production")
+    out = check_negative_source(out, "imports", "exports", add=False)
+
+    # Adjust feed and seed from animal production
+    out = feed_scale(out, food_orig)
+    datablock["food"]["g/cap/day"] = out
+
+    # Add emissions factor for cultured meat
+    datablock["impact"]["gco2e/gfood"] = datablock["impact"]["gco2e/gfood"].fbs.add_items(new_items)
+    datablock["impact"]["gco2e/gfood"].loc[{"Item":new_items}] = labmeat_co2e
+
+    # kcal_cap_day = datablock["food"]["kCal/cap/day"]
+
+    out_kcal_cap_day = scale_kcal_feed(kcal_cap_day, kcal_orig, new_items)
+    ratio = out_kcal_cap_day / kcal_cap_day
+    ratio = ratio.where(~np.isnan(ratio), 1)
+
+    datablock["food"]["g/cap/day"] *= ratio
 
     return datablock
 
@@ -1273,6 +1362,7 @@ def production_land_scale(datablock, bdleaf_conif_ratio):
 
     land = datablock["land"]["percentage_land_use"].copy(deep=True)
     obs = datablock["food"]["g/cap/day"].copy(deep=True)
+    # print(obs)
     ref = datablock["food"]["baseline_projected"].copy(deep=True)
 
     # Obtain reference and observed production values
@@ -1576,6 +1666,13 @@ def shift_production(datablock, scale, items, items_target, land_area_ratio):
 
 def compute_metrics(datablock):
     """Computes a series of metrics from the resulting datablock"""
+
+    # nutritional_values
+    qty_keys = ["g_prot/cap/day", "g_fat/cap/day", "kCal/cap/day"]
+    nutrition_keys = ["g_prot/g_food", "g_fat/g_food", "kCal/g_food"]
+
+    for qk, nk in zip(qty_keys, nutrition_keys):
+        datablock["food"][qk] = datablock["food"][nk] * datablock["food"]["g/cap/day"]
 
     datablock["metrics"] = {}
 

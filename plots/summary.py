@@ -46,7 +46,6 @@ def plot_summary(datablock, background_color):
 
     with col_comp_1:
 
-        ssr_metric = st.session_state["ssr_metric"]
         # Emissions and removals balance
         with st.container(height=850, border=True):
 
@@ -96,7 +95,8 @@ def plot_summary(datablock, background_color):
     with col_comp_2:
 
         # Self-sufficiency ratio
-        with st.container(height=450, border=True):
+        ssr_metric = st.session_state["ssr_metric"]
+        with st.container(height=375, border=True):
 
             SSR_ref = datablock["metrics"]["SSR_ref"]
             SSR_metric_yr = datablock["metrics"]["SSR_metric_yr"]
@@ -163,18 +163,18 @@ def plot_summary(datablock, background_color):
 
             st.altair_chart(production_bar, use_container_width=True)
             st.altair_chart(imports_bar, use_container_width=True)
-            st.selectbox("Select metric",
+            # st.selectbox("Select metric",
                             
-                            ["g/cap/day",
-                            "g_prot/cap/day",
-                            "g_fat/cap/day",
-                            "g_co2e/cap/day",
-                            "kCal/cap/day",],
+            #                 ["g/cap/day",
+            #                 "g_prot/cap/day",
+            #                 "g_fat/cap/day",
+            #                 "g_co2e/cap/day",
+            #                 "kCal/cap/day",],
 
-                            key="update_ssr_metric",
-                            on_change=update_SSR_metric,
-                            label_visibility="collapsed",
-                            placeholder="Select metric")
+            #                 key="update_ssr_metric",
+            #                 on_change=update_SSR_metric,
+            #                 label_visibility="collapsed",
+            #                 placeholder="Select metric")
             
             # st.caption('''<div style="text-align: justify;">
             # This panel calculates how much the UK relies on food imports, by
@@ -190,7 +190,7 @@ def plot_summary(datablock, background_color):
 
         
         # Production
-        with st.container(height=392, border=True):
+        with st.container(height=392+75, border=True):
 
             new_dairy_herd = datablock["metrics"]["new_dairy_herd"]
             new_beef_herd = datablock["metrics"]["new_beef_herd"]
