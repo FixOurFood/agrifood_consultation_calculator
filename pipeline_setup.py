@@ -114,6 +114,16 @@ def pipeline_setup(food_system):
                                    2563, 2602, 2611, 2640, 2641, 2618,
                                    2616, 2531, 2534, 2533, 2601, 2605,
                                    2535],
+
+                          "items_target":[2659, 2513, 2546, 2656, 2658, 2657,
+                                          2520, 2642, 2633, 2578, 2630, 2559,
+                                          2575, 2572, 2745, 2514, 2582, #2556,
+                                          2517, 2516, 2586, 2570, 2580, 2562,
+                                          2577, 2576, 2547, 2549, 2574, 2558,
+                                          2581, 2515, 2561, 2579, 2518, 2807, 
+                                          2571, 2555, 2645, 2542, 2537, 2536,
+                                          2541, 2557, 2573, 2543, 2635, 2511,
+                                          2655],
                         #   "items":("Item_group", ["Vegetables",
                         #                           "Fruits - Excluding Wine",
                         #                           "Vegetables Oils",
@@ -124,9 +134,10 @@ def pipeline_setup(food_system):
                         #                           "Treenuts",
                         #                           ]),
                         
-                          "items_target":("Item_group", ["Cereals - Excluding Beer",
-                                                         "Pulses",
-                                                         ]),
+                          # "items_target":("Item_group", ["Cereals - Excluding Beer",
+                          #                                "Pulses",
+                          #                                ]),
+
                           "land_area_ratio":0.08650301817
                           })
     
