@@ -43,7 +43,6 @@ def plots(datablock):
         plot_self_sufficiency(datablock)
 
     # Various land plots, including Land use and ALC
-    # ----------------------------------------------
     elif plot_key == "Land":
         plot_land_use(datablock, background_color)
 

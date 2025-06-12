@@ -96,6 +96,8 @@ x_axis_title = {"Weight":"g / cap / day",
 land_color_dict = {
     'Broadleaf woodland' : "green",
     'Coniferous woodland' : "green",
+    'New Broadleaf woodland' : "green",
+    'New Coniferous woodland' : "green",
     'Arable' : "yellow",
     'Managed arable' : "lightyellow",
     'Managed pasture' : "gold",
@@ -118,6 +120,8 @@ land_color_dict = {
 land_label_dict = {
     'Broadleaf woodland' : "Forest",
     'Coniferous woodland' : "Forest",
+    'New Broadleaf woodland' : "Forest",
+    'New Coniferous woodland' : "Forest",
     'Arable' : "Arable",
     'Managed arable' : "Managed arable",
     'Managed pasture' : "Managed pasture",

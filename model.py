@@ -1390,19 +1390,19 @@ def production_land_scale(datablock, bdleaf_conif_ratio):
     # Check if total differs from 100
     delta = 100 - total
     delta = delta.where(np.isfinite(land.isel(aggregate_class=0)))
-    
+
     # Adjust Broadleaf woodland to maintain 100% total
     if "Broadleaf woodland" in land.aggregate_class:
         land.loc[{"aggregate_class":"Broadleaf woodland"}] += delta*bdleaf_conif_ratio
+    # If Broadleaf woodland doesn't exist, create it
     else:
-        # If Broadleaf woodland doesn't exist, create it
         land.loc[{"aggregate_class":"Broadleaf woodland"}] = delta*bdleaf_conif_ratio
 
-    # Adjust Broadleaf woodland to maintain 100% total
+    # Adjust Coniforus woodland to maintain 100% total
     if "Coniferous woodland" in land.aggregate_class:
         land.loc[{"aggregate_class":"Coniferous woodland"}] += delta*(1-bdleaf_conif_ratio)
+    # If Coniferous woodland doesn't exist, create it
     else:
-        # If Broadleaf woodland doesn't exist, create it
         land.loc[{"aggregate_class":"Coniferous woodland"}] = delta*(1-bdleaf_conif_ratio)
     
     datablock["land"]["percentage_land_use"] = land
@@ -1685,12 +1685,14 @@ def compute_metrics(datablock):
     emissions = datablock["impact"]["g_co2e/year"]["production"].sel(Year=metric_yr)/1e6
     total_agriculture_emissions = emissions.sum(dim="Item").values/1e6
     total_seq = seq_da.sel(Item=["Broadleaf woodland",
-                                    "Coniferous woodland",
-                                    "Managed pasture",
-                                    "Managed arable",
-                                    "Mixed farming",
-                                    "Silvopasture",
-                                    "Agroforestry"]).sum(dim="Item").values/1e6
+                                 "Coniferous woodland",
+                                 "New Broadleaf woodland",
+                                 "New Coniferous woodland",
+                                 "Managed pasture",
+                                 "Managed arable",
+                                 "Mixed farming",
+                                 "Silvopasture",
+                                 "Agroforestry"]).sum(dim="Item").values/1e6
     
     total_removals = seq_da.sel(Item=["BECCS from waste",
                                       "BECCS from overseas biomass",
@@ -1802,7 +1804,9 @@ def compute_metrics(datablock):
                                                                           "Semi-natural grassland"]).sum().values
 
     total_forest = totals.sel(aggregate_class=["Broadleaf woodland",
-                                               "Coniferous woodland"]).sum().values
+                                               "Coniferous woodland",
+                                               "New Broadleaf woodland",
+                                               "New Coniferous woodland"]).sum().values
     
     new_forest_land = (total_forest - datablock["land"]["baseline"].sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values)
     
@@ -1859,5 +1863,37 @@ def compute_metrics(datablock):
 
     other_crops_area_mha = total_arable/1e6 - new_potato_area - new_oilseed_area - new_cereal_area - new_horiticulture_area
     datablock["metrics"]["other_crops_area_mha"] = other_crops_area_mha
+
+    return datablock
+
+def label_new_forest(datablock):
+
+    land = datablock["land"]["percentage_land_use"].copy(deep=True)
+    land_baseline = datablock["land"]["baseline"].copy(deep=True)
+
+    if "New Broadleaf woodland" not in land.aggregate_class.values:
+        new_class = xr.zeros_like(land.isel(aggregate_class=0)).where(np.isfinite(land.isel(aggregate_class=0)))
+        new_class["aggregate_class"] = "New Broadleaf woodland"
+        land = xr.concat([land.isel(aggregate_class=slice(0, 2)), new_class, land.isel(aggregate_class=slice(2, None))], dim="aggregate_class")
+    
+    if "New Coniferous woodland" not in land.aggregate_class.values:
+        new_class = xr.zeros_like(land.isel(aggregate_class=0)).where(np.isfinite(land.isel(aggregate_class=0)))
+        new_class["aggregate_class"] = "New Coniferous woodland"
+        land = xr.concat([land.isel(aggregate_class=slice(0, 3)), new_class, land.isel(aggregate_class=slice(3, None))], dim="aggregate_class")
+
+    for w_type in ["Broadleaf woodland", "Coniferous woodland"]:
+        # Compute the difference between current and baseline woodland
+        delta_w = land.sel(aggregate_class=w_type) - land_baseline.sel(aggregate_class=w_type)
+
+        # Identify where the difference is positive (indicating new woodland)
+        new_w_mask = delta_w > 0
+
+        # Assign the positive difference to "New Broadleaf woodland"
+        land.loc[{"aggregate_class": "New "+w_type}] += delta_w.where(new_w_mask, 0)
+
+        # Limit "Broadleaf woodland" to the baseline model
+        land.loc[{"aggregate_class": w_type}] = land_baseline.sel(aggregate_class=w_type).where(new_w_mask, land.sel(aggregate_class=w_type))
+
+    datablock["land"]["percentage_land_use"] = land
 
     return datablock

@@ -53,7 +53,7 @@ def plot_land_use(datablock, background_color):
         with st.container(border=True):
             st.pyplot(fig=f)
     with col2_3:
-        with st.container(border=True):
+        with st.container(border=True, height=450):
             land_pctg = pctg.sum(dim=["x", "y"])
             pie = pie_chart_altair(land_pctg, show="aggregate_class", unit="ha")
             st.altair_chart(pie)

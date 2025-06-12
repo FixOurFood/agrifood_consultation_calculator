@@ -284,11 +284,14 @@ def pipeline_setup(food_system):
                             "overseas_BECCS":st.session_state.overseas_BECCS*1e6,
                             "DACCS":st.session_state.DACCS*1e6})
 
+    food_system.add_node(label_new_forest)
 
     # Compute emissions and sequestration
     food_system.add_node(forest_sequestration_model,
                             {"land_type":["Broadleaf woodland",
                                           "Coniferous woodland",
+                                          "New Broadleaf woodland",
+                                          "New Coniferous woodland",
                                           "Restored upland peat",
                                           "Restored lowland peat",
                                           "Managed arable",
@@ -297,6 +300,8 @@ def pipeline_setup(food_system):
                                           ],
                             "seq":[st.session_state.bdleaf_seq_ha_yr,
                                    st.session_state.conif_seq_ha_yr,
+                                   st.session_state.new_bdleaf_seq_ha_yr,
+                                   st.session_state.new_conif_seq_ha_yr,
                                    st.session_state.peatland_seq_ha_yr,
                                    st.session_state.peatland_seq_ha_yr,
                                    st.session_state.managed_arable_seq_ha_yr,
