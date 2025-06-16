@@ -192,16 +192,41 @@ def plot_summary(datablock, background_color):
         # Production
         with st.container(height=392+75, border=True):
 
-            new_dairy_herd = datablock["metrics"]["new_dairy_herd"]
-            new_beef_herd = datablock["metrics"]["new_beef_herd"]
+            new_dairy_herd = datablock["metrics"]["new_dairy_herd"].isel(Year=-1)
+            new_beef_herd = datablock["metrics"]["new_beef_herd"].isel(Year=-1)
+            new_poultry_heads = datablock["metrics"]["new_poultry_heads"].isel(Year=-1)
+            new_pig_heads = datablock["metrics"]["new_pig_heads"].isel(Year=-1)
+            new_sheep_flock = datablock["metrics"]["new_sheep_flock"].isel(Year=-1)
             baseline_dairy_herd = datablock["metrics"]["baseline_dairy_herd"]
             baseline_beef_herd = datablock["metrics"]["baseline_beef_herd"]
+            baseline_poultry_heads = datablock["metrics"]["baseline_poultry_heads"]
+            baseline_pig_heads = datablock["metrics"]["baseline_pig_heads"]
+            baseline_sheep_flock = datablock["metrics"]["baseline_sheep_flock"]
 
             st.markdown('''**Production and consumption**''')
 
-            st.metric(label="Herd size", value=f"{millify(new_dairy_herd+new_beef_herd, precision=2)}",
+            cols = st.columns(3)
+            with cols[0]:
+                st.metric(label="Herd size", value=f"{millify(new_dairy_herd+new_beef_herd, precision=2)}",
                         delta=millify(new_dairy_herd+new_beef_herd - baseline_dairy_herd - baseline_beef_herd, precision=2))
-            
+            with cols[1]:
+                st.metric(label="Dairy herd", value=f"{millify(new_dairy_herd, precision=2)}",
+                        delta=millify(new_dairy_herd - baseline_dairy_herd, precision=2))
+            with cols[2]:
+                st.metric(label="Beef herd", value=f"{millify(new_beef_herd, precision=2)}",
+                        delta=millify(new_beef_herd - baseline_beef_herd, precision=2))
+                
+            with cols[0]:
+                st.metric(label="Poultry heads", value=f"{millify(new_poultry_heads, precision=2)}",
+                        delta=millify(new_poultry_heads - baseline_poultry_heads, precision=2))
+            with cols[1]:
+                st.metric(label="Pig heads", value=f"{millify(new_pig_heads, precision=2)}",
+                        delta=millify(new_pig_heads - baseline_pig_heads, precision=2))
+            with cols[2]:
+                st.metric(label="Sheep flock", value=f"{millify(new_sheep_flock, precision=2)}",
+                        delta=millify(new_sheep_flock - baseline_sheep_flock, precision=2))
+
+
     with col_comp_3:
         
         # Land use

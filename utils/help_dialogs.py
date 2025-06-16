@@ -454,6 +454,10 @@ def beccs_overseas_help():
 def daccs_help():
     pass
 
+@st.dialog("Enhanced weathering and biochar", width="small")
+def biochar_help():
+    pass
+
 
 # ------------------------------------------------------------------------------
 #                                Projection baseline

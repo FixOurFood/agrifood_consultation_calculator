@@ -41,6 +41,7 @@ default_widget_values = {
     # Land use sliders and widgets
     "foresting_pasture": 13.17,
     "land_BECCS": 0,
+    "land_BECCS_pasture": 0,
     "lowland_peatland": 0,
     "upland_peatland": 0,
     "mixed_farming": 0,
@@ -54,6 +55,7 @@ default_widget_values = {
     "waste_BECCS": 0,
     "overseas_BECCS": 0,
     "DACCS": 0,
+    "biochar":0,
 
     # Livestock farming sliders and widgets
     "stock_density": 0,
@@ -65,6 +67,7 @@ default_widget_values = {
     "pasture_soil_carbon": 0,
 
     "livestock_farming_practices":0,
+    "livestock_yield":100,
 
     # Arable farming sliders and widgets
     "arable_soil_carbon": 0,
@@ -216,9 +219,9 @@ def format_yield_proj(x):
         return "Climate sensitivity"
     elif x == 0.0:
         return "Baseline"
-    elif x == 0.34:
+    elif x == 0.16:
         return "Medium"
-    elif x == 0.58:
+    elif x == 0.34:
         return "High"
     
 class Timer:

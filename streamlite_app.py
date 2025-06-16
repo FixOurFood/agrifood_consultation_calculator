@@ -145,7 +145,10 @@ with st.sidebar:
 
         text_plus_slider("Broadleaf %", "bdleaf_conif_ratio", min_value=0, value=75)
 
-        text_plus_slider("BECCS crops", "land_BECCS", min_value=0,
+        text_plus_slider("Arable to BECCS crops", "land_BECCS", min_value=0,
+                         help_dialog=beccs_help)
+        
+        text_plus_slider("Pasture to BECCS crops", "land_BECCS_pasture", min_value=0,
                          help_dialog=beccs_help)
 
         text_plus_slider("Lowland peat", "lowland_peatland", min_value=0,
@@ -187,6 +190,8 @@ with st.sidebar:
         
         text_plus_slider("Fossil fuel use", "fossil_livestock", min_value=0, max_value=100,
                      help_dialog=peatland_restoration_help)
+        
+        text_plus_slider("Livestock productivity", "livestock_yield", min_value=50, value=100, max_value=150, sign=False)
 
     # Arable farming practices
 
@@ -214,14 +219,17 @@ with st.sidebar:
         text_plus_slider("Waste BECCS", "waste_BECCS", min_value=0,
                          help_dialog=waste_help, sign=False, percentage=False, 
                          suffix=" Mt CO2e/yr")
-        
                         
         text_plus_slider("Overseas BECCS", "overseas_BECCS", min_value=0,
                          help_dialog=beccs_overseas_help, sign=False, percentage=False,
                          suffix=" Mt CO2e/yr")
         
-        text_plus_slider("DACCS", "DACCS", min_value=0,
+        text_plus_slider("DACCS", "DACCS", min_value=0, max_value=20,
                          help_dialog=daccs_help, sign=False, percentage=False,
+                         suffix=" Mt CO2e/yr")
+        
+        text_plus_slider("Biochar", "biochar", min_value=0, max_value=10,
+                         help_dialog=biochar_help, sign=False, percentage=False,
                          suffix=" Mt CO2e/yr")
 
         
@@ -234,7 +242,7 @@ with st.sidebar:
                                         help_dialog=population_help)
 
         selectbox_plus_icon("Crops yield projection",
-                            [-0.27, 0.0, 0.34, 0.58],
+                            [-0.27, 0.0, 0.16, 0.34],
                             default=0.0,
                             format_func=format_yield_proj,
                             key="yield_proj",

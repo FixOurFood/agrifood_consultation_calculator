@@ -103,7 +103,15 @@ def pipeline_setup(food_system):
                             })
 
     food_system.add_node(BECCS_farm_land,
-                        {"farm_percentage":st.session_state.land_BECCS/100,
+                        {"land_type": "Arable",
+                         "farm_percentage":st.session_state.land_BECCS/100,
+                         "items":("Item_origin", "Vegetal Products"),
+                        })
+    
+    food_system.add_node(BECCS_farm_land,
+                        {"land_type": ["Improved grassland", "Semi-natural grassland"],
+                         "farm_percentage":st.session_state.land_BECCS_pasture/100,
+                         "items":("Item_origin", "Animal Products"),
                         })
 
     food_system.add_node(shift_production,
@@ -214,8 +222,7 @@ def pipeline_setup(food_system):
     
     food_system.add_node(scale_production,
                             {"scale_factor":1+st.session_state.stock_density/100,
-                             "items":[2731, 2732, 2733, 2735, 2948, 2740, 2743],
-                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity]})
+                             "items":[2731, 2732, 2733, 2735, 2948, 2740, 2743]})
 
     # food_system.add_node(scale_production,
     #                         {"scale_factor":1-st.session_state.methane_prod_factor*st.session_state.methane_inhibitor/100,
@@ -244,6 +251,15 @@ def pipeline_setup(food_system):
     # food_system.add_node(scale_production,
     #                         {"scale_factor":1 - st.session_state.fossil_livestock_prod_factor*st.session_state.fossil_livestock/100,
     #                         "items":("Item_origin","Animal Products")})
+
+    food_system.add_node(scale_impact,
+                            {"items":("Item_origin","Animal Products"),
+                            "scale_factor":1-1/(st.session_state.livestock_yield/100)})
+    
+    food_system.add_node(scale_production,
+                            {"scale_factor":st.session_state.livestock_yield/100,
+                            "items":("Item_origin","Animal Products")})
+
 
     # Arable farming practices
     food_system.add_node(agroecology_model,
@@ -282,7 +298,8 @@ def pipeline_setup(food_system):
     food_system.add_node(ccs_model,
                             {"waste_BECCS":st.session_state.waste_BECCS*1e6,
                             "overseas_BECCS":st.session_state.overseas_BECCS*1e6,
-                            "DACCS":st.session_state.DACCS*1e6})
+                            "DACCS":st.session_state.DACCS*1e6,
+                            "biochar":st.session_state.biochar*1e6})
 
     food_system.add_node(label_new_forest)
 

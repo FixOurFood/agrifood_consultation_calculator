@@ -49,14 +49,14 @@ def project_future(datablock, yield_change=None):
     scale_past = xr.DataArray(np.ones(len(years_past)), dims=["Year"], coords={"Year": years_past})
     scale_tot = xr.concat([scale_past, scale], dim="Year")
 
-    vegetal_items = g_cap_day.sel(Item=g_cap_day.Item_origin=="Vegetal Products").Item.values
+    cereal_items = g_cap_day.sel(Item=g_cap_day.Item_group=="Cereals - Excluding Beer").Item.values
 
     # If yield_change is not None, add a scaling factor to account for yield increase, only to vegetal items
     if yield_change is not None:
         scale_tot = scale_tot.expand_dims({"Item": g_cap_day.Item.values})
-        decline_mask = scale_tot.Year >= 2020
-        decline_years = scale_tot.Year.where(decline_mask, drop=False) - 2020
-        scale_tot = scale_tot.where(~decline_mask | scale_tot.Item.isin(vegetal_items), scale_tot / (1+decline_years/29*yield_change))
+        scale_yield = xr.ones_like(scale_tot)
+        scale_yield.loc[{"Item": cereal_items}] = linear_scale(2020, 2020, 2050, 2050, c_init=1, c_end=1+yield_change)
+        scale_tot = scale_tot / scale_yield
 
     # Scale food production and balance using imports
     g_cap_day = g_cap_day.fbs.scale_add(element_in="production", element_out="imports", scale=1/scale_tot, add=False)
@@ -881,7 +881,7 @@ def peatland_restoration(datablock, restore_fraction, new_land_type, old_land_ty
 
     return datablock
 
-def ccs_model(datablock, waste_BECCS, overseas_BECCS, DACCS):
+def ccs_model(datablock, waste_BECCS, overseas_BECCS, DACCS, biochar):
     """Computes the CCS sequestration from the different sources
     
     Parameters
@@ -893,6 +893,8 @@ def ccs_model(datablock, waste_BECCS, overseas_BECCS, DACCS):
         Total maximum sequestration (in t CO2e / year) from overseas biomass BECCS
     DACCS : float
         Total maximum sequestration (in t CO2e / year) from DACCS
+    biochar : float
+        Total maximum sequestration (in t CO2e / year) from biochar and enhanced weathering
     """
     
     timescale = datablock["global_parameters"]["timescale"]
@@ -910,13 +912,15 @@ def ccs_model(datablock, waste_BECCS, overseas_BECCS, DACCS):
     waste_BECCS_seq_array = waste_BECCS * logistic_0_val
     overseas_BECCS_seq_array = overseas_BECCS * logistic_0_val
     DACCS_seq_array = DACCS * logistic_0_val
+    biochar_seq_array = biochar * logistic_0_val
     land_BECCS_seq_array = land_BECCS * logistic_0_val
 
     # Create a dataset with the different sequestration sources
     seq_ds = xr.Dataset({"BECCS from waste": waste_BECCS_seq_array,
                          "BECCS from overseas biomass": overseas_BECCS_seq_array,
                          "BECCS from land": land_BECCS_seq_array,
-                         "DACCS": DACCS_seq_array})
+                         "DACCS": DACCS_seq_array,
+                         "Biochar": biochar_seq_array})
     
     seq_da = seq_ds.to_array(dim="Item", name="sequestration")
     
@@ -1020,7 +1024,7 @@ def scale_impact(datablock, scale_factor, items=None):
 
     return datablock
 
-def scale_production(datablock, scale_factor, items=None, elasticity=None):
+def scale_production(datablock, scale_factor, items=None):
     """ Scales the production values for the selected items by multiplying them by
     a multiplicative factor.
     """
@@ -1036,11 +1040,10 @@ def scale_production(datablock, scale_factor, items=None, elasticity=None):
     scale_prod = logistic_food_supply(food_orig, timescale, 1, scale_factor)
 
     out = food_orig.fbs.scale_add(element_in="production",
-                                element_out=["production", "imports"],
+                                element_out="imports",
                                 scale=scale_prod,
                                 items=items,
-                                add=False,
-                                elasticity=elasticity)
+                                add=False)
     
     # Reduce feed and seed
     out = feed_scale(out, food_orig, source = "imports")
@@ -1059,7 +1062,7 @@ def scale_production(datablock, scale_factor, items=None, elasticity=None):
 
     return datablock
 
-def BECCS_farm_land(datablock, farm_percentage, land_type="Arable",
+def BECCS_farm_land(datablock, farm_percentage, items, land_type="Arable",
                     new_land_type="BECCS", mask_map=None, mask_values=None):
     """Repurposes farm land for BECCS, reducing the amount of food production,
     and increasing the amount of CO2e sequestered.
@@ -1090,7 +1093,10 @@ def BECCS_farm_land(datablock, farm_percentage, land_type="Arable",
         spared_new_class["aggregate_class"] = new_land_type
         pctg = xr.concat([pctg, spared_new_class], dim="aggregate_class")
 
-    pctg.loc[{"aggregate_class":new_land_type}] += delta_spared
+    if "aggregate_class" in delta_spared.dims:
+        pctg.loc[{"aggregate_class":new_land_type}] += delta_spared.sum(dim="aggregate_class")
+    else:
+        pctg.loc[{"aggregate_class":new_land_type}] += delta_spared
 
     # Add spared class to the land use map
     datablock["land"]["percentage_land_use"] = pctg
@@ -1102,7 +1108,8 @@ def BECCS_farm_land(datablock, farm_percentage, land_type="Arable",
     food_orig = datablock["food"]["g/cap/day"]
     scale_spare = logistic_food_supply(food_orig, timescale, 1, scale_use)
 
-    scaled_items = food_orig.sel(Item=food_orig.Item_origin=="Vegetal Products").Item.values
+    # scaled_items = food_orig.sel(Item=food_orig.Item_origin=="Vegetal Products").Item.values
+    scaled_items = get_items(food_orig, items)
 
     out = food_orig.fbs.scale_add(element_in="production",
                                   element_out="imports",
@@ -1697,7 +1704,8 @@ def compute_metrics(datablock):
     total_removals = seq_da.sel(Item=["BECCS from waste",
                                       "BECCS from overseas biomass",
                                       "BECCS from land",
-                                      "DACCS"]).sum(dim="Item").values/1e6
+                                      "DACCS",
+                                      "Biochar"]).sum(dim="Item").values/1e6
     
     emissions_balance = xr.DataArray(data = list(sector_emissions_dict.values()),
                             name="Sectoral emissions",
@@ -1741,6 +1749,8 @@ def compute_metrics(datablock):
     datablock["metrics"]["gcapday_ref_item_origin"] = gcapday_ref
 
     # Herd size
+
+    # Read baseline herd sizes from session state
     baseline_beef_herd = st.session_state["baseline_beef_herd"]
     baseline_dairy_herd = st.session_state["baseline_dairy_herd"]
     dairy_herd_beef = st.session_state["dairy_herd_beef"]
@@ -1749,47 +1759,76 @@ def compute_metrics(datablock):
     baseline_sheep_flock = st.session_state["baseline_sheep_flock"]
     baseline_dairy_herd_2y = st.session_state["baseline_dairy_herd_breeding_aged_2_years_"]
 
-    pop_baseline = datablock["population"]["population"].sel(Region = 826, Year=2020).values
-    pop_new = datablock["population"]["population"].sel(Region = 826, Year=metric_yr).values
+    # Read total population from datablock
+    pop_baseline = datablock["population"]["population"].sel(Region = 826, Year=2020)
+    pop_new = datablock["population"]["population"].sel(Region = 826)
 
-    baseline_dairy_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=[2743, 2740, 2948]).fillna(0).sum().values
-    new_dairy_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=[2743, 2740, 2948]).fillna(0).sum().values
+    # Dairy herd
 
-    baseline_beef_production = pop_baseline *datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2731).fillna(0).sum().values
-    new_beef_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=2731).fillna(0).sum().values
+    baseline_dairy_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=[2743, 2740, 2948]).fillna(0).sum()
+    new_dairy_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Item=[2743, 2740, 2948]).fillna(0).sum(dim="Item")
+    new_dairy_herd = new_dairy_production / baseline_dairy_production * baseline_dairy_herd
+    new_dairy_herd["Item"] = "Dairy herd"
+    new_dairy_herd.name = "Dairy herd"
+    new_dairy_herd_2y = new_dairy_production / baseline_dairy_production * baseline_dairy_herd_2y
+    new_dairy_herd_2y["Item"] = "Dairy herd 2 years and older"
+    new_dairy_herd_2y.name = "Dairy herd 2 years and older"
 
-    new_dairy_herd = baseline_dairy_herd * new_dairy_production / baseline_dairy_production
-    new_beef_herd = baseline_beef_herd * (new_beef_production - dairy_herd_beef * baseline_beef_production * new_dairy_herd / baseline_dairy_herd) / ((1 - dairy_herd_beef)*baseline_beef_production)
-    new_dairy_herd_2y = baseline_dairy_herd_2y * new_dairy_production / baseline_dairy_production
-
-    baseline_poultry_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2734).fillna(0).sum().values
-    new_poultry_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=2734).fillna(0).sum().values
-    new_poultry_heads = baseline_poultry_heads * new_poultry_production / baseline_poultry_production
-
-    baseline_pig_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2733).fillna(0).sum().values
-    new_pig_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=2733).fillna(0).sum().values
-    new_pig_heads = baseline_pig_heads * new_pig_production / baseline_pig_production
-
-    baseline_sheep_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2732).fillna(0).sum().values
-    new_sheep_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Year=metric_yr, Item=2732).fillna(0).sum().values
-    new_sheep_flock = baseline_sheep_flock * new_sheep_production / baseline_sheep_production
-
-
-    datablock["metrics"]["new_dairy_herd"] = new_dairy_herd
-    datablock["metrics"]["new_beef_herd"] = new_beef_herd
-    datablock["metrics"]["new_dairy_herd_2y"] = new_dairy_herd_2y
     datablock["metrics"]["baseline_dairy_herd"] = baseline_dairy_herd
+    datablock["metrics"]["new_dairy_herd"] = new_dairy_herd
+    datablock["metrics"]["new_dairy_herd_2y"] = new_dairy_herd_2y
+
+    # Beef herd
+    baseline_beef_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2731).fillna(0).sum()
+    new_beef_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Item=2731).fillna(0)
+    new_beef_herd = baseline_beef_herd * (new_beef_production - dairy_herd_beef * baseline_beef_production * new_dairy_herd / baseline_dairy_herd) / ((1 - dairy_herd_beef)*baseline_beef_production)
+    new_beef_herd["Item"] = "Beef herd"
+    new_beef_herd.name = "Beed herd"
+
     datablock["metrics"]["baseline_beef_herd"] = baseline_beef_herd
+    datablock["metrics"]["new_beef_herd"] = new_beef_herd
     datablock["metrics"]["new_herd"] = new_dairy_herd + new_beef_herd
+
+    # Poultry, pigs and sheep
+    baseline_poultry_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2734).fillna(0).sum()
+    new_poultry_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Item=2734).fillna(0)
+    new_poultry_heads = baseline_poultry_heads * new_poultry_production / baseline_poultry_production
+    new_poultry_heads["Item"] = "Poultry heads"
+    new_poultry_heads.name = "Poultry heads"
 
     datablock["metrics"]["baseline_poultry_heads"] = baseline_poultry_heads
     datablock["metrics"]["new_poultry_heads"] = new_poultry_heads
 
+    baseline_pig_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2733).fillna(0).sum()
+    new_pig_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Item=2733).fillna(0)
+    new_pig_heads = baseline_pig_heads * new_pig_production / baseline_pig_production
+    new_pig_heads["Item"] = "Pig heads"
+    new_pig_heads.name = "Pig heads"
+
     datablock["metrics"]["baseline_pig_heads"] = baseline_pig_heads
     datablock["metrics"]["new_pig_heads"] = new_pig_heads
 
+    baseline_sheep_production = pop_baseline * datablock["food"]["g/cap/day"]["production"].sel(Year=2020, Item=2732).fillna(0).sum()
+    new_sheep_production = pop_new * datablock["food"]["g/cap/day"]["production"].sel(Item=2732).fillna(0)
+    new_sheep_flock = baseline_sheep_flock * new_sheep_production / baseline_sheep_production
+    new_sheep_flock["Item"] = "Sheep flock"
+    new_sheep_flock.name = "Sheep flock"
+
     datablock["metrics"]["baseline_sheep_flock"] = baseline_sheep_flock
     datablock["metrics"]["new_sheep_flock"] = new_sheep_flock
+
+    size_dataarrays = [new_dairy_herd, new_dairy_herd_2y, new_beef_herd,
+                       new_poultry_heads, new_pig_heads, new_sheep_flock]
+
+    for da in size_dataarrays:
+        if "Item" not in da.dims:
+            da = da.expand_dims(dim="Item")
+        
+        # Add to datablock
+        if "livestock" not in datablock["metrics"]:
+            datablock["metrics"]["livestock"] = da
+        else:
+            datablock["metrics"]["livestock"] = xr.concat([datablock["metrics"]["livestock"], da], dim="Item")
 
     # Land use
     pctg = datablock["land"]["percentage_land_use"]
@@ -1863,6 +1902,13 @@ def compute_metrics(datablock):
 
     other_crops_area_mha = total_arable/1e6 - new_potato_area - new_oilseed_area - new_cereal_area - new_horiticulture_area
     datablock["metrics"]["other_crops_area_mha"] = other_crops_area_mha
+
+    # Food balance sheet
+
+    population = datablock["population"]["population"].sel(Region=826)
+    food_qty = datablock["food"]["g/cap/day"]
+
+    datablock["food"]["kton/year"] = food_qty * population / 1e6 * 365.25
 
     return datablock
 
