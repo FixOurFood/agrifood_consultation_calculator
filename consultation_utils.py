@@ -130,6 +130,7 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
             st.session_state["foresting_pasture"],
             st.session_state["bdleaf_conif_ratio"],
             st.session_state["land_BECCS"],
+            st.session_state["land_BECCS_pasture"],
             st.session_state["lowland_peatland"],
             st.session_state["upland_peatland"],
             st.session_state["horticulture"],
@@ -143,6 +144,7 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
             st.session_state["manure_management"],
             st.session_state["animal_breeding"],
             st.session_state["fossil_livestock"],
+            st.session_state["livestock_yield"],
 
             st.session_state["agroforestry"],
             st.session_state["arable_soil_carbon"],
@@ -153,6 +155,7 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
             st.session_state["waste_BECCS"],
             st.session_state["overseas_BECCS"],
             st.session_state["DACCS"],
+            st.session_state["biochar"],
             
             hash
         ]
@@ -160,20 +163,20 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
         if datablock is not None:
             extra_values = [datablock["metrics"]["SSR_metric_yr"],
                             datablock["metrics"]["total_emissions"],
-                            datablock["metrics"]["new_herd"],
-                            datablock["metrics"]["new_dairy_herd"],
-                            datablock["metrics"]["new_dairy_herd_2y"],
+                            datablock["metrics"]["new_herd"].isel(Year=-1),
+                            datablock["metrics"]["new_dairy_herd"].isel(Year=-1),
+                            datablock["metrics"]["new_dairy_herd_2y"].isel(Year=-1),
 
-                            datablock["metrics"]["new_beef_herd"],
-                            datablock["metrics"]["new_pig_heads"],
-                            datablock["metrics"]["new_poultry_heads"],
-                            datablock["metrics"]["new_sheep_flock"],
+                            datablock["metrics"]["new_beef_herd"].isel(Year=-1),
+                            datablock["metrics"]["new_pig_heads"].isel(Year=-1),
+                            datablock["metrics"]["new_poultry_heads"].isel(Year=-1),
+                            datablock["metrics"]["new_sheep_flock"].isel(Year=-1),
 
-                            datablock["metrics"]["new_potato_area"],
-                            datablock["metrics"]["new_oilseed_area"],
-                            datablock["metrics"]["new_cereal_area"],
+                            datablock["metrics"]["new_potato_area"].isel(Year=-1),
+                            datablock["metrics"]["new_oilseed_area"].isel(Year=-1),
+                            datablock["metrics"]["new_cereal_area"].isel(Year=-1),
                             datablock["metrics"]["new_horticulture_area"],
-                            datablock["metrics"]["other_crops_area_mha"],
+                            datablock["metrics"]["other_crops_area_mha"].isel(Year=-1),
 
                             datablock["metrics"]["reduction_emissions_pctg"],
                             datablock["metrics"]["new_forest_land"]/1e6,
@@ -185,6 +188,9 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
                             datablock["metrics"]["new_arable_land_pctg"],
                             datablock["metrics"]["total_pasture"]/1e6,                            
                             datablock["metrics"]["new_pasture_land_pctg"]]
+            
+            for ex in extra_values:
+                print(ex)
 
             if np.isscalar(extra_values):
                 extra_values = [extra_values]

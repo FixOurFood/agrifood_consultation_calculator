@@ -261,8 +261,10 @@ with st.sidebar:
 #                  Main
 # ----------------------------------------
 
+run_params = set_run_params_dict()
+# print(run_params)
 food_system = Pipeline(datablock_setup(pop_projection))
-food_system = pipeline_setup(food_system)
+food_system = pipeline_setup(food_system, run_params)
 food_system.run()
 datablock_result = food_system.datablock
 
