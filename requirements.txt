@@ -12,3 +12,4 @@ gspread
 pycryptodome
 agrifoodpy
 git+https://github.com/FixOurFood/agrifoodpy-data.git@importable
+git+https://github.com/FixOurFood/future_food.git

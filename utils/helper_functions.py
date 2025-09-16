@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import time
 
+
 # Helper Functions
 
 # Updates the value of the sliders by setting the session state
@@ -249,3 +250,17 @@ def set_run_params_dict():
     params.update(adv_set_dict)
     params["cereal_scaling"] = True
     return params
+
+@st.cache_data(ttl=60*60*24)
+def cached_datablock_setup(
+    AES_KEY,
+    AES_IV,
+    advanced_settings
+    ):
+
+    from future_food.datablock_setup import datablock_setup
+
+    return datablock_setup(
+        AES_KEY,
+        AES_IV,
+        advanced_settings)

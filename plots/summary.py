@@ -24,25 +24,22 @@ def map_max(map, dim):
 
 def plot_summary(datablock, background_color):
 
-
-    reference_emissions_baseline = 70.16
-    reference_emissions_baseline_agriculture = 40.71
-
+    reference_emissions_baseline = st.secrets["baseline_total_emissions"]
 
     if not st.session_state["embedding"]:
-        st.markdown("# Future Food Calculator - The UK in 2050")
-        st.write("""Click on an aspect of the food system you would like to change - on
-                the left side of the page. Move the sliders to explore how different
-                interventions in the food system impact the UK emissions balance,
-                self-sufficiency, and land use. Alternatively, select a scenario
-                from the dropdown menu on the top of the sidebar to automatically
-                position sliders to pre-set values. Detailed charts describing the
-                effects of interventions on different aspects of the food system
-                can be found in the dropdown menu at the bottom of the page.""")
-        st.write("""Challenge: can you move the sliders to get the UK to net zero
-                (diamond is at zero)? Are you happy with this solution? If so, submit
-                your proposed solution at the bottom of this page!
-                """)
+        with st.expander("Future Food Calculator - The UK in 2050", expanded=True):
+            st.write("""Click on an aspect of the food system you would like to change - on
+                    the left side of the page. Move the sliders to explore how different
+                    interventions in the food system impact the UK emissions balance,
+                    self-sufficiency, and land use. Alternatively, select a scenario
+                    from the dropdown menu on the top of the sidebar to automatically
+                    position sliders to pre-set values. Detailed charts describing the
+                    effects of interventions on different aspects of the food system
+                    can be found in the dropdown menu at the bottom of the page.""")
+            st.write("""Challenge: can you move the sliders to get the UK to net zero
+                    (diamond is at zero)? Are you happy with this solution? If so, submit
+                    your proposed solution at the bottom of this page!
+                    """)
             
     col_comp_1, col_comp_2, col_comp_3 = st.columns([1,1,1])
 
@@ -56,12 +53,13 @@ def plot_summary(datablock, background_color):
             total_removals = datablock["metrics"]["total_removals"]
             total_emissions = datablock["metrics"]["total_emissions"]
             agricultural_emissions = datablock["metrics"]["agricultural_emissions"]
+            reference_afolu_emissions = st.secrets["baseline_afolu_emissions"]
             
             st.markdown('''**UK Emissions balance**''')
                 
             if st.session_state["show_afolu_only"]:
-                reference_emissions_baseline = 12.96
                 emissions_balance = emissions_balance.sel(Sector=["Agriculture", "LU sinks", "Removals"])
+                reference_emissions_baseline = reference_afolu_emissions
 
             c = plot_single_bar_altair(emissions_balance, show="Sector", color=sector_emissions_colors,
                 axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,

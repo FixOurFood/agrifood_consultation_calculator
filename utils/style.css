@@ -5,6 +5,13 @@
      padding-right: 1.5rem;
 }
 
+[data-testid="stSidebarHeader"]{
+     padding-top: 0.0rem;
+     padding-bottom: 0.0rem;
+     padding-left: 1.5rem;
+     padding-right: 1.5rem;
+}
+
 [data-testid="stAppViewBlockContainer"]{
      padding-top: 1.5rem;
      padding-left: 1rem;

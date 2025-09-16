@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 import streamlit as st
-from glossary import *
+from utils.glossary import *
 
 import base64
 from io import BytesIO

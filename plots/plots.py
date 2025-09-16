@@ -1,6 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-from glossary import *
+from utils.glossary import *
 from utils.helper_functions import *
 from streamlit_theme import st_theme
 
