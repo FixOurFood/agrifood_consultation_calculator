@@ -27,7 +27,7 @@ def plot_summary(datablock, background_color):
     reference_emissions_baseline = st.secrets["baseline_total_emissions"]
 
     if not st.session_state["embedding"]:
-        with st.expander("Future Food Calculator - The UK in 2050", expanded=True):
+        with st.expander("**Future Food Calculator - The UK in 2050**", expanded=True):
             st.write("""Click on an aspect of the food system you would like to change - on
                     the left side of the page. Move the sliders to explore how different
                     interventions in the food system impact the UK emissions balance,
