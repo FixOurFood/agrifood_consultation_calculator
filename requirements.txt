@@ -4,7 +4,7 @@ xarray
 pandas
 matplotlib
 altair
-streamlit==1.45.0
+streamlit==1.43.2
 millify
 fair
 streamlit-extras==0.4.3
