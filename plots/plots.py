@@ -4,6 +4,7 @@ from utils.glossary import *
 from utils.helper_functions import *
 from streamlit_theme import st_theme
 
+from .uk_as_farm import plot_uk_as_farm
 from .summary import plot_summary
 from .annual_quantities import plot_annual_quantities
 from .per_capita import plot_per_capita
@@ -29,6 +30,10 @@ def plots(datablock):
     #                  Plots
     # ----------------------------------------
     plot_key = st.session_state["plot_key"]
+
+    # UK as farm
+    if plot_key == 'UK as farm':
+        plot_uk_as_farm(datablock, background_color)
 
     # Summary
     if plot_key == "Summary":

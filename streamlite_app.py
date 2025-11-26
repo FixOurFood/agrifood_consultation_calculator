@@ -30,7 +30,7 @@ if "ssr_metric" not in st.session_state:
     st.session_state["ssr_metric"] = "g/cap/day"
 
 if "plot_key" not in st.session_state:
-    st.session_state["plot_key"] = "Summary"
+    st.session_state["plot_key"] = "UK as farm"
 
 if "check_ID" not in st.session_state:
     st.session_state["check_ID"] = False
