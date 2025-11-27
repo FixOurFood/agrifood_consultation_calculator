@@ -22,26 +22,28 @@
 
 <main>
 	<div class="figure">
-		<GridField
-			pigs={data.pigs}
-			dairyHerd={data.dairy_herd}
-			poultry={data.poultry}
-			cattle={data.beef_herd}
-			sheep={data.sheep}
-			beccsOnPasture={data.beccs_on_pasture}
-			pasture={data.total_pasture}
-			additionalForest={data.additional_forest}
-			silvoPasture={data.silvopasture}
-			cereals={data.cereals}
-			mixedFarming={data.total_mixed_farming}
-			horticulture={data.horticulture}
-			oilseeds={data.oilseeds}
-			potatoes={data.potatoes}
-			beccsArable={data.beccs_on_arable}
-			otherArable={data.total_arable}
-			agroForestry={data.agroforestry}
-			peatland={data.restored_peatland}
-		></GridField>
+		{#await data then}
+			<GridField
+				pigs={data.pigs}
+				dairyHerd={data.dairy_herd}
+				poultry={data.poultry}
+				cattle={data.beef_herd}
+				sheep={data.sheep}
+				beccsOnPasture={data.beccs_on_pasture}
+				pasture={data.total_pasture}
+				additionalForest={data.additional_forest}
+				silvoPasture={data.silvopasture}
+				cereals={data.cereals}
+				mixedFarming={data.total_mixed_farming}
+				horticulture={data.horticulture}
+				oilseeds={data.oilseeds}
+				potatoes={data.potatoes}
+				beccsArable={data.beccs_on_arable}
+				otherArable={data.total_arable}
+				agroForestry={data.agroforestry}
+				peatland={data.restored_peatland}
+			></GridField>
+		{/await}
 	</div>
 </main>
 
