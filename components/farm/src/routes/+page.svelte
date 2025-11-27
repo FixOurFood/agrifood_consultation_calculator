@@ -22,7 +22,7 @@
 
 <main>
 	<div class="figure">
-		{#await data then}
+		{#if Object.keys(data).length !== 0}
 			<GridField
 				pigs={data.pigs}
 				dairyHerd={data.dairy_herd}
@@ -43,7 +43,7 @@
 				agroForestry={data.agroforestry}
 				peatland={data.restored_peatland}
 			></GridField>
-		{/await}
+		{/if}
 	</div>
 </main>
 
