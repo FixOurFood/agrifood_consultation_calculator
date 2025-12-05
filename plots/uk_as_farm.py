@@ -30,7 +30,7 @@ def map_max(map, dim):
 
 def plot_uk_as_farm(datablock, background_color):
 
-    with st.container(height=800, border=True):
+    with st.container(height=820, border=True):
 
         data = {
             "dairy_herd": float(

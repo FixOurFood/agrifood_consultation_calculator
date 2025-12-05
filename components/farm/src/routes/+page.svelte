@@ -13,7 +13,7 @@
 
 	onMount(async () => {
 		Streamlit.setComponentReady();
-		Streamlit.setFrameHeight(800);
+		Streamlit.setFrameHeight(780);
 		Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, onRender);
 	});
 
