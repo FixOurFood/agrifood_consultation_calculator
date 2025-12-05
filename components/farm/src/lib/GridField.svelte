@@ -38,7 +38,7 @@
 	import Pigs from './Pigs.svelte';
 	import Poultry from './Poultry.svelte';
 
-	import { f, range, shuffleArray, reshape1DTo2D, appendY, allocateToTargetSum } from './utils.js';
+	import { f, shuffleArray, reshape1DTo2D, appendY, allocateToTargetSum } from './utils.js';
 
 	let {
 		pigs = 9,
@@ -479,8 +479,6 @@
 
 <svg viewBox="0 0 {width * 39} {height * 23}" width="100%" height="100%">
 	<!-- Earthy bottom layer -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<!-- svelte-ignore a11y_mouse_events_have_key_events -->
 	<polygon
 		id="earth"
 		points="
@@ -520,7 +518,7 @@
 					tooltipEvent = event;
 					tooltipId = id;
 				}}
-				onmouseout={(event) => {
+				onmouseout={() => {
 					tooltipEvent = null;
 					tooltipId = null;
 				}}
@@ -606,7 +604,7 @@
 				tooltipEvent = event;
 				tooltipId = c.PIGS;
 			}}
-			onmouseleave={(event) => {
+			onmouseleave={() => {
 				tooltipEvent = null;
 				tooltipId = null;
 			}}
@@ -623,7 +621,7 @@
 				tooltipEvent = event;
 				tooltipId = c.DAIRY_HERD;
 			}}
-			onmouseleave={(event) => {
+			onmouseleave={() => {
 				tooltipEvent = null;
 				tooltipId = null;
 			}}
@@ -640,7 +638,7 @@
 				tooltipEvent = event;
 				tooltipId = c.POULTRY;
 			}}
-			onmouseleave={(event) => {
+			onmouseleave={() => {
 				tooltipEvent = null;
 				tooltipId = null;
 			}}

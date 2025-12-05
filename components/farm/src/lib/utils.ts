@@ -2,14 +2,6 @@ import { format } from 'd3-format';
 
 export const f = format('.1f');
 
-export function range(start: number, end: number, step = 1) {
-	const result = [];
-	for (let a = start; a < end; a += step) {
-		result.push(a);
-	}
-	return result;
-}
-
 export function shuffleArray(array: number[]) {
 	for (let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
