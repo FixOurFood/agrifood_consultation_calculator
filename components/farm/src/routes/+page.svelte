@@ -11,16 +11,21 @@
 		// console.log(event.detail.args.data);
 	};
 
+	let height = $state(0);
+
+	$effect(() => {
+		Streamlit.setFrameHeight(height + 60);
+	});
+
 	onMount(async () => {
 		Streamlit.setComponentReady();
-		Streamlit.setFrameHeight(780);
 		Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, onRender);
 	});
 
 	// $inspect(data);
 </script>
 
-<main>
+<main bind:clientHeight={height}>
 	<div class="figure">
 		{#if Object.keys(data).length !== 0}
 			<GridField
