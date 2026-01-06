@@ -38,9 +38,11 @@
 	import Pigs from './Pigs.svelte';
 	import Poultry from './Poultry.svelte';
 
-	import { f, shuffleArray, reshape1DTo2D, appendY, allocateToTargetSum } from './utils.js';
+	import { f, fp, shuffleArray, reshape1DTo2D, appendY, allocateToTargetSum } from './utils.js';
 
 	let {
+		totalEmissions = 10,
+		selfSufficiency = 0.67,
 		pigs = 9,
 		dairyHerd = 3,
 		poultry = 250,
@@ -289,151 +291,6 @@
 	</svg>
 </div>
 
-<div class="right" style="position: absolute; top:0; left: 0;">
-	<div>
-		<svg height="12" viewBox="0 -5 39 23" style="display: inline;">
-			<Horticulture />
-		</svg>
-		Horticulture {f(horticulture)} Mha
-	</div>
-	<div>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<Oilseed />
-		</svg>
-		Oilseeds {f(oilseeds)} Mha
-	</div>
-	<div>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<Potatoes />
-		</svg>
-		Potatoes {f(potatoes)} Mha
-	</div>
-	<div>
-		<svg height="9" viewBox="0 0 39 23" style="display: inline;">
-			<BECCSArable />
-		</svg>
-		BECCS on Arable {f(beccsArable)} Mha
-	</div>
-
-	<div>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<OtherArable />
-		</svg>
-		Other Arable {f(otherArable)} Mha
-	</div>
-	<div>
-		<svg height="8" viewBox="0 -20 39 23" style="display: inline;">
-			<AdditionalForest4Smalltree />
-			<Smallbush />
-			<Bigbush />
-			<Smallbush />
-		</svg>
-		AgroForestry {f(agroForestry)} Mha
-	</div>
-	<div>
-		<svg height="15" viewBox="0 -5 39 23" style="display: inline;">
-			<Peatland1 />
-		</svg>
-		<div style="display: none;"><Peatland2 /></div>
-		Restored Peatland {f(peatland)} Mha
-	</div>
-
-	<div>
-		<svg height="9" viewBox="0 0 39 23" style="display: inline;">
-			<Cereals />
-		</svg>
-		Cereals {f(cereals)} Mha
-	</div>
-	<div>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<MixedFarmingSalad />
-		</svg>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<MixedFarmingCorn />
-			<Sheep1 />
-		</svg>
-		Mixed Farming {f(mixedFarming)} Mha
-	</div>
-</div>
-
-<div class="right" style="position: absolute; bottom:0; left: 0">
-	<div>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<BECCSPasture />
-		</svg>
-		BECCS on pasture {f(beccsOnPasture)} Mha
-	</div>
-	<div>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<use href="#pasture" />
-		</svg>
-		Pasture {f(pasture)} Mha
-	</div>
-	<div>
-		<svg height="8" viewBox="0 -10 39 23" style="display: inline;">
-			<AdditionalForest3Bigtree />
-		</svg>
-		<svg height="8" viewBox="0 -10 39 23" style="display: inline;">
-			<AdditionalForest4Smalltree />
-		</svg>
-		Additional Forest {f(additionalForest)} Mha
-	</div>
-	<div>
-		<svg height="8" viewBox="0 -5 39 23" style="display: inline;">
-			<AdditionalForest1Smallconifer />
-		</svg>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<Cattle1 />
-		</svg>
-		Silvopasture {f(silvoPasture)} Mha
-	</div>
-
-	<div>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<g transform="translate(-10,10)">
-				<Cattle2 />
-			</g>
-		</svg>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<g transform="translate(-10,10)">
-				<Cattle1 />
-			</g>
-		</svg>
-		Total Cattle {f(cattle)} mln
-	</div>
-	<div>
-		<svg height="12" viewBox="0 0 39 23" style="display: inline;">
-			<Sheep2 />
-		</svg>
-		<svg height="12" viewBox="0 0 39 23" style="display: inline;">
-			<Sheep1 />
-		</svg>
-		Sheep {f(sheep)} mln
-	</div>
-	<div>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<Pig />
-		</svg>
-		Pigs {f(pigs)} mln
-	</div>
-	<div>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<Cattle2 />
-		</svg>
-		Dairy Herd {f(dairyHerd)} mln
-	</div>
-	<div>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<Poultry2 />
-		</svg>
-		<svg height="10" viewBox="0 0 39 23" style="display: inline;">
-			<Poultry1 />
-		</svg>
-		Poultry {f(poultry)} mln<br />
-	</div>
-	<div><small>Area sizes are approximate due to rounding.</small></div>
-</div>
-
 {#if tooltipEvent !== null && ![null, c.EMPTY_WHITE, c.MUD].includes(tooltipId)}
 	<Tooltip event={tooltipEvent}>
 		<div>
@@ -477,185 +334,351 @@
 	</Tooltip>
 {/if}
 
-<svg viewBox="0 0 {width * 39} {height * 23}" width="100%" height="100%">
-	<!-- Earthy bottom layer -->
-	<polygon
-		id="earth"
-		points="
+<div>
+	<svg viewBox="0 0 {width * 39} {height * 23}" width="100%" height="100%">
+		<!-- Earthy bottom layer -->
+		<polygon
+			id="earth"
+			points="
 		0,{(height / 2) * 23}
 		0,{(height / 2) * 23 + 20}
 		{(width / 2) * 39},{height * 23 + 20}
 		{width * 39},{(height / 2) * 23 + 20}
 		{width * 39},{(height / 2) * 23}
 		"
-		fill={c.earthyBrown}
-		stroke-width="2"
-		stroke="black"
-	></polygon>
+			fill={c.earthyBrown}
+			stroke-width="2"
+			stroke="black"
+		></polygon>
 
-	<!-- Black outline and pasture green background -->
-	<polygon
-		points="
+		<!-- Black outline and pasture green background -->
+		<polygon
+			points="
 			0,{(height / 2) * 23} 
 			{(width / 2) * 39},{height * 23}
 			{width * 39},{(height / 2) * 23}
 			{(width / 2) * 39},0"
-		fill={c.greenPasture}
-		stroke-width="2"
-		stroke="black"
-	></polygon>
+			fill={c.greenPasture}
+			stroke-width="2"
+			stroke="black"
+		></polygon>
 
-	{#each grid as id, index (index)}
-		{@const x = Math.floor(index / width)}
-		{@const y = index % height}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<!-- svelte-ignore a11y_mouse_events_have_key_events -->
-		<svg id="grid-{index}" data-x={x} data-y={y} viewBox="0 0 39 23" width="39" height="23">
-			<g
-				transform="translate({(width - y - 1) * 19.5 + x * 19.5} 
+		{#each grid as id, index (index)}
+			{@const x = Math.floor(index / width)}
+			{@const y = index % height}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<!-- svelte-ignore a11y_mouse_events_have_key_events -->
+			<svg id="grid-{index}" data-x={x} data-y={y} viewBox="0 0 39 23" width="39" height="23">
+				<g
+					transform="translate({(width - y - 1) * 19.5 + x * 19.5} 
 									 {(width - y) * -11.5 + x * 11.5 + height * 11.5})"
+					onmouseenter={(event) => {
+						tooltipEvent = event;
+						tooltipId = id;
+					}}
+					onmouseout={() => {
+						tooltipEvent = null;
+						tooltipId = null;
+					}}
+				>
+					{#if id === c.MUD}/
+						<Empty fill={c.dirtyBrown} stroke={c.dirtyBrown} />
+					{:else if id === c.BECCS_ON_PASTURE}
+						<use href="#beccs-on-pasture" />
+					{:else if id === c.PASTURE}
+						<use href="#pasture" />
+					{:else if id === c.TOTAL_CATTLE}
+						{#if x % 2 === 0}
+							<use href="#cattle-1" />
+						{:else}
+							<use href="#cattle-2" />
+						{/if}
+					{:else if id === c.SHEEP}
+						<use href="#sheep-1" />
+					{:else if id === c.ADDITIONAL_FOREST}
+						{@const randomTree = Math.random()}
+						{#if randomTree <= 0.2}
+							<use href="#small-conifer" />
+						{:else if randomTree <= 0.4}
+							<use href="#big-conifer" />
+						{:else if randomTree <= 0.6}
+							<use href="#big-tree" />
+						{:else if randomTree <= 0.8}
+							<use href="#small-tree" />
+						{/if}
+					{:else if id === c.SILVOPASTURE}
+						{@const randomTree = Math.random()}
+						{#if randomTree <= 0.1}
+							<use href="#small-conifer" />
+						{:else if randomTree <= 0.2}
+							<use href="#big-conifer" />
+						{:else if randomTree <= 0.3}
+							<use href="#big-tree" />
+						{:else if randomTree <= 0.4}
+							<use href="#small-tree" />
+						{:else if randomTree <= 0.5}
+							<Cattle1 />
+						{:else if randomTree <= 0.6}
+							<Cattle2 />
+						{:else if randomTree <= 0.7}
+							<Sheep1 />
+						{/if}
+					{:else if id === c.CEREALS}
+						<use href="#cereals" />
+					{:else if id === c.MIXED_FARMING}
+						<CerealsMixedFarmingField row={x} y={y - widthFieldC - widthSpacer} />
+					{:else if id === c.HORTICULTURE}
+						<use href="#horticulture" />
+					{:else if id === c.OILSEEDS}
+						<use href="#oilseed" />
+					{:else if id === c.POTATOES}
+						<use href="#potatoes" />
+					{:else if id === c.BECCS_ON_ARABLE}
+						<use href="#beccs-arable" />
+					{:else if id === c.OTHER_ARABLE}
+						<use href="#other-arable" />
+					{:else if id === c.AGROFORESTRY}
+						<AgroForestry row={x} {index} />
+					{:else if id === c.PEATLAND}
+						{#if x % 2 === 0}
+							<use href="#peatland-1" />
+						{:else}
+							<use href="#peatland-2" />
+						{/if}
+					{:else if id === c.EMPTY_WHITE}
+						<Empty />
+					{/if}
+
+					<!-- <text x="16" y="16" fill="red" font-size="6">{index}-{x}-{y}</text> -->
+				</g>
+			</svg>
+		{/each}
+		{#if pigShare > 0}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<!-- svelte-ignore a11y_mouse_events_have_key_events -->
+			<g
+				transform="translate(210,-230)"
 				onmouseenter={(event) => {
 					tooltipEvent = event;
-					tooltipId = id;
+					tooltipId = c.PIGS;
 				}}
-				onmouseout={() => {
+				onmouseleave={() => {
 					tooltipEvent = null;
 					tooltipId = null;
 				}}
 			>
-				{#if id === c.MUD}/
-					<Empty fill={c.dirtyBrown} stroke={c.dirtyBrown} />
-				{:else if id === c.BECCS_ON_PASTURE}
-					<use href="#beccs-on-pasture" />
-				{:else if id === c.PASTURE}
-					<use href="#pasture" />
-				{:else if id === c.TOTAL_CATTLE}
-					{#if x % 2 === 0}
-						<use href="#cattle-1" />
-					{:else}
-						<use href="#cattle-2" />
-					{/if}
-				{:else if id === c.SHEEP}
-					<use href="#sheep-1" />
-				{:else if id === c.ADDITIONAL_FOREST}
-					{@const randomTree = Math.random()}
-					{#if randomTree <= 0.2}
-						<use href="#small-conifer" />
-					{:else if randomTree <= 0.4}
-						<use href="#big-conifer" />
-					{:else if randomTree <= 0.6}
-						<use href="#big-tree" />
-					{:else if randomTree <= 0.8}
-						<use href="#small-tree" />
-					{/if}
-				{:else if id === c.SILVOPASTURE}
-					{@const randomTree = Math.random()}
-					{#if randomTree <= 0.1}
-						<use href="#small-conifer" />
-					{:else if randomTree <= 0.2}
-						<use href="#big-conifer" />
-					{:else if randomTree <= 0.3}
-						<use href="#big-tree" />
-					{:else if randomTree <= 0.4}
-						<use href="#small-tree" />
-					{:else if randomTree <= 0.5}
-						<Cattle1 />
-					{:else if randomTree <= 0.6}
-						<Cattle2 />
-					{:else if randomTree <= 0.7}
-						<Sheep1 />
-					{/if}
-				{:else if id === c.CEREALS}
-					<use href="#cereals" />
-				{:else if id === c.MIXED_FARMING}
-					<CerealsMixedFarmingField row={x} y={y - widthFieldC - widthSpacer} />
-				{:else if id === c.HORTICULTURE}
-					<use href="#horticulture" />
-				{:else if id === c.OILSEEDS}
-					<use href="#oilseed" />
-				{:else if id === c.POTATOES}
-					<use href="#potatoes" />
-				{:else if id === c.BECCS_ON_ARABLE}
-					<use href="#beccs-arable" />
-				{:else if id === c.OTHER_ARABLE}
-					<use href="#other-arable" />
-				{:else if id === c.AGROFORESTRY}
-					<AgroForestry row={x} {index} />
-				{:else if id === c.PEATLAND}
-					{#if x % 2 === 0}
-						<use href="#peatland-1" />
-					{:else}
-						<use href="#peatland-2" />
-					{/if}
-				{:else if id === c.EMPTY_WHITE}
-					<Empty />
-				{/if}
-
-				<!-- <text x="16" y="16" fill="red" font-size="6">{index}-{x}-{y}</text> -->
+				<Pigs scale={pigShare} />
 			</g>
-		</svg>
-	{/each}
-	{#if pigShare > 0}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<!-- svelte-ignore a11y_mouse_events_have_key_events -->
-		<g
-			transform="translate(210,-230)"
-			onmouseenter={(event) => {
-				tooltipEvent = event;
-				tooltipId = c.PIGS;
-			}}
-			onmouseleave={() => {
-				tooltipEvent = null;
-				tooltipId = null;
-			}}
-		>
-			<Pigs scale={pigShare} />
+		{/if}
+		{#if dairyHerdShare > 0}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<!-- svelte-ignore a11y_mouse_events_have_key_events -->
+			<g
+				transform="translate(500,-220)"
+				onmouseenter={(event) => {
+					tooltipEvent = event;
+					tooltipId = c.DAIRY_HERD;
+				}}
+				onmouseleave={() => {
+					tooltipEvent = null;
+					tooltipId = null;
+				}}
+			>
+				<DairyHerd scale={dairyHerdShare} />
+			</g>
+		{/if}
+		{#if poultryShare > 0}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<!-- svelte-ignore a11y_mouse_events_have_key_events -->
+			<g
+				transform="translate({(width / 2) * 39 - 100},{(-height / 2) * 23 + 60})"
+				onmouseenter={(event) => {
+					tooltipEvent = event;
+					tooltipId = c.POULTRY;
+				}}
+				onmouseleave={() => {
+					tooltipEvent = null;
+					tooltipId = null;
+				}}
+			>
+				<Poultry scale={poultryShare} />
+			</g>
+		{/if}
+		<g transform="translate(820,-400)">
+			<AdditionalForest2Bigconifer />
 		</g>
-	{/if}
-	{#if dairyHerdShare > 0}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<!-- svelte-ignore a11y_mouse_events_have_key_events -->
-		<g
-			transform="translate(500,-220)"
-			onmouseenter={(event) => {
-				tooltipEvent = event;
-				tooltipId = c.DAIRY_HERD;
-			}}
-			onmouseleave={() => {
-				tooltipEvent = null;
-				tooltipId = null;
-			}}
-		>
-			<DairyHerd scale={dairyHerdShare} />
+		<g transform="translate(790,-390)">
+			<AdditionalForest1Smallconifer />
 		</g>
-	{/if}
-	{#if poultryShare > 0}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<!-- svelte-ignore a11y_mouse_events_have_key_events -->
-		<g
-			transform="translate({(width / 2) * 39 - 100},{(-height / 2) * 23 + 60})"
-			onmouseenter={(event) => {
-				tooltipEvent = event;
-				tooltipId = c.POULTRY;
-			}}
-			onmouseleave={() => {
-				tooltipEvent = null;
-				tooltipId = null;
-			}}
-		>
-			<Poultry scale={poultryShare} />
+		<g transform="translate(850,-500)">
+			<Farmershouse />
 		</g>
-	{/if}
-	<g transform="translate(820,-400)">
-		<AdditionalForest2Bigconifer />
-	</g>
-	<g transform="translate(790,-390)">
-		<AdditionalForest1Smallconifer />
-	</g>
-	<g transform="translate(850,-500)">
-		<Farmershouse />
-	</g>
-</svg>
+	</svg>
+</div>
+
+<div>
+	<div>
+		<p>Emissions (Mt CO₂eq/year): Total <strong>{f(totalEmissions)}</strong></p>
+		<p>Self-sufficiency <strong>{fp(selfSufficiency)}</strong></p>
+	</div>
+	<div>
+		<details>
+			<summary>Legend</summary>
+			<span>
+				<svg height="5" viewBox="0 -10 39 23" style="display: inline;">
+					<AdditionalForest3Bigtree />
+				</svg>
+				<svg height="4" viewBox="0 -10 39 23" style="display: inline;">
+					<AdditionalForest4Smalltree />
+				</svg>
+				Additional Forest {f(additionalForest)} Mha
+			</span>
+
+			<span>
+				<svg height="8" viewBox="0 -20 39 23" style="display: inline;">
+					<AdditionalForest4Smalltree />
+					<Smallbush />
+					<Bigbush />
+					<Smallbush />
+				</svg>
+				AgroForestry {f(agroForestry)} Mha
+			</span>
+
+			<span>
+				<svg height="9" viewBox="0 0 39 23" style="display: inline;">
+					<BECCSArable />
+				</svg>
+				BECCS on Arable {f(beccsArable)} Mha
+			</span>
+
+			<span>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<BECCSPasture />
+				</svg>
+				BECCS on pasture {f(beccsOnPasture)} Mha
+			</span>
+
+			<span>
+				<svg height="9" viewBox="0 0 39 23" style="display: inline;">
+					<Cereals />
+				</svg>
+				Cereals {f(cereals)} Mha
+			</span>
+
+			<span>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<Cattle2 />
+				</svg>
+				Dairy Herd {f(dairyHerd)} mln
+			</span>
+
+			<span>
+				<svg height="12" viewBox="0 -5 39 23" style="display: inline;">
+					<Horticulture />
+				</svg>
+				Horticulture {f(horticulture)} Mha
+			</span>
+
+			<span>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<MixedFarmingSalad />
+				</svg>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<MixedFarmingCorn />
+					<Sheep1 />
+				</svg>
+				Mixed Farming {f(mixedFarming)} Mha
+			</span>
+
+			<span>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<Oilseed />
+				</svg>
+				Oilseeds {f(oilseeds)} Mha
+			</span>
+
+			<span>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<OtherArable />
+				</svg>
+				Other Arable {f(otherArable)} Mha
+			</span>
+
+			<span>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<use href="#pasture" />
+				</svg>
+				Pasture {f(pasture)} Mha
+			</span>
+
+			<span>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<Pig />
+				</svg>
+				Pigs {f(pigs)} mln
+			</span>
+
+			<span>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<Potatoes />
+				</svg>
+				Potatoes {f(potatoes)} Mha
+			</span>
+
+			<span>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<Poultry2 />
+				</svg>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<Poultry1 />
+				</svg>
+				Poultry {f(poultry)} mln<br />
+			</span>
+
+			<span>
+				<svg height="15" viewBox="0 -5 39 23" style="display: inline;">
+					<Peatland1 />
+				</svg>
+				<span style="display: none;"><Peatland2 /></span>
+				Restored Peatland {f(peatland)} Mha
+			</span>
+
+			<span>
+				<svg height="12" viewBox="0 0 39 23" style="display: inline;">
+					<Sheep2 />
+				</svg>
+				<svg height="12" viewBox="0 0 39 23" style="display: inline;">
+					<Sheep1 />
+				</svg>
+				Sheep {f(sheep)} mln
+			</span>
+
+			<span>
+				<svg height="8" viewBox="0 -5 39 23" style="display: inline;">
+					<AdditionalForest1Smallconifer />
+				</svg>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<Cattle1 />
+				</svg>
+				Silvopasture {f(silvoPasture)} Mha
+			</span>
+
+			<span>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<g transform="translate(-10,10)">
+						<Cattle2 />
+					</g>
+				</svg>
+				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
+					<g transform="translate(-10,10)">
+						<Cattle1 />
+					</g>
+				</svg>
+				Total Cattle {f(cattle)} mln
+			</span>
+		</details>
+	</div>
+</div>
 
 <style>
 	svg {
@@ -666,8 +689,9 @@
 	polygon#earth {
 		filter: drop-shadow(6px 6px 5px rgba(0, 0, 0, 0.4));
 	}
-	.right {
-		text-align: right;
-		z-index: 1;
+	details span {
+		display: inline-block;
+		margin-block-end: 1em;
+		margin-inline-end: 1em;
 	}
 </style>

@@ -33,6 +33,10 @@ def plot_uk_as_farm(datablock, background_color):
     with st.container(border=True):
 
         data = {
+            "total_emissions": float(datablock["metrics"]["total_emissions"]),
+            "self_sufficiency": float(
+                datablock["metrics"]["SSR_metric_yr"].values
+            ),  #  TOOD check if right metric
             "dairy_herd": float(
                 datablock["metrics"]["new_dairy_herd"].isel(Year=-1).values
             )

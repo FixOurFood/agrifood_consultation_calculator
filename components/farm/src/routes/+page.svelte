@@ -29,6 +29,8 @@
 	<div class="figure">
 		{#if Object.keys(data).length !== 0}
 			<GridField
+				totalEmissions={data.total_emissions}
+				selfSufficiency={data.self_sufficiency}
 				pigs={data.pigs}
 				dairyHerd={data.dairy_herd}
 				poultry={data.poultry}

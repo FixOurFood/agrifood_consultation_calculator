@@ -2,6 +2,9 @@ import { format } from 'd3-format';
 
 export const f = format('.1f');
 
+// Format percentage
+export const fp = format('.2p');
+
 export function shuffleArray(array: number[]) {
 	for (let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
