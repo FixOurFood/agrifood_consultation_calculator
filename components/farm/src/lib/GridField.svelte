@@ -531,7 +531,7 @@
 				<svg height="4" viewBox="0 -10 39 23" style="display: inline;">
 					<AdditionalForest4Smalltree />
 				</svg>
-				Additional Forest {f(additionalForest)} Mha
+				Additional Forest
 			</span>
 
 			<span>
@@ -541,42 +541,42 @@
 					<Bigbush />
 					<Smallbush />
 				</svg>
-				AgroForestry {f(agroForestry)} Mha
+				AgroForestry
 			</span>
 
 			<span>
 				<svg height="9" viewBox="0 0 39 23" style="display: inline;">
 					<BECCSArable />
 				</svg>
-				BECCS on Arable {f(beccsArable)} Mha
+				BECCS on Arable
 			</span>
 
 			<span>
 				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
 					<BECCSPasture />
 				</svg>
-				BECCS on pasture {f(beccsOnPasture)} Mha
+				BECCS on pasture
 			</span>
 
 			<span>
 				<svg height="9" viewBox="0 0 39 23" style="display: inline;">
 					<Cereals />
 				</svg>
-				Cereals {f(cereals)} Mha
+				Cereals
 			</span>
 
 			<span>
 				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
 					<Cattle2 />
 				</svg>
-				Dairy Herd {f(dairyHerd)} mln
+				Dairy Herd
 			</span>
 
 			<span>
 				<svg height="12" viewBox="0 -5 39 23" style="display: inline;">
 					<Horticulture />
 				</svg>
-				Horticulture {f(horticulture)} Mha
+				Horticulture
 			</span>
 
 			<span>
@@ -587,42 +587,42 @@
 					<MixedFarmingCorn />
 					<Sheep1 />
 				</svg>
-				Mixed Farming {f(mixedFarming)} Mha
+				Mixed Farming
 			</span>
 
 			<span>
 				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
 					<Oilseed />
 				</svg>
-				Oilseeds {f(oilseeds)} Mha
+				Oilseeds
 			</span>
 
 			<span>
 				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
 					<OtherArable />
 				</svg>
-				Other Arable {f(otherArable)} Mha
+				Other Arable
 			</span>
 
 			<span>
 				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
 					<use href="#pasture" />
 				</svg>
-				Pasture {f(pasture)} Mha
+				Pasture
 			</span>
 
 			<span>
 				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
 					<Pig />
 				</svg>
-				Pigs {f(pigs)} mln
+				Pigs
 			</span>
 
 			<span>
 				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
 					<Potatoes />
 				</svg>
-				Potatoes {f(potatoes)} Mha
+				Potatoes
 			</span>
 
 			<span>
@@ -632,7 +632,7 @@
 				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
 					<Poultry1 />
 				</svg>
-				Poultry {f(poultry)} mln<br />
+				Poultry
 			</span>
 
 			<span>
@@ -640,7 +640,7 @@
 					<Peatland1 />
 				</svg>
 				<span style="display: none;"><Peatland2 /></span>
-				Restored Peatland {f(peatland)} Mha
+				Restored Peatland
 			</span>
 
 			<span>
@@ -650,7 +650,7 @@
 				<svg height="12" viewBox="0 0 39 23" style="display: inline;">
 					<Sheep1 />
 				</svg>
-				Sheep {f(sheep)} mln
+				Sheep
 			</span>
 
 			<span>
