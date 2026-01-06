@@ -660,7 +660,7 @@
 				<svg height="10" viewBox="0 0 39 23" style="display: inline;">
 					<Cattle1 />
 				</svg>
-				Silvopasture {f(silvoPasture)} Mha
+				Silvopasture
 			</span>
 
 			<span>
@@ -674,7 +674,7 @@
 						<Cattle1 />
 					</g>
 				</svg>
-				Total Cattle {f(cattle)} mln
+				Total Cattle
 			</span>
 		</details>
 	</div>
