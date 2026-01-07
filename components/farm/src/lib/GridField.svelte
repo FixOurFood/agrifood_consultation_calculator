@@ -535,13 +535,16 @@
 			</span>
 
 			<span>
-				<svg height="8" viewBox="0 -20 39 23" style="display: inline;">
-					<AdditionalForest4Smalltree />
-					<Smallbush />
-					<Bigbush />
-					<Smallbush />
+				<svg height="9" viewBox="0 0 39 23" style="display: inline;">
+					<Cereals />
 				</svg>
-				AgroForestry
+				<svg height="8" viewBox="0 -15 39 23" style="display: inline;">
+					<AdditionalForest4Smalltree />
+				</svg>
+				<svg height="9" viewBox="0 0 39 23" style="display: inline;">
+					<MixedFarmingSalad />
+				</svg>
+				Agroforestry
 			</span>
 
 			<span>
