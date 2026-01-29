@@ -12,7 +12,8 @@ def text_plus_slider(label,
                      help_dialog=None,
                      percentage=True,
                      sign=True,
-                     suffix=""):
+                     suffix="",
+                     disabled=False):
     """
     A custom widget that combines a label, a clickable help icon and a slider.
     """
@@ -54,7 +55,9 @@ def text_plus_slider(label,
                                     key=key,
                                     on_change=on_slider_change,
                                     label_visibility='collapsed',
-                                    format=str_format + suffix)
+                                    format=str_format + suffix,
+                                    disabled=disabled
+                                    )
         @st.fragment
         def help_button():
             if st.button(":material/help:", key="help_icon_"+key, type="tertiary"):

@@ -14,8 +14,8 @@ from future_food.datablock_setup import datablock_setup
 
 timer = Timer()
 
-if "cereal_scaling" not in st.session_state:
-    st.session_state["cereal_scaling"] = True
+# if "cereal_scaling" not in st.session_state:
+#     st.session_state["cereal_scaling"] = True
 
 if "cereals" not in st.session_state:
     st.session_state["cereals"] = 0
@@ -114,6 +114,34 @@ with st.sidebar:
         ]
         update_slider(query_param_keys, query_param_values)   
     
+    with st.expander("**📈 Scenario settings**"):
+
+        pop_projection = selectbox_plus_icon("Population projection",
+            ["Low", "Medium", "High", "Zero migration"],
+            default="Medium",
+            key="pop_proj",
+            help_dialog=population_help)
+
+        selectbox_plus_icon("Crops yield projection",
+            [-0.27, 0.0, 0.16, 0.34],
+            default=0.0,
+            format_func=format_yield_proj,
+            key="yield_proj",
+            help_dialog=crop_yields_help)
+        
+        selectbox_plus_icon("International trade model",
+            [0, 0.5, 1],
+            default=0.5,
+            format_func=format_elasticity,
+            key="elasticity",
+            help_dialog=trade_help)
+        
+        forest_mode = selectbox_plus_icon("Forest mode",
+            ["Input slider", "Driven by production"],
+            default="Input slider",
+            key="forest_mode",
+            help_dialog=forest_mode_help)
+
     # Consumer demand interventions
 
     with st.expander("**:spaghetti: Consumption**", expanded=False):
@@ -154,7 +182,7 @@ with st.sidebar:
     with st.expander("**:earth_africa: Land use**"):
 
         text_plus_slider("Forest", "foresting_pasture", value=13.17, min_value=0., max_value=50., step=0.1,
-                         help_dialog=afforestation_help, sign=False)
+                         help_dialog=afforestation_help, sign=False, disabled=st.session_state["forest_mode"]=="Driven by production")
 
         text_plus_slider("Broadleaf %", "bdleaf_conif_ratio", min_value=0, value=75)
 
@@ -244,36 +272,14 @@ with st.sidebar:
                          suffix=" Mt CO2e/yr")
 
         
-    with st.expander("**📈 Scenario settings**"):
-
-        pop_projection = selectbox_plus_icon("Population projection",
-                                        ["Low", "Medium", "High", "Zero migration"],
-                                        default="Medium",
-                                        key="pop_proj",
-                                        help_dialog=population_help)
-
-        selectbox_plus_icon("Crops yield projection",
-                            [-0.27, 0.0, 0.16, 0.34],
-                            default=0.0,
-                            format_func=format_yield_proj,
-                            key="yield_proj",
-                            help_dialog=crop_yields_help)
-        
-        selectbox_plus_icon("International trade model",
-                            [0, 0.5, 1],
-                            default=0.5,
-                            format_func=format_elasticity,
-                            key="elasticity",
-                            help_dialog=trade_help)
-        
-        advanced_settings = read_advanced_settings()
-        advanced_settings["pop_proj"] = st.session_state["pop_proj"]
-        advanced_settings["yield_proj"] = st.session_state["yield_proj"]
-        advanced_settings["elasticity"] = st.session_state["elasticity"]
-        advanced_settings["baseline_total_emissions"] = st.secrets["baseline_total_emissions"]
-        advanced_settings["baseline_agricultural_emissions"] = st.secrets["baseline_agricultural_emissions"]
-        advanced_settings["baseline_afolu_emissions"] = st.secrets["baseline_afolu_emissions"]
-        advanced_settings["ssr_metric"] = st.session_state["ssr_metric"]
+    advanced_settings = read_advanced_settings()
+    advanced_settings["pop_proj"] = st.session_state["pop_proj"]
+    advanced_settings["yield_proj"] = st.session_state["yield_proj"]
+    advanced_settings["elasticity"] = st.session_state["elasticity"]
+    advanced_settings["baseline_total_emissions"] = st.secrets["baseline_total_emissions"]
+    advanced_settings["baseline_agricultural_emissions"] = st.secrets["baseline_agricultural_emissions"]
+    advanced_settings["baseline_afolu_emissions"] = st.secrets["baseline_afolu_emissions"]
+    advanced_settings["ssr_metric"] = st.session_state["ssr_metric"]
 
     timer.ping("Sidebar setup")
 
@@ -299,7 +305,13 @@ food_system = pipeline_setup(
 
 timer.ping("Pipeline setup")
 
-food_system.run()
+# Set skipped nodes based on baseline settings
+skipped_nodes = []
+if st.session_state["forest_mode"]=="Driven by production":
+    skipped_nodes.append(6)
+
+food_system.run(skip=skipped_nodes)
+
 datablock_result = food_system.datablock
 
 timer.ping("Pipeline run")

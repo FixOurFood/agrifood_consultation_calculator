@@ -516,3 +516,21 @@ def trade_help():
                 change over time with economic conditions. For further
                 discussion, click [here](https://docs.google.com/document/d/1A2J4BYIuXMgrj9tuLtIon8oJTuR1puK91bbUYCI8kHY/edit?tab=t.0#heading=h.5wokskh532mj).
                 """)
+    
+@st.dialog("Forest mode", width="small")
+def forest_mode_help():
+    st.markdown("""
+                This setting lets you choose how forest area is determined in
+                the model. 
+
+                - **Input slider**: Forest area is determined by the
+                'Forest' slider in the Land Use Change section.
+                Resulting woodland area matches the value set in this slider,
+                and can be controlled by the user.
+
+                - **Driven by production**: Forest area is determined by the
+                relative change of pasture and arable land due to production
+                shifts. Forest percentage becomes an output of the model, rather
+                than an input. If pasture land decreases more than arable land,
+                forest area increases, and vice versa.
+                """)
