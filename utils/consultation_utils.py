@@ -25,6 +25,7 @@ gc = gspread.authorize(credentials)
 sh = gc.open_by_key(st.secrets["scenarios_worksheet_key"])
 
 pathways_worksheet = sh.worksheet(SCENARIOS_WORKSHEET)
+sbc_pathways_worksheet = sh.worksheet("CMF scenarios")
 enrolments_worksheet = sh.worksheet("Form responses 2")
 captions_worksheet = sh.worksheet("figure_captions")
 
@@ -193,6 +194,34 @@ def get_pathway_data(pathway_name):
     
     return pathway_dict
 
+@st.cache_data(ttl=60*60*24)
+def get_sbc_pathway_data(pathway_name):
+    """Get the scenario data from the Google Sheet"""
+
+    # pathways_names
+    pathway_names = sbc_pathways_worksheet.col_values(1)
+
+    # Index of row with the corresponding pathway name
+    idx = pathway_names.index(pathway_name)
+
+    # Get values
+    pathway_values = sbc_pathways_worksheet.row_values(idx + 1)
+    pathway_values = pathway_values[1:]
+    
+    # Convert string values to numbers, replacing empty strings with 0
+    pathway_values = [str(x) if any(c.isalpha() for c in str(x)) 
+                      else float(x) if x != ""
+                      else 0
+                      for x in pathway_values]
+
+    # Get keys
+    keys = sbc_pathways_worksheet.row_values(3)
+
+    # Create dictionary
+    pathway_dict = dict(zip(keys[1:], pathway_values))
+    
+    return pathway_dict
+
 def call_scenarios(scenario=None):
     """Call the scenarios from the Google Sheet"""
 
@@ -207,6 +236,21 @@ def call_scenarios(scenario=None):
     # Get the scenario data
     pathway_data = get_pathway_data(scenario)
 
+    # Update the session state
+    update_slider(list(pathway_data.keys()), list(pathway_data.values()))
+
+def call_sbc_scenarios(scenario):
+    """Call the scenarios from the Google Sheet"""
+
+    # Clear query parameters
+    # st.query_params.clear()
+
+    # Get the scenario data
+    try:
+        pathway_data = get_sbc_pathway_data(scenario)
+    except ValueError:
+        st.warning(f"Scenario {scenario} not found in database.")
+        return
     # Update the session state
     update_slider(list(pathway_data.keys()), list(pathway_data.values()))
 

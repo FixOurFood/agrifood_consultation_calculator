@@ -75,7 +75,8 @@ option_list = [
     "Annual quantities",
     "Per capita daily values",
     "Land",
-    "Self-sufficiency ratio"
+    "Self-sufficiency ratio",
+    "UK as farm",
     ]
 
 FAOSTAT_percapita_items = [

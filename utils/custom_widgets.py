@@ -339,3 +339,35 @@ def selectbox_plus_icon(label,
 
 
     return value
+
+@st.fragment
+def collapsable_text(
+        text,
+        key
+):
+    
+    # Initialize values
+    if key+"_is_open" not in st.session_state:
+        st.session_state[key+"_is_open"] = True
+
+    if st.session_state[key+"_is_open"]:
+        button_label = "Show less"
+        display_text = text
+
+    else:
+        button_label = "Show more"
+        if text.startswith("**"):
+            display_text = " ".join(text.split()[:10]) + "**..."
+        else:
+            display_text = " ".join(text.split()[:10]) + "..."
+
+    st.caption(display_text)
+
+    if st.button(
+        label=button_label,
+        type="tertiary",
+        key=key+"_opener_button"):
+
+        st.session_state[key+"_is_open"] = not st.session_state[key+"_is_open"]
+        st.rerun(scope="fragment")
+
