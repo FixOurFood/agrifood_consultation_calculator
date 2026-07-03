@@ -403,6 +403,10 @@ with st.sidebar:
     st.caption(f'''--- For a list of references to the datasets used, please
                 visit our [reference document]({st.secrets["modelling_doc_url"]}).''')
     
+    st.caption(f'''--- The development of the Future Food Calculator has used AI
+               tools, including large language models and code generation tools.
+               See our [AI statement]({st.secrets["AI_statement_url"]}) for more information.''')
+    
     if st.button("Help"):
         first_run_dialog()
 
