@@ -32,6 +32,7 @@ def text_plus_slider(label,
 
     def on_slider_change(key=key):
         st.query_params.pop(key, None)
+        st.query_params.pop("sbc", None)
 
     with stylable_container(key=key+"_container", css_styles=style):
         col1, col2, col3 = st.columns((5, 6, 1), vertical_alignment="bottom")
