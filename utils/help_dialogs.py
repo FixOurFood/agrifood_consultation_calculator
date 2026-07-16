@@ -534,3 +534,21 @@ def forest_mode_help():
                 than an input. If pasture land decreases more than arable land,
                 forest area increases, and vice versa.
                 """)
+    
+@st.dialog("Feed mode", width="small")
+def feed_mode_help():
+    st.markdown("""
+                This setting lets you choose how feed for animals and other
+                production dependent quantities are managed in the model.
+
+                - **Re-export**: Feed, seed and processing quantities no longer
+                used for animal and vegetal production are exported to other
+                countries. This means that feed, seed and processing quantities
+                are not reduced, and the model assumes that other countries will
+                use the feed, seed and processing quantities that are no longer
+                needed in the UK.
+
+                - **Scale**: Production and imports of feed, seed and processing
+                quantities are scaled according to changes in domestic
+                production.
+                """)

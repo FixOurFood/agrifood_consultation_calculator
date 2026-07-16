@@ -263,3 +263,16 @@ def cached_datablock_setup(
         AES_KEY,
         AES_IV,
         advanced_settings)
+
+def remove_underscore(s):
+    """Removes underscores from a string and capitalizes the first letter of each word"""
+    return ' '.join(word.capitalize() for word in s.split('_'))
+
+def test_random_numbers(key_list, range_list):
+
+    vals = []
+    for lims in range_list:
+        vals.append(np.random.uniform(lims[0], lims[1]))
+
+    update_slider(keys=key_list, values=vals)
+

@@ -14,6 +14,12 @@ from agrifoodpy.pipeline import Pipeline
 from future_food.pipeline_builder import pipeline_setup
 from future_food.datablock_setup import datablock_setup
 
+print("""
+------------------
+Starting execution
+------------------
+""")
+
 timer = Timer()
 
 # if "cereal_scaling" not in st.session_state:
@@ -151,13 +157,26 @@ with st.sidebar:
         
         forest_mode = selectbox_plus_icon("Forest mode",
             ["Input slider", "Driven by production"],
-            default="Input slider",
+            default="Driven by production",
             key="forest_mode",
             help_dialog=forest_mode_help)
+        
+        feed_mode = selectbox_plus_icon("Feed mode",
+            ["Re-export", "Scale"],
+            default="Scale",
+            key="feed_mode",
+            help_dialog=feed_mode_help)
 
     # Consumer demand interventions
 
     with st.expander("**:spaghetti: Consumption**", expanded=False):
+
+        if st.secrets["branch"] == "sarah_jp_hack":
+            if st.button("Test random numbers"):
+                test_random_numbers(
+                    key_list=["ruminant", "pig_poultry", "fish_seafood", "dairy", "eggs", "fruit_veg", "pulses", "meat_alternatives", "dairy_alternatives", "waste"],
+                    range_list=[(-100, 100), (-100, 100), (-100, 100), (-100, 100), (-100, 100), (-100, 500), (-100, 500), (0, 100), (0, 100), (0, 100)]
+                )
 
         text_plus_slider("Ruminant", "ruminant",
                          help_dialog=ruminant_help)
@@ -293,6 +312,11 @@ with st.sidebar:
     advanced_settings["baseline_agricultural_emissions"] = st.secrets["baseline_agricultural_emissions"]
     advanced_settings["baseline_afolu_emissions"] = st.secrets["baseline_afolu_emissions"]
     advanced_settings["ssr_metric"] = st.session_state["ssr_metric"]
+
+    if st.session_state["feed_mode"] == "Re-export":
+        advanced_settings["reexport_feed"] = True
+    elif st.session_state["feed_mode"] == "Scale":
+        advanced_settings["reexport_feed"] = False
 
     timer.ping("Sidebar setup")
 
