@@ -169,7 +169,7 @@ with st.sidebar:
 
     # Consumer demand interventions
 
-    with st.expander("**:spaghetti: Consumption**", expanded=False):
+    with st.expander("**:spaghetti: Consumption**", expanded=True):
 
         if st.secrets["branch"] == "sarah_jp_hack":
             if st.button("Test random numbers"):

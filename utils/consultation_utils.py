@@ -248,6 +248,7 @@ def call_sbc_scenarios(scenario):
     # Get the scenario data
     try:
         pathway_data = get_sbc_pathway_data(scenario)
+        print(pathway_data)
     except ValueError:
         st.warning(f"Scenario {scenario} not found in database.")
         return

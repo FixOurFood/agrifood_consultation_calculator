@@ -1,8 +1,11 @@
 import streamlit as st
 import numpy as np
 from utils.altair_plots import *
+from utils.helper_functions import aligned_markdown
 
-def plot_self_sufficiency(datablock):
+def plot_self_sufficiency():
+
+    datablock = st.session_state["datablock"]
 
     metric_yr = 2050
 
@@ -30,13 +33,21 @@ def plot_self_sufficiency(datablock):
 
     with col1_ssr:
         st.markdown("""# Self-sufficiency""")
-        st.markdown("""<div style="text-align: justify;">
-                    The self-sufficiency ratio (SSR) is a measure of the proportion of a
-                    country's food production that is consumed domestically. It is calculated
-                    as the ratio of production to domestic consumption.
-                    A higher SSR indicates that a country is more self-sufficient in food
-                    production, while a lower SSR indicates that a country relies more on
-                    imports to meet its food needs. </div>""", unsafe_allow_html=True)
+        aligned_markdown("""The self-sufficiency ratio (SSR) is a measure of
+                         ability of a country to meet its food needs from
+                         domestic production. It is calculated as the ratio of
+                         production to domestic consumption. A higher SSR
+                         typically protects a country from global market
+                         fluctuations and trade disruptions, while also having
+                         implications for food security and sustainability.""",
+                         alignment="justify")
+        
+        aligned_markdown("""The chart shows the evolution of the self-sufficiency ratio
+                    in the UK for the selected food items, based on the modelled
+                    production, imports and exports in 2050. The bar charts show
+                    the production and domestic use of the selected food items in
+                    2050, based on the modelled production, imports and exports.""",
+                    alignment="justify")
 
     # plots
     with col2_ssr:
@@ -79,3 +90,5 @@ def plot_self_sufficiency(datablock):
         with st.container(border=True):
             st.altair_chart(production_bar, use_container_width=True)
             st.altair_chart(imports_bar, use_container_width=True)
+
+# plot_self_sufficiency()

@@ -7,8 +7,10 @@ from utils.consultation_utils import get_figure_captions
 
 from streamlit_theme import st_theme
 
-def paper_plots(datablock):
+def paper_plots():
 
+    datablock = st.session_state["datablock"]
+    
     st.markdown("# Paper plots")
     if (st.button("Update figure captions")):
         get_figure_captions.clear()
@@ -248,3 +250,5 @@ def paper_plots(datablock):
                 else:
                     st.altair_chart(f, use_container_width=True)
                 st.caption(capt)
+
+# paper_plots()

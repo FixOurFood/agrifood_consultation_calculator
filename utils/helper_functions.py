@@ -276,3 +276,11 @@ def test_random_numbers(key_list, range_list):
 
     update_slider(keys=key_list, values=vals)
 
+def aligned_markdown(text, alignment="left", add_space=True):
+    """Returns a markdown string with the specified text alignment"""
+    st.markdown(
+        f'<div style="text-align: {alignment};">{text}</div>',
+        unsafe_allow_html=True)
+    if add_space:
+        st.markdown("")
+        st.markdown("")

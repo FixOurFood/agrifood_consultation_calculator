@@ -24,7 +24,10 @@ def map_max(map, dim):
 
     return map_fixed.idxmax(dim=dim, skipna=True)
 
-def plot_summary(datablock, background_color):
+def plot_summary():
+
+    datablock = st.session_state["datablock"]
+    background_color = st.session_state["background_color"]
 
     reference_emissions_baseline = st.secrets["baseline_total_emissions"]
 
@@ -335,3 +338,5 @@ def plot_summary(datablock, background_color):
             # such as silvoarable (trees mixed with crops) and silvopasture
             # (animals mixed with crops).
             # </div>''', unsafe_allow_html=True)
+
+# plot_summary()

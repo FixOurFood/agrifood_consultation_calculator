@@ -73,7 +73,7 @@ vegetarian_diet_dict = {
 option_list = [
     "Summary",
     "Annual quantities",
-    "Per capita daily values",
+    "Per capita values",
     "Land",
     "Self-sufficiency ratio",
     "UK as farm",

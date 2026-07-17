@@ -550,6 +550,19 @@ def plot_bars_altair2(
             tooltip=[f'{show}:N', 'value:Q'],
             ).add_params(selection).properties(height=500)
 
+        # Add a separator between standard and reversed variables.
+        if len(data_vars) > 0 and len(reversed_vars) > 0:
+            separator_df = pd.DataFrame({"separator_var": [data_vars[-1]]})
+            separator = alt.Chart(separator_df).mark_rule(
+                strokeDash=[6, 4],
+                color="red",
+                size=1,
+            ).encode(
+                y=alt.Y('separator_var:N', sort=None, bandPosition=0.5),
+                yOffset=alt.value(40)
+            )
+            c = c + separator
+
     else:
         # Create the chart
         c = alt.Chart(df).mark_bar().encode(

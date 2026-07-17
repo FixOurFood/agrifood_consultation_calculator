@@ -1,5 +1,6 @@
 import streamlit as st
 from utils.altair_plots import *
+from utils.helper_functions import aligned_markdown
 import matplotlib.pyplot as plt
 from matplotlib import colors
 
@@ -12,7 +13,11 @@ def map_max(map, dim):
 
     return map_fixed.idxmax(dim=dim, skipna=True)    
 
-def plot_land_use(datablock, background_color):
+def plot_land_use():
+
+    datablock = st.session_state["datablock"]
+    background_color = st.session_state["background_color"]
+
     f, plot1 = plt.subplots(1, figsize=(8,8))
     f.patch.set_facecolor(background_color)
     plot1.set_facecolor(background_color)
@@ -37,18 +42,23 @@ def plot_land_use(datablock, background_color):
 
     plot1.axis("off")
     plot1.set_xlim(left=-100)
+    plot1.set_xlim(right=800)
     plot1.set_ylim(top=980)
 
-    col2_1, col2_2, col2_3 = st.columns((1,1.4,1))
+    col2_1, col2_2, col2_3 = st.columns((1,1.8,1.2))
     with col2_1:
         st.markdown("""# Land use""")
-        st.markdown("""Land is fundamental for all human activities, including
+        aligned_markdown("""Land is fundamental for all human activities, including
                     food production. But it also plays a crucial role in the
                     dynamics of greenhouse gases in the atmosphere. Forests,
                     peatland and even agricultural soils are capable of storing
                     CO2, as long as we are able to find an adequate balance
                     between all land uses, are we are careful when using the soil
-                    for food production.""")
+                    for food production.""", alignment="justify")
+        
+        aligned_markdown("""The map shows the dominant land use in each grid cell of the UK,
+                    based on the modelled land use in 2050. The pie chart shows
+                    the proportion of land used for each land use category in the UK.""", alignment="justify")
     with col2_2:
         with st.container(border=True):
             st.pyplot(fig=f)
@@ -65,5 +75,7 @@ def plot_land_use(datablock, background_color):
 
         st.metric("Forested % of UK land", value=f"{forest_fraction:.2f}% ", delta=f"{forest_fraction-baseline_forest_fraction:.2f}%")
         st.metric("Mixed farming % of UK land", value=f"{100*mixed_farming_fraction:.2f}% ")
+
+# plot_land_use()
 
     
